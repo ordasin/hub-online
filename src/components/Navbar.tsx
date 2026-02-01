@@ -5,8 +5,8 @@ import Link from "next/link"
 import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User, ShieldAlert } from "lucide-react"
 import { motion } from "framer-motion"
 
-// Tu llave pública maestra para seguridad total
 const MASTER_PUB = "1ssBJ21YO8u8ONhlR1iokrR1_23Vnci4o1nPQDJvyU0.MjwgKU7CCEKsI08ptqpGgdwnp-IVRtxRDjHCt9XiWhw";
+const PEERS = ['https://relay.gun.eco/gun', 'https://gun-manhattan.herokuapp.com/gun'];
 
 export function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -17,17 +17,14 @@ export function Navbar() {
     const initGun = async () => {
       const Gun = (await import('gun')).default;
       await import('gun/sea');
-      const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+      const gun = Gun({ peers: PEERS });
       const user = (gun as any).user().recall({ sessionStorage: true });
 
       const checkUser = () => {
         if (user.is) {
           setIsLoggedIn(true);
           setUserName(user.is.alias);
-          // Verificación por LLAVE PÚBLICA (Inhackeable)
-          if (user.is.pub === MASTER_PUB) {
-            setIsAdmin(true);
-          }
+          if (user.is.pub === MASTER_PUB) setIsAdmin(true);
         }
       };
 
@@ -62,9 +59,9 @@ export function Navbar() {
             <LayoutGrid size={16} />
             <span className="hidden xs:block">Proyectos</span>
           </Link>
-          <Link href="/chat" className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-colors">
+          <Link href="/chat" className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-colors text-yellow-500">
             <Zap size={16} className="text-yellow-500" />
-            <span className="hidden xs:block">Chat P2P</span>
+            <span className="hidden xs:block text-white">Chat P2P</span>
           </Link>
           <Link href="/community" className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-colors">
             <Users size={16} />
@@ -74,7 +71,7 @@ export function Navbar() {
           {isAdmin && (
             <Link href="/admin" className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 px-3 py-2 rounded-lg transition-colors bg-red-400/10 border border-red-400/20">
               <ShieldAlert size={16} />
-              <span className="hidden xs:block">Admin</span>
+              <span className="hidden xs:block text-red-400">Admin</span>
             </Link>
           )}
 
