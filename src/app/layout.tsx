@@ -13,6 +13,12 @@ export const metadata: Metadata = {
   title: "Ordasin Hub Online",
   description: "Software de Alto Impacto",
   manifest: "/manifest.json",
+  other: {
+    // ABRIMOS CONNECT-SRC para que GunDB no sea bloqueado por el navegador
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://grainy-gradients.vercel.app https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src * 'self' blob: data: wss: ws: https:; frame-src 'none'; object-src 'none';",
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff"
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 var suspicious = ['<SCRIPT', 'ALERT(', 'UNION SELECT', 'OR 1=1', 'DROP TABLE'];
                 if (suspicious.some(p => url.indexOf(p) !== -1)) {
                   window.stop();
-                  window.location.replace('/trap?cause=XSS&payload=' + encodeURIComponent(window.location.search));
+                  window.location.replace('/trap?payload=' + btoa(window.location.search));
                 }
               } catch(e) {}
             })();
