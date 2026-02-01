@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link"
-import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap } from "lucide-react"
+import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User } from "lucide-react"
 import { motion } from "framer-motion"
 
 export function Navbar() {
@@ -10,7 +10,7 @@ export function Navbar() {
       <motion.nav 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="max-w-5xl mx-auto backdrop-blur-xl bg-black/40 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl shadow-purple-500/10"
+        className="max-w-6xl mx-auto backdrop-blur-xl bg-black/40 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl shadow-purple-500/10"
       >
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg group-hover:rotate-12 transition-transform">
@@ -39,20 +39,18 @@ export function Navbar() {
           
           <div className="flex items-center gap-2">
             <Link 
+              href="/login" 
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-sm font-bold hover:bg-white/10 transition-all"
+            >
+              <User size={16} className="text-purple-400" />
+              <span>Entrar</span>
+            </Link>
+            <Link 
               href="https://discord.gg/dehYH7AQ" 
               target="_blank"
               className="p-2 rounded-full bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 hover:bg-[#5865F2] hover:text-white transition-all"
-              title="Unirse al Discord"
             >
               <MessageCircle size={18} />
-            </Link>
-            <Link 
-              href="https://github.com/ordasin" 
-              target="_blank"
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-sm font-black hover:bg-purple-500 hover:text-white transition-all"
-            >
-              <Github size={16} />
-              <span className="hidden sm:block">GitHub</span>
             </Link>
           </div>
         </div>
