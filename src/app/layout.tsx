@@ -12,25 +12,27 @@ export const viewport: Viewport = { themeColor: "#050505", width: "device-width"
 export const metadata: Metadata = {
   title: "Ordasin Hub Online",
   description: "Software de Alto Impacto",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <head>
-        {/* CARGA DE LIBRERÍAS CORE (ORDEN CRÍTICO) */}
+        {/* CARGA DE LIBRERÍAS (SEA ES NECESARIA PARA LOGIN/ADMIN) */}
         <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
         
+        {/* ESCUDO DE SEGURIDAD PRE-CARGA */}
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
               try {
                 var url = decodeURIComponent(window.location.href).toUpperCase();
-                var patterns = ['<SCRIPT', 'ALERT(', 'UNION', 'OR 1=1', 'DROP', 'CAT /ETC/'];
-                if (patterns.some(function(p) { return url.indexOf(p) !== -1; })) {
+                var suspicious = ['<SCRIPT', 'ALERT(', 'UNION', 'OR 1=1', 'DROP', 'CAT /ETC/'];
+                if (suspicious.some(function(p) { return url.indexOf(p) !== -1; })) {
                   window.stop();
-                  window.location.replace('/trap?q=' + encodeURIComponent(window.location.search));
+                  window.location.replace('/trap?q=' + Date.now());
                 }
               } catch(e) {}
             })();
