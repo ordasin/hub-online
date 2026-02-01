@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Toaster } from "sonner";
+import Script from "next/script";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -10,17 +11,23 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const viewport: Viewport = { themeColor: "#050505", width: "device-width", initialScale: 1 };
 
 export const metadata: Metadata = {
-  title: "Ordasin Hub Online | Software de Alto Impacto",
-  description: "Plataforma de software descentralizada y herramientas de optimización.",
-  manifest: "/manifest.json",
+  title: "Ordasin Hub Online",
+  description: "Software de Alto Impacto",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <head>
-        <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+        {/* CARGA PRIORITARIA DE LIBRERÍAS P2P */}
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/gun/gun.js" 
+          strategy="beforeInteractive"
+        />
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/gun/sea.js" 
+          strategy="beforeInteractive"
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#050505]`}>
         <Toaster position="bottom-right" theme="dark" richColors closeButton />
