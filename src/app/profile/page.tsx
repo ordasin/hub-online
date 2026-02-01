@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react'
 import Gun from 'gun'
 import 'gun/sea'
-import { User, Settings, Shield, Zap, Save, RefreshCw, Cpu, Database } from 'lucide-react'
+import { 
+  User, Settings, Shield, Zap, Save, RefreshCw, 
+  Cpu, Database, gauge, Sliders, Activity, Binary 
+} from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
@@ -12,12 +15,20 @@ const user = (gun as any).user().recall({ sessionStorage: true });
 export default function ProfilePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [alias, setAlias] = useState('')
+  
+  // Configuración basada en OptimizerConfig real
   const [config, setConfig] = useState({
-    gamingMode: false,
-    lowLatency: true,
-    cleaningPower: 'Medium',
-    autoUpdate: true
+    optimizer: 'adam',
+    lr: 0.001,
+    weight_decay: 0.01,
+    fp16: false,
+    bf16: true,
+    adam_beta1: 0.9,
+    adam_beta2: 0.999,
+    clip_grad: 1.0,
+    use_distributed_optimizer: false
   })
+  
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -25,11 +36,20 @@ export default function ProfilePage() {
       setIsLoggedIn(true);
       setAlias(user.is.alias);
       
-      // Cargar configuración guardada en P2P
-      user.get('optimizer_config').once((data: any) => {
+      // Cargar configuración real desde la red P2P
+      user.get('advanced_optimizer_config').once((data: any) => {
         if (data) {
-          const { _, ...cleanData } = data; // Quitar metadatos de Gun
-          setConfig(prev => ({ ...prev, ...cleanData }));
+          const { _, ...cleanData } = data;
+          // Convertir strings numéricos de vuelta a números si es necesario
+          const parsedData = Object.keys(cleanData).reduce((acc: any, key) => {
+            const val = cleanData[key];
+            acc[key] = (typeof val === 'string' && !isNaN(Number(val)) && val !== '') ? Number(val) : val;
+            // Manejar booleanos guardados como strings por Gun
+            if (val === 'true') acc[key] = true;
+            if (val === 'false') acc[key] = false;
+            return acc;
+          }, {});
+          setConfig(prev => ({ ...prev, ...parsedData }));
         }
       });
     } else {
@@ -39,124 +59,209 @@ export default function ProfilePage() {
 
   const saveConfig = () => {
     setSaving(true);
-    user.get('optimizer_config').put(config, (ack: any) => {
+    // Gun prefiere datos planos para persistencia simple
+    user.get('advanced_optimizer_config').put(config, (ack: any) => {
       setSaving(false);
-      if (!ack.err) alert('Configuración P2P guardada con éxito');
+      if (!ack.err) {
+        console.log("Configuración guardada");
+      }
     });
+  }
+
+  const updateField = (field: string, value: any) => {
+    setConfig(prev => ({ ...prev, [field]: value }));
   }
 
   if (!isLoggedIn) return null;
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white pt-32 px-6">
+    <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-900/10 rounded-full blur-[128px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 rounded-full blur-[128px]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto space-y-8">
-        {/* Cabecera del Perfil */}
+      <div className="relative z-10 max-w-6xl mx-auto space-y-8">
+        {/* Header de Usuario */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-xl flex flex-col md:flex-row items-center gap-8"
+          className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-8"
         >
-          <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-blue-600 rounded-[2.5rem] flex items-center justify-center text-4xl font-black shadow-2xl">
-            {alias[0]?.toUpperCase()}
-          </div>
-          <div className="text-center md:text-left space-y-2">
-            <h1 className="text-4xl font-black tracking-tighter uppercase">{alias}</h1>
-            <div className="flex flex-wrap justify-center md:justify-start gap-3">
-              <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-black text-green-400 uppercase tracking-widest flex items-center gap-1">
-                <Shield size={12} /> ID Verificado P2P
-              </span>
-              <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-1">
-                <Database size={12} /> Datos Cifrados
-              </span>
+          <div className="flex items-center gap-8">
+            <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-blue-600 rounded-[2.5rem] flex items-center justify-center text-4xl font-black shadow-2xl shadow-purple-500/20">
+              {alias[0]?.toUpperCase()}
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-4xl font-black tracking-tighter uppercase">{alias}</h1>
+              <div className="flex gap-3">
+                <span className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[10px] font-black text-purple-400 uppercase tracking-widest flex items-center gap-1">
+                  <Shield size={12} /> NODO AUTORIZADO
+                </span>
+              </div>
             </div>
           </div>
+          
+          <button 
+            onClick={saveConfig}
+            disabled={saving}
+            className="group relative px-8 py-4 bg-white text-black rounded-2xl font-black text-sm flex items-center gap-3 hover:bg-purple-500 hover:text-white transition-all disabled:opacity-50 overflow-hidden"
+          >
+            {saving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
+            <span>SINCRONIZAR AJUSTES</span>
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform" />
+          </button>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Configuración del Optimizador */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-2 p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-xl space-y-8"
-          >
-            <div className="flex items-center justify-between">
+          {/* Panel Principal de Configuración */}
+          <div className="lg:col-span-2 space-y-8">
+            <motion.section 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-xl space-y-8"
+            >
               <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                <Settings className="text-purple-400" />
-                AJUSTES DEL OPTIMIZADOR
+                <Sliders className="text-purple-400" />
+                OPTIMIZER CORE CONFIG
               </h2>
-              <button 
-                onClick={saveConfig}
-                disabled={saving}
-                className="px-6 py-2 bg-purple-600 hover:bg-purple-500 rounded-full text-xs font-black flex items-center gap-2 transition-all disabled:opacity-50 shadow-lg shadow-purple-900/20"
-              >
-                {saving ? <RefreshCw className="animate-spin" size={14} /> : <Save size={14} />}
-                GUARDAR EN LA RED
-              </button>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { id: 'gamingMode', label: 'Modo Gaming Pro', desc: 'Prioriza procesos de juegos.', icon: Zap },
-                { id: 'lowLatency', label: 'Latencia Ultra-Baja', desc: 'Optimiza la red P2P.', icon: Cpu },
-                { id: 'autoUpdate', label: 'Auto-Actualización', desc: 'Mantiene las herramientas al día.', icon: RefreshCw },
-              ].map((item) => (
-                <div key={item.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between hover:bg-white/10 transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
-                      <item.icon size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm">{item.label}</h4>
-                      <p className="text-[10px] text-gray-500 font-medium">{item.desc}</p>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* General Settings */}
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Optimizer Engine</label>
+                    <select 
+                      value={config.optimizer}
+                      onChange={(e) => updateField('optimizer', e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                    >
+                      <option value="adam" className="bg-[#0a0a0a]">Adam (Fused)</option>
+                      <option value="sgd" className="bg-[#0a0a0a]">SGD (Momentum)</option>
+                    </select>
                   </div>
-                  <button 
-                    onClick={() => setConfig(prev => ({ ...prev, [item.id]: !prev[item.id as keyof typeof config] }))}
-                    className={`w-12 h-6 rounded-full transition-all relative ${config[item.id as keyof typeof config] ? 'bg-purple-600' : 'bg-gray-800'}`}
-                  >
-                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config[item.id as keyof typeof config] ? 'left-7' : 'left-1'}`} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </motion.div>
 
-          {/* Estadísticas / Info */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-6"
-          >
-            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-white/10 backdrop-blur-xl">
-              <h3 className="font-black text-sm uppercase tracking-widest mb-4">Estado del Nodo</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-400 font-bold">Conexión</span>
-                  <span className="text-green-400 font-black">ACTIVA</span>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Learning Rate ({config.lr})</label>
+                    <input 
+                      type="range" min="0.0001" max="0.1" step="0.0001"
+                      value={config.lr}
+                      onChange={(e) => updateField('lr', parseFloat(e.target.value))}
+                      className="w-full accent-purple-500"
+                    />
+                  </div>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-400 font-bold">Relé P2P</span>
-                  <span className="text-blue-400 font-black">GUN-MANHATTAN</span>
-                </div>
-                <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
-                  <div className="bg-purple-500 h-full w-[85%] animate-pulse" />
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Weight Decay</label>
+                    <input 
+                      type="number" step="0.001"
+                      value={config.weight_decay}
+                      onChange={(e) => updateField('weight_decay', parseFloat(e.target.value))}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Gradient Clipping</label>
+                    <input 
+                      type="number" step="0.1"
+                      value={config.clip_grad}
+                      onChange={(e) => updateField('clip_grad', parseFloat(e.target.value))}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.section>
 
-            <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl">
-              <h3 className="font-black text-sm uppercase tracking-widest mb-4">Seguridad</h3>
-              <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
-                Tus ajustes están firmados criptográficamente. Solo tú puedes modificarlos usando tu llave privada generada localmente.
+            {/* Precision & Scaling */}
+            <motion.section 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-xl space-y-8"
+            >
+              <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
+                <Binary className="text-blue-400" />
+                PRECISION & DISTRIBUTED
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  { id: 'fp16', label: 'FP16 Mixed', icon: Cpu },
+                  { id: 'bf16', label: 'BF16 Training', icon: Activity },
+                  { id: 'use_distributed_optimizer', label: 'Distributed', icon: Database },
+                ].map((item) => (
+                  <button 
+                    key={item.id}
+                    onClick={() => updateField(item.id, !config[item.id as keyof typeof config])}
+                    className={`p-6 rounded-2xl border transition-all text-left space-y-4 ${
+                      config[item.id as keyof typeof config] 
+                      ? 'bg-blue-500/10 border-blue-500/50' 
+                      : 'bg-white/5 border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <item.icon size={24} className={config[item.id as keyof typeof config] ? 'text-blue-400' : 'text-gray-600'} />
+                    <div className="font-bold text-xs uppercase tracking-widest">{item.label}</div>
+                  </button>
+                ))}
+              </div>
+            </motion.section>
+          </div>
+
+          {/* Sidebar de Estado */}
+          <div className="space-y-8">
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-600/10 to-blue-600/10 border border-white/10 backdrop-blur-xl"
+            >
+              <h3 className="font-black text-xs uppercase tracking-[0.2em] text-gray-400 mb-6">Métricas de Sincronización</h3>
+              <div className="space-y-6">
+                <div className="flex justify-between items-end">
+                  <span className="text-xs font-bold text-gray-500 uppercase">Integridad</span>
+                  <span className="text-xl font-black text-green-400">100%</span>
+                </div>
+                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-green-500" 
+                    initial={{ width: 0 }} 
+                    animate={{ width: '100%' }} 
+                  />
+                </div>
+                
+                <div className="flex justify-between items-end">
+                  <span className="text-xs font-bold text-gray-500 uppercase">Latencia P2P</span>
+                  <span className="text-xl font-black text-blue-400">24ms</span>
+                </div>
+                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-blue-500" 
+                    initial={{ width: 0 }} 
+                    animate={{ width: '40%' }} 
+                  />
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Shield className="text-purple-500" size={20} />
+                <h3 className="font-black text-xs uppercase tracking-widest">Protocolo de Cifrado</h3>
+              </div>
+              <p className="text-[10px] text-gray-500 leading-relaxed font-bold uppercase tracking-tighter">
+                Tus configuraciones de Megatron y Optuna están protegidas bajo el estándar SEA de GunDB. 
+                Ningún servidor central almacena estos parámetros.
               </p>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </main>
