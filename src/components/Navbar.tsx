@@ -2,63 +2,33 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Github, LayoutGrid, MessageCircle, Zap, User, ShieldAlert, Wifi } from "lucide-react"
+import { Github, LayoutGrid, MessageCircle, Zap, User, ShieldAlert } from "lucide-react"
 import { motion } from "framer-motion"
-
-// Peers para sincronización
-const PEERS = ['https://relay.gun.eco/gun', 'https://gun-manhattan.herokuapp.com/gun'];
 
 export function Navbar() {
   const [userState, setUserState] = useState({ logged: false, name: "", isAdmin: false })
-  const [peerCount, setPeerCount] = useState(0)
 
   useEffect(() => {
-    let checkInterval: any;
-
-    const init = async () => {
+    const checkSession = () => {
       // @ts-ignore
-      const Gun = window.Gun;
-      if (!Gun) return;
-
-      const gun = Gun({ peers: PEERS, localStorage: true });
+      if (!window.Gun) return;
+      // @ts-ignore
+      const gun = window.Gun(['https://relay.gun.eco/gun', 'https://gun-manhattan.herokuapp.com/gun']);
       // @ts-ignore
       const user = gun.user().recall({ sessionStorage: true });
 
-      const syncUser = () => {
-        if (user.is) {
-          setUserState({
-            logged: true,
-            name: user.is.alias,
-            // BYPASS POR NOMBRE: Si te llamas ordasin, eres admin sí o sí
-            isAdmin: user.is.alias === 'ordasin' || user.is.pub === "1ssBJ21YO8u8ONhlR1iokrR1_23Vnci4o1nPQDJvyU0.MjwgKU7CCEKsI08ptqpGgdwnp-IVRtxRDjHCt9XiWhw"
-          });
-        }
-      };
-
-      // Escuchar conexión
-      gun.on('hi', () => setPeerCount(p => p + 1));
-      gun.on('bye', () => setPeerCount(p => Math.max(0, p - 1)));
-
-      // Sincronizar inmediatamente y al autenticar
-      syncUser();
-      gun.on('auth', syncUser);
-      
-      // Bucle de verificación de respaldo cada 2 segundos
-      checkInterval = setInterval(syncUser, 2000);
-    };
-
-    const loader = setInterval(() => {
-      // @ts-ignore
-      if (window.Gun) {
-        init();
-        clearInterval(loader);
+      if (user.is) {
+        setUserState({
+          logged: true,
+          name: user.is.alias,
+          // BYPASS TOTAL: Si tu nombre es ordasin, eres ADMIN.
+          isAdmin: user.is.alias === 'ordasin'
+        });
       }
-    }, 500);
-
-    return () => {
-        clearInterval(loader);
-        clearInterval(checkInterval);
     };
+
+    const timer = setInterval(checkSession, 1000);
+    return () => clearInterval(timer);
   }, [])
 
   return (
@@ -72,10 +42,7 @@ export function Navbar() {
           <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg group-hover:rotate-12 transition-transform">O</div>
           <div className="hidden sm:block">
             <span className="font-black tracking-tighter text-lg text-white block leading-none uppercase">Ordasin</span>
-            <div className="flex items-center gap-1">
-                <div className={`w-1 h-1 rounded-full ${peerCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Network Active</span>
-            </div>
+            <span className="text-[8px] text-purple-400 font-bold uppercase tracking-widest">Hub Online</span>
           </div>
         </Link>
         
@@ -88,7 +55,7 @@ export function Navbar() {
           </Link>
           
           {userState.isAdmin && (
-            <Link href="/admin" className="flex items-center gap-2 text-xs font-black text-red-400 hover:text-white px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+            <Link href="/admin" className="flex items-center gap-2 text-xs font-black text-red-400 hover:text-white px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]">
               <ShieldAlert size={14} /> <span>ADMIN</span>
             </Link>
           )}
