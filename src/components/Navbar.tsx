@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Gun from "gun"
 import 'gun/sea'
-import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User, LogOut } from "lucide-react"
+import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User } from "lucide-react"
 import { motion } from "framer-motion"
 
 const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
@@ -61,7 +61,7 @@ export function Navbar() {
           
           <div className="flex items-center gap-2">
             <Link 
-              href="/login" 
+              href={isLoggedIn ? "/profile" : "/login"} 
               className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-bold ${
                 isLoggedIn 
                 ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20' 
