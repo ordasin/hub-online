@@ -5,7 +5,11 @@ import Link from "next/link"
 import { Github, LayoutGrid, MessageCircle, Zap, User, ShieldAlert } from "lucide-react"
 import { motion } from "framer-motion"
 
-const PEERS = ['https://relay.gun.eco/gun', 'https://gunjs.herokuapp.com/gun'];
+const PEERS = [
+  'https://relay.gun.eco/gun',
+  'https://peer.wall.org/gun',
+  'https://dletta.herokuapp.com/gun'
+];
 
 export function Navbar() {
   const [userState, setUserState] = useState({ logged: false, name: "", isAdmin: false })
@@ -14,7 +18,6 @@ export function Navbar() {
     const check = () => {
       // @ts-ignore
       const Gun = window.Gun;
-      // @ts-ignore
       if (!Gun || !Gun.SEA) return;
 
       const gun = Gun({ peers: PEERS, localStorage: true });
@@ -39,7 +42,7 @@ export function Navbar() {
       <motion.nav 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="max-w-7xl mx-auto backdrop-blur-xl bg-black/60 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl"
+        className="max-w-7xl mx-auto backdrop-blur-xl bg-black/60 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl shadow-purple-500/10"
       >
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center font-black text-white">O</div>
