@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link"
-import { Sparkles, Github, LayoutGrid, Users } from "lucide-react"
+import { Sparkles, Github, LayoutGrid, Users, MessageCircle } from "lucide-react"
 import { motion } from "framer-motion"
 
 export function Navbar() {
@@ -32,14 +32,25 @@ export function Navbar() {
             <span className="hidden xs:block">Comunidad</span>
           </Link>
           <div className="w-[1px] h-4 bg-white/10 mx-2 hidden sm:block" />
-          <Link 
-            href="https://github.com/ordasin" 
-            target="_blank"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-sm font-black hover:bg-purple-500 hover:text-white transition-all"
-          >
-            <Github size={16} />
-            <span className="hidden sm:block">GitHub</span>
-          </Link>
+          
+          <div className="flex items-center gap-2">
+            <Link 
+              href="https://discord.gg/dehYH7AQ" 
+              target="_blank"
+              className="p-2 rounded-full bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 hover:bg-[#5865F2] hover:text-white transition-all"
+              title="Unirse al Discord"
+            >
+              <MessageCircle size={18} />
+            </Link>
+            <Link 
+              href="https://github.com/ordasin" 
+              target="_blank"
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-sm font-black hover:bg-purple-500 hover:text-white transition-all"
+            >
+              <Github size={16} />
+              <span className="hidden sm:block">GitHub</span>
+            </Link>
+          </div>
         </div>
       </motion.nav>
     </div>

@@ -1,4 +1,4 @@
-import { MessageSquare, Github, Star, Sparkles, Send } from "lucide-react"
+import { MessageSquare, Github, Star, Sparkles, Send, MessageCircle } from "lucide-react"
 
 interface FeedbackProps {
   projectTitle?: string
@@ -6,6 +6,7 @@ interface FeedbackProps {
 
 export function Feedback({ projectTitle }: FeedbackProps) {
   const repoUrl = "https://github.com/ordasin/hub-online";
+  const discordUrl = "https://discord.gg/dehYH7AQ";
   const issueUrl = projectTitle 
     ? `${repoUrl}/issues/new?title=Feedback:+${encodeURIComponent(projectTitle)}`
     : `${repoUrl}/issues/new`;
@@ -33,20 +34,20 @@ export function Feedback({ projectTitle }: FeedbackProps) {
         </a>
 
         <a 
-          href={repoUrl}
+          href={discordUrl}
           target="_blank"
-          className="relative group overflow-hidden p-8 rounded-[2rem] bg-white/5 border border-white/10 hover:border-blue-500/50 transition-all"
+          className="relative group overflow-hidden p-8 rounded-[2rem] bg-[#5865F2]/5 border border-[#5865F2]/10 hover:border-[#5865F2]/50 transition-all"
         >
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity">
-            <MessageSquare size={120} />
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity text-[#5865F2]">
+            <MessageCircle size={120} />
           </div>
           <div className="relative z-10">
-            <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform">
-              <Sparkles size={24} />
+            <div className="w-12 h-12 bg-[#5865F2]/10 rounded-xl flex items-center justify-center text-[#5865F2] mb-6 group-hover:scale-110 transition-transform">
+              <MessageCircle size={24} />
             </div>
-            <h4 className="font-black text-white text-xl mb-2 uppercase tracking-tight">Código Abierto</h4>
+            <h4 className="font-black text-white text-xl mb-2 uppercase tracking-tight">Comunidad Discord</h4>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Explora el código fuente, contribuye o descarga los recursos directamente desde el repositorio.
+              Únete a nuestro servidor de Discord para soporte en tiempo real y charlas con otros usuarios.
             </p>
           </div>
         </a>
