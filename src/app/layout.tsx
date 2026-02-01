@@ -19,8 +19,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <head>
+        {/* CARGA DE LIBRERÍAS CORE */}
         <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+        
+        {/* ESCUDO DE SEGURIDAD PRE-CARGA */}
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
@@ -29,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 var patterns = ['<SCRIPT', 'ALERT(', 'UNION', 'OR 1=1', 'DROP', 'CAT /ETC/'];
                 if (patterns.some(function(p) { return url.indexOf(p) !== -1; })) {
                   window.stop();
-                  window.location.replace('/trap?q=' + Date.now());
+                  window.location.replace('/trap?q=' + encodeURIComponent(window.location.search));
                 }
               } catch(e) {}
             })();
