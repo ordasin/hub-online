@@ -9,26 +9,38 @@ export function Navbar() {
   const [userState, setUserState] = useState({ logged: false, name: "", isAdmin: false })
 
   useEffect(() => {
-    const checkSession = () => {
-      // @ts-ignore
-      if (!window.Gun) return;
-      // @ts-ignore
-      const gun = window.Gun(['https://relay.gun.eco/gun', 'https://gun-manhattan.herokuapp.com/gun']);
-      // @ts-ignore
-      const user = gun.user().recall({ sessionStorage: true });
+    const checkStatus = () => {
+      if (typeof window === 'undefined') return;
 
-      if (user.is) {
-        setUserState({
-          logged: true,
-          name: user.is.alias,
-          // BYPASS TOTAL: Si tu nombre es ordasin, eres ADMIN.
-          isAdmin: user.is.alias === 'ordasin'
-        });
+      // 1. Verificación por Disco (Instantánea tras login)
+      const isMaster = localStorage.getItem('is_master_admin') === 'true';
+      
+      // 2. Verificación por GunDB (Cuando la red cargue)
+      // @ts-ignore
+      const Gun = window.Gun;
+      if (Gun) {
+        const gun = Gun({ peers: ['https://relay.gun.eco/gun'], localStorage: true });
+        // @ts-ignore
+        const user = gun.user().recall({ sessionStorage: true });
+        
+        if (user.is) {
+          setUserState({
+            logged: true,
+            name: user.is.alias,
+            isAdmin: user.is.alias === 'ordasin' || isMaster
+          });
+          return;
+        }
+      }
+
+      // Si no hay Gun pero hay marca local, mostramos Admin (Bypass preventivo)
+      if (isMaster) {
+        setUserState(prev => ({ ...prev, isAdmin: true }));
       }
     };
 
-    const timer = setInterval(checkSession, 1000);
-    return () => clearInterval(timer);
+    const interval = setInterval(checkStatus, 1500);
+    return () => clearInterval(interval);
   }, [])
 
   return (
