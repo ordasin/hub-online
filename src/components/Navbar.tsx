@@ -5,6 +5,9 @@ import Link from "next/link"
 import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User, ShieldAlert } from "lucide-react"
 import { motion } from "framer-motion"
 
+// Tu llave pública maestra para seguridad total
+const MASTER_PUB = "1ssBJ21YO8u8ONhlR1iokrR1_23Vnci4o1nPQDJvyU0.MjwgKU7CCEKsI08ptqpGgdwnp-IVRtxRDjHCt9XiWhw";
+
 export function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userName, setUserName] = useState("")
@@ -21,7 +24,10 @@ export function Navbar() {
         if (user.is) {
           setIsLoggedIn(true);
           setUserName(user.is.alias);
-          if (user.is.alias === 'ordasin') setIsAdmin(true);
+          // Verificación por LLAVE PÚBLICA (Inhackeable)
+          if (user.is.pub === MASTER_PUB) {
+            setIsAdmin(true);
+          }
         }
       };
 
@@ -66,7 +72,7 @@ export function Navbar() {
           </Link>
           
           {isAdmin && (
-            <Link href="/admin" className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 px-3 py-2 rounded-lg transition-colors bg-red-400/10 border border-red-400/20 animate-pulse">
+            <Link href="/admin" className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 px-3 py-2 rounded-lg transition-colors bg-red-400/10 border border-red-400/20">
               <ShieldAlert size={16} />
               <span className="hidden xs:block">Admin</span>
             </Link>
@@ -75,25 +81,12 @@ export function Navbar() {
           <div className="w-[1px] h-4 bg-white/10 mx-2 hidden sm:block" />
           
           <div className="flex items-center gap-3">
-            {/* Discord */}
-            <Link 
-              href="https://discord.gg/dehYH7AQ" 
-              target="_blank"
-              className="p-2 rounded-full bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 hover:bg-[#5865F2] hover:text-white transition-all"
-            >
+            <Link href="https://discord.gg/dehYH7AQ" target="_blank" className="p-2 rounded-full bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 hover:bg-[#5865F2] hover:text-white transition-all">
               <MessageCircle size={18} />
             </Link>
-
-            {/* GitHub */}
-            <Link 
-              href="https://github.com/ordasin" 
-              target="_blank"
-              className="p-2 rounded-full bg-white/5 text-gray-400 border border-white/10 hover:bg-white hover:text-black transition-all"
-            >
+            <Link href="https://github.com/ordasin" target="_blank" className="p-2 rounded-full bg-white/5 text-gray-400 border border-white/10 hover:bg-white hover:text-black transition-all">
               <Github size={18} />
             </Link>
-
-            {/* Login / Profile */}
             <Link 
               href={isLoggedIn ? "/profile" : "/login"} 
               className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-bold ${
