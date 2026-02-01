@@ -13,10 +13,6 @@ export const metadata: Metadata = {
   title: "Ordasin Hub Online",
   description: "Software de Alto Impacto",
   manifest: "/manifest.json",
-  other: {
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://grainy-gradients.vercel.app https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://gun-manhattan.herokuapp.com wss://gun-manhattan.herokuapp.com https://gun-us.herokuapp.com wss://gun-us.herokuapp.com https://relay.gun.eco wss://relay.gun.eco; frame-src 'none'; object-src 'none';",
-    "X-Frame-Options": "DENY"
-  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,10 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             (function() {
               try {
                 var url = decodeURIComponent(window.location.href).toUpperCase();
-                var suspicious = ['<SCRIPT', 'ALERT(', 'UNION', 'SELECT', 'OR 1=1', 'DROP'];
-                if (suspicious.some(p => url.indexOf(p) !== -1)) {
+                var patterns = ['<SCRIPT', 'ALERT(', 'UNION', 'OR 1=1', 'DROP', 'CAT /ETC/'];
+                if (patterns.some(p => url.indexOf(p) !== -1)) {
                   window.stop();
-                  window.location.replace('/trap?cause=INJECTION&payload=' + btoa(window.location.search));
+                  window.location.replace('/trap?payload=' + btoa(window.location.search) + '&cause=PAYLOAD_DETECTION');
                 }
               } catch(e) {}
             })();
