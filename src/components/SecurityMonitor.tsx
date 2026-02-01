@@ -3,43 +3,39 @@
 import { useEffect } from 'react'
 import DOMPurify from 'dompurify'
 
-const PEERS = [
-  'https://gun-manhattan.herokuapp.com/gun',
-  'https://gun-us.herokuapp.com/gun'
-];
+const PEERS = ['https://gun-manhattan.herokuapp.com/gun'];
 
 export function SecurityMonitor() {
   useEffect(() => {
     const reportThreat = async (type: string, details: string) => {
-      console.log(`%c⚠️ SEGURIDAD: ${type}`, 'color: red; font-weight: bold;', details);
+      console.log(`%c[BLOCK] ${type}`, 'color: white; background: red; padding: 5px;', details);
       
-      try {
-        const Gun = (await import('gun')).default;
-        const gun = Gun({ peers: PEERS });
-        
-        const threatId = Math.random().toString(36).substring(7);
-        const log = {
-          id: threatId,
-          type,
-          details: DOMPurify.sanitize(details),
-          path: window.location.pathname,
-          userAgent: navigator.userAgent,
-          time: Date.now()
-        };
+      const Gun = (await import('gun')).default;
+      const gun = Gun({ peers: PEERS });
+      
+      const threatId = Math.random().toString(36).substring(7);
+      const log = {
+        id: threatId,
+        type,
+        details: DOMPurify.sanitize(details),
+        path: window.location.pathname,
+        userAgent: navigator.userAgent,
+        time: Date.now()
+      };
 
-        gun.get('intrusion_logs').get(threatId).put(log);
-        gun.get('latest_threat').put(log);
-      } catch (e) {
-        console.error("Error enviando log P2P", e);
-      }
+      // 1. Intentar guardar el log
+      gun.get('intrusion_logs').get(threatId).put(log);
+      gun.get('latest_threat').put(log);
 
+      // 2. Si es un ataque real, esperamos 1.5 segundos para que el P2P sincronice antes de redirigir
       if (type === 'URL_ATTACK') {
-        alert("INTENTO DE INYECCIÓN DETECTADO - SESIÓN BLOQUEADA");
-        window.location.href = '/trap';
+        // Mostramos un mensaje de bloqueo que detiene la ejecución del navegador un momento
+        setTimeout(() => {
+          window.location.href = '/trap';
+        }, 1500);
       }
     };
 
-    // Detectar patrones sospechosos decodificando la URL
     const fullUrl = decodeURIComponent(window.location.href).toUpperCase();
     const suspicious = ['<SCRIPT', 'UNION SELECT', 'OR 1=1', 'ALERT(', 'DROP TABLE', '<IMG'];
     
@@ -47,10 +43,9 @@ export function SecurityMonitor() {
       reportThreat('URL_ATTACK', window.location.search);
     }
 
-    // Detección de F12 (Consola)
     const checkDev = () => {
       if (window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) {
-        reportThreat('DEVTOOLS', 'Consola detectada');
+        reportThreat('DEVTOOLS', 'Inspección de código detectada');
       }
     };
     window.addEventListener('resize', checkDev);

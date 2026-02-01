@@ -48,8 +48,12 @@ export default function AdminPage() {
 
       // 3. Notificación inmediata
       g.get('latest_threat').on((data: any) => {
-        if (data && data.time > Date.now() - 5000) {
-          toast.error(`ATAQUE: ${data.type}`, { description: data.path });
+        // Aumentamos el margen a 30 segundos por si hay lag en la red P2P
+        if (data && data.time > Date.now() - 30000) {
+          toast.error(`!!! AMENAZA DETECTADA !!!`, { 
+            description: `${data.type} en ${data.path}`,
+            duration: 10000
+          });
         }
       });
     };
