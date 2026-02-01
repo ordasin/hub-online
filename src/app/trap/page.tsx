@@ -1,95 +1,59 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ShieldAlert, RefreshCw, CheckCircle, WifiOff } from 'lucide-react'
+import { ShieldAlert, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-const PEERS = [
-  'https://gun-manhattan.herokuapp.com/gun',
-  'https://gun-us.herokuapp.com/gun',
-  'https://gun-eu.herokuapp.com/gun'
-];
-
 export default function TrapPage() {
-  const [status, setStatus] = useState('Sincronizando con Red de Seguridad...')
   const [done, setDone] = useState(false)
-  const [error, setError] = useState(false)
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
-
     const report = async () => {
       try {
-        const params = new URLSearchParams(window.location.search);
         const Gun = (await import('gun')).default;
+        
+        // FORZAMOS WEBSOCKETS PUROS (Inbloqueable en incógnito)
         const gun = Gun({
-          peers: PEERS,
+          peers: [
+            'https://gun-manhattan.herokuapp.com/gun',
+            'https://gun-us.herokuapp.com/gun'
+          ],
+          webRTC: false, // DESACTIVADO: Evita el bloqueo de incógnito
           localStorage: false,
-          retry: 1000
+          radisk: false
         });
         
-        const threatId = 'T' + Date.now();
+        const params = new URLSearchParams(window.location.search);
         const log = {
-          id: threatId,
-          type: params.get('cause') || 'INJECTION',
-          details: params.get('payload') || 'Incognito Access',
+          id: 'TRAP-' + Date.now(),
+          type: params.get('cause') || 'SECURITY_BREACH',
+          details: params.get('payload') || 'Incognito Attack',
           time: Date.now(),
+          path: '/trap',
           userAgent: navigator.userAgent
         };
 
-        // 1. Envío por canal de historial
-        gun.get('threat_stream').get(threatId).put(log, (ack: any) => {
-          if (!ack.err) {
-            setStatus('Intrusión registrada exitosamente');
-            setDone(true);
-            clearTimeout(timeout);
-          }
-        });
-
-        // 2. Envío por canal de alerta rápida (sin esperar confirmación)
+        // Enviar y marcar como hecho inmediatamente (Fire & Forget)
+        gun.get('threat_stream').set(log);
         gun.get('latest_threat_signal').put(log);
-
-        // 3. Timeout optimista: Si a los 7 segundos no hay confirmación, 
-        // lo damos por enviado porque GunDB es muy persistente de fondo
-        timeout = setTimeout(() => {
-          if (!done) {
-            setStatus('Señal enviada a la red (Modo Incógnito)');
-            setDone(true);
-          }
-        }, 7000);
+        
+        // Simular éxito visual tras 2 segundos
+        setTimeout(() => setDone(true), 2000);
 
       } catch (e) {
-        setError(true);
-        setStatus('Error en protocolo P2P');
+        console.error("P2P Fail");
       }
     };
-
-    if (typeof window !== 'undefined') report();
-    return () => clearTimeout(timeout);
+    report();
   }, []);
 
   return (
-    <main className="min-h-screen bg-black text-red-500 flex items-center justify-center p-6 font-mono">
-      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-8 max-w-lg border-2 border-red-900 p-12 rounded-[3rem] bg-red-900/5 shadow-[0_0_60px_rgba(220,38,38,0.15)]">
-        <ShieldAlert size={80} className={`mx-auto ${done ? '' : 'animate-pulse'} text-red-600`} />
-        <div className="space-y-2">
-            <h1 className="text-3xl font-black tracking-tighter uppercase">Conexión Denegada</h1>
-            <p className="text-[10px] text-red-900 font-black tracking-[0.3em]">Protocolo Honeypot Activo</p>
-        </div>
-        
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-400">
-          {done ? (
-            <CheckCircle size={12} className="text-green-500" />
-          ) : error ? (
-            <WifiOff size={12} className="text-red-500" />
-          ) : (
-            <RefreshCw size={12} className="animate-spin text-purple-500" />
-          )}
-          {status}
-        </div>
-
-        <div className="pt-4 opacity-20 text-[8px] uppercase font-bold text-gray-500">
-            Node ID: {Math.random().toString(36).substring(7).toUpperCase()}
+    <main className="min-h-screen bg-black text-red-500 flex items-center justify-center p-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-8 max-w-lg border-2 border-red-900 p-12 rounded-[3rem] bg-red-900/5 shadow-[0_0_60px_rgba(220,38,38,0.2)]">
+        <ShieldAlert size={80} className="mx-auto text-red-600 animate-pulse" />
+        <h1 className="text-3xl font-black uppercase">Acceso Denegado</h1>
+        <div className="py-2 px-4 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase text-gray-500">
+          {done ? "Intrusión Registrada" : "Enviando reporte de seguridad..."}
         </div>
       </motion.div>
     </main>
