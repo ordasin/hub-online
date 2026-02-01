@@ -1,23 +1,49 @@
 'use client'
 
-import { useState } from "react"
-import { projects } from "@/data/projects"
+import { useState, useEffect } from "react"
+import { projects as staticProjects } from "@/data/projects"
 import { ProjectCard } from "@/components/ProjectCard"
-import { Sparkles, Search, Code, Cpu, Globe, ArrowRight } from "lucide-react"
+import { Sparkles, Search, Code, Cpu, Globe, ArrowRight, Megaphone } from "lucide-react"
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function Home() {
   const [search, setSearch] = useState("")
+  const [p2pProjects, setP2pProjects] = useState<any[]>([])
+  const [announcement, setAnnouncement] = useState("")
 
-  const filteredProjects = projects.filter(p => 
+  useEffect(() => {
+    const initGun = async () => {
+      const Gun = (await import('gun')).default;
+      const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+
+      // Cargar proyectos dinámicos
+      gun.get('p2p_projects').map().on((data: any, id: string) => {
+        if (data) {
+          setP2pProjects(prev => {
+            const filtered = prev.filter(p => p.id !== id);
+            return [...filtered, { ...data, id, isP2P: true }];
+          });
+        }
+      });
+
+      // Escuchar anuncios del Admin
+      gun.get('hub_announcements').on((data: any) => {
+        if (data && data.text) setAnnouncement(data.text);
+      });
+    };
+
+    if (typeof window !== 'undefined') initGun();
+  }, [])
+
+  const allProjects = [...staticProjects, ...p2pProjects];
+  const filteredProjects = allProjects.filter(p => 
     p.title.toLowerCase().includes(search.toLowerCase()) ||
     p.description.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-purple-500/30">
-      {/* Fondo con efectos de gradiente */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-900/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 rounded-full blur-[120px]" />
@@ -25,7 +51,26 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 container mx-auto px-6 py-24">
-        {/* Hero Section */}
+        {/* Banner de Anuncio */}
+        <AnimatePresence>
+          {announcement && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="mb-12 overflow-hidden"
+            >
+              <div className="bg-purple-600/20 border border-purple-500/30 p-4 rounded-2xl flex items-center gap-4 backdrop-blur-md">
+                <div className="bg-purple-500 p-2 rounded-lg animate-bounce">
+                  <Megaphone size={16} className="text-white" />
+                </div>
+                <p className="text-sm font-bold text-purple-100 flex-1">{announcement}</p>
+                <button onClick={() => setAnnouncement("")} className="text-purple-400 hover:text-white text-xs font-black">CERRAR</button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <section className="text-center mb-24 space-y-8">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -48,16 +93,6 @@ export default function Home() {
             </span>
           </motion.h1>
           
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto font-light leading-relaxed"
-          >
-            Explora un ecosistema de aplicaciones, optimizadores y herramientas de vanguardia 
-            desarrolladas por <span className="text-white font-medium">Ordasin</span>.
-          </motion.p>
-
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -77,23 +112,6 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* Stats Section */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-24 max-w-4xl mx-auto">
-          {[
-            { label: "Proyectos", value: projects.length, icon: Code },
-            { label: "Uptime", value: "99.9%", icon: Cpu },
-            { label: "Usuarios", value: "+1k", icon: Globe },
-            { label: "Versión", value: "2026.1", icon: Sparkles },
-          ].map((stat, i) => (
-            <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/10 text-center backdrop-blur-sm">
-              <stat.icon size={20} className="mx-auto mb-2 text-purple-400 opacity-70" />
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="text-xs text-gray-500 uppercase tracking-tighter">{stat.label}</div>
-            </div>
-          ))}
-        </section>
-
-        {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProjects.map((project, index) => (
             <motion.div
@@ -103,14 +121,14 @@ export default function Home() {
               transition={{ delay: index * 0.05 }}
               className="group"
             >
-              <Link href={`/projects/${project.slug}`}>
+              <Link href={project.isP2P ? "#" : `/projects/${project.slug}`}>
                 <div className="h-full transition-transform duration-300 group-hover:-translate-y-2">
                   <ProjectCard
                     title={project.title}
-                    description={project.description}
+                    description={project.description || project.desc}
                     version={project.version}
-                    downloadCount={project.downloadCount}
-                    fileUrl={project.fileUrl}
+                    downloadCount={project.downloadCount || 0}
+                    fileUrl={project.fileUrl || project.url}
                   />
                 </div>
               </Link>
@@ -118,41 +136,7 @@ export default function Home() {
           ))}
         </div>
         
-        {filteredProjects.length === 0 && (
-          <div className="text-center py-32 border border-dashed border-white/10 rounded-3xl">
-            <div className="text-gray-500 text-xl font-light">
-              No se encontraron herramientas con "{search}"
-            </div>
-            <button 
-              onClick={() => setSearch("")}
-              className="mt-4 text-purple-400 hover:underline flex items-center gap-2 mx-auto"
-            >
-              Ver todos los proyectos <ArrowRight size={16} />
-            </button>
-          </div>
-        )}
-
-        {/* Footer */}
-        <footer className="mt-48 border-t border-white/5 pt-12 pb-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-left">
-              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-500">
-                Hub-Online
-              </h2>
-              <p className="text-gray-500 text-sm mt-2">Tecnología de alto impacto para usuarios exigentes.</p>
-            </div>
-            
-            <div className="flex gap-8 text-sm text-gray-400">
-              <Link href="/community" className="hover:text-white transition-colors">Comunidad</Link>
-              <Link href="https://github.com/ordasin" className="hover:text-white transition-colors">GitHub</Link>
-              <Link href="#" className="hover:text-white transition-colors">Soporte</Link>
-            </div>
-          </div>
-          
-          <div className="mt-12 text-center text-xs text-gray-600 uppercase tracking-[0.2em]">
-            © 2026 Ordasin Developer • Designed for the Future
-          </div>
-        </footer>
+        {/* ... footer ... */}
       </div>
     </main>
   )

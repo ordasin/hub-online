@@ -2,19 +2,18 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User } from "lucide-react"
+import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User, ShieldAlert } from "lucide-react"
 import { motion } from "framer-motion"
 
 export function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userName, setUserName] = useState("")
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    // Importación dinámica de Gun solo en el cliente
     const initGun = async () => {
       const Gun = (await import('gun')).default;
       await import('gun/sea');
-      
       const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
       const user = (gun as any).user().recall({ sessionStorage: true });
 
@@ -22,6 +21,7 @@ export function Navbar() {
         if (user.is) {
           setIsLoggedIn(true);
           setUserName(user.is.alias);
+          if (user.is.alias === 'ordasin') setIsAdmin(true);
         }
       };
 
@@ -60,11 +60,14 @@ export function Navbar() {
             <Zap size={16} className="text-yellow-500" />
             <span className="hidden xs:block">Chat P2P</span>
           </Link>
-          <Link href="/community" className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-colors">
-            <Users size={16} />
-            <span className="hidden xs:block">Comunidad</span>
-          </Link>
           
+          {isAdmin && (
+            <Link href="/admin" className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 px-3 py-2 rounded-lg transition-colors bg-red-400/10 border border-red-400/20">
+              <ShieldAlert size={16} />
+              <span className="hidden xs:block">Admin</span>
+            </Link>
+          )}
+
           <div className="w-[1px] h-4 bg-white/10 mx-2 hidden sm:block" />
           
           <div className="flex items-center gap-2">
@@ -78,14 +81,6 @@ export function Navbar() {
             >
               <User size={16} className={isLoggedIn ? 'text-purple-400' : 'text-gray-400'} />
               <span>{isLoggedIn ? userName : 'Entrar'}</span>
-            </Link>
-            
-            <Link 
-              href="https://discord.gg/dehYH7AQ" 
-              target="_blank"
-              className="p-2 rounded-full bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 hover:bg-[#5865F2] hover:text-white transition-all"
-            >
-              <MessageCircle size={18} />
             </Link>
           </div>
         </div>
