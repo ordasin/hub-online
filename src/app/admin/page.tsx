@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Activity, Terminal, AlertTriangle, Home, RefreshCw, Trash2 } from 'lucide-react'
+import { Shield, Activity, AlertTriangle, Home, RefreshCw, Trash2, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 
@@ -24,31 +24,24 @@ export default function AdminPage() {
       if (user.is && user.is.pub === MASTER_PUB) setIsAdmin(true);
       else if (typeof window !== 'undefined') window.location.href = '/login';
 
-      // 1. Lógica de Alerta Rápida + Inserción Manual (Respaldo)
-      g.get('latest_threat_signal').on((data: any) => {
-        if (data && data.time > Date.now() - 60000) {
-          // Mostrar notificación
-          toast.error("¡AMENAZA DETECTADA!", { 
-            description: `${data.type} en ${data.path}`,
-            duration: 10000
-          });
-
-          // RESPALDO: Si no está en la lista, lo añadimos nosotros manualmente
+      // ESCUCHA ACTIVA DE LA CORRIENTE DE AMENAZAS
+      g.get('threat_stream').map().on((data: any, id: string) => {
+        if (data && data.time) {
           setThreats(prev => {
-            const exists = prev.find(t => t.id === data.id || (t.time === data.time && t.type === data.type));
-            if (exists) return prev;
-            return [data, ...prev].sort((a,b) => b.time - a.time).slice(0, 20);
-          });
-        }
-      });
+            // Evitar duplicados por ID de GunDB
+            if (prev.find(t => t._id === id)) return prev;
+            
+            const newThreat = { ...data, _id: id };
+            
+            // Disparar notificación solo para ataques muy recientes (últimos 10s)
+            if (data.time > Date.now() - 10000) {
+              toast.error("¡NUEVA INTRUSIÓN DETECTADA!", {
+                description: `${data.type} detectado ahora mismo`,
+                duration: 5000
+              });
+            }
 
-      // 2. Lógica de Historial P2P (Sincronización profunda)
-      g.get('intrusion_logs').map().on((data: any) => {
-        if (data && data.id) {
-          setThreats(prev => {
-            const exists = prev.find(t => t.id === data.id);
-            if (exists) return prev;
-            return [data, ...prev].sort((a,b) => b.time - a.time).slice(0, 20);
+            return [newThreat, ...prev].sort((a,b) => b.time - a.time).slice(0, 30);
           });
         }
       });
@@ -56,12 +49,13 @@ export default function AdminPage() {
     init();
   }, [])
 
-  const clearHistory = () => {
+  const resetStream = () => {
     if (gun) {
-      gun.get('intrusion_logs').put(null);
-      gun.get('latest_threat_signal').put(null);
+      // En GunDB para "borrar" una lista se suele cambiar el nodo padre
+      gun.get('threat_stream').put(null);
       setThreats([]);
-      toast.info("Historial purgado");
+      toast.info("Historial de red reiniciado");
+      setTimeout(() => window.location.reload(), 500);
     }
   }
 
@@ -70,45 +64,56 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="p-10 rounded-[3rem] bg-red-900/10 border-2 border-red-600/20 backdrop-blur-xl">
+        <div className="p-10 rounded-[3rem] bg-red-900/10 border-2 border-red-600/20 backdrop-blur-xl shadow-[0_0_50px_rgba(220,38,38,0.1)]">
           <div className="flex justify-between items-center mb-12">
             <div className="flex items-center gap-6">
-                <Shield size={48} className="text-red-600" />
-                <h1 className="text-4xl font-black uppercase tracking-tighter">VIGILANCIA MAESTRA</h1>
+                <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/40"><Shield size={32} /></div>
+                <div>
+                    <h1 className="text-4xl font-black uppercase tracking-tighter">RED DE VIGILANCIA</h1>
+                    <div className="flex items-center gap-2 text-green-500 text-[10px] font-black uppercase tracking-widest mt-1">
+                        <ShieldCheck size={12}/> Nodo Maestro Sincronizado
+                    </div>
+                </div>
             </div>
-            <button onClick={clearHistory} className="p-4 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white rounded-2xl transition-all"><Trash2 size={24}/></button>
+            <button onClick={resetStream} className="p-4 bg-white/5 hover:bg-red-600 text-red-500 hover:text-white rounded-2xl transition-all border border-white/5">
+                <Trash2 size={24} />
+            </button>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-lg font-black uppercase flex items-center gap-2 border-b border-white/10 pb-4"><Activity size={18} /> Historial de Ataques</h2>
-            <div className="space-y-2">
+            <h2 className="text-xs font-black uppercase text-gray-500 tracking-[0.3em] mb-6">Threat Stream Analysis</h2>
+            <div className="space-y-3">
               <AnimatePresence initial={false}>
                 {threats.map((t) => (
                   <motion.div 
-                    initial={{ opacity: 0, height: 0 }} 
-                    animate={{ opacity: 1, height: 'auto' }} 
-                    key={t.id || t.time} 
-                    className="p-4 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center overflow-hidden"
+                    initial={{ opacity: 0, x: -20 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    key={t._id} 
+                    className="p-5 bg-black/40 border border-white/5 rounded-[1.5rem] flex justify-between items-center group hover:border-red-500/30 transition-all"
                   >
-                    <div className="flex items-center gap-4">
-                      <AlertTriangle size={16} className="text-red-500" />
+                    <div className="flex items-center gap-5">
+                      <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_#dc2626]" />
                       <div>
-                        <p className="text-red-500 font-black text-xs uppercase">{t.type}</p>
-                        <p className="text-gray-500 text-[9px] truncate max-w-xs">{t.details || 'No details'}</p>
+                        <p className="text-red-500 font-black text-[10px] uppercase tracking-widest">{t.type}</p>
+                        <p className="text-gray-500 text-[9px] mt-1 font-bold truncate max-w-md uppercase">{t.userAgent}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-black text-[10px]">{new Date(t.time).toLocaleTimeString()}</p>
-                      <p className="text-red-500 text-[9px] font-bold uppercase">{t.path}</p>
+                      <p className="text-white font-black text-xs">{new Date(t.time).toLocaleTimeString()}</p>
+                      <p className="text-red-900 font-black text-[8px] uppercase mt-1">Status: Logged</p>
                     </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
-              {threats.length === 0 && <p className="text-center py-20 text-gray-700 uppercase text-xs font-black tracking-[0.3em]">Sin actividad...</p>}
+              {threats.length === 0 && (
+                <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
+                    <p className="text-gray-700 text-[10px] font-black uppercase tracking-[0.5em] animate-pulse">Esperando tráfico malicioso...</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
-        <button onClick={() => window.location.href='/'} className="w-full py-4 bg-white text-black rounded-2xl font-black text-xs uppercase hover:bg-purple-500 hover:text-white transition-all">Hub Home</button>
+        <button onClick={() => window.location.href='/'} className="w-full py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-purple-600 hover:text-white transition-all">Regresar al Panel Principal</button>
       </div>
     </main>
   )

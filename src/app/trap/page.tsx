@@ -5,7 +5,7 @@ import { ShieldAlert, RefreshCw, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function TrapPage() {
-  const [status, setStatus] = useState('Reportando intrusión...')
+  const [status, setStatus] = useState('Sincronizando con Red de Seguridad...')
   const [done, setDone] = useState(false)
 
   useEffect(() => {
@@ -13,63 +13,42 @@ export default function TrapPage() {
       try {
         const params = new URLSearchParams(window.location.search);
         const Gun = (await import('gun')).default;
-        // Forzamos modo sin disco para evitar bloqueos de incógnito
         const gun = Gun({
           peers: ['https://gun-manhattan.herokuapp.com/gun', 'https://gun-us.herokuapp.com/gun'],
-          localStorage: false,
-          indexedDB: false
+          localStorage: false
         });
         
-        const id = 'T-' + Date.now() + '-' + Math.random().toString(36).substring(7);
         const log = {
-          id,
-          type: params.get('cause') || 'INC_INJECTION',
-          details: params.get('payload') || 'Incognito Attack',
+          type: params.get('cause') || 'INJECTION',
+          details: params.get('payload') || 'Incognito Attempt',
           time: Date.now(),
+          userAgent: navigator.userAgent,
           path: '/trap'
         };
 
-        // Bucle de envío agresivo
-        const interval = setInterval(() => {
-          gun.get('intrusion_logs').get(id).put(log, (ack: any) => {
-            if (!ack.err) {
-              setStatus('Intrusión registrada en la red P2P');
-              setDone(true);
-              clearInterval(interval);
-            }
-          });
-          gun.get('latest_threat_signal').put(log);
-        }, 2000);
-
-        // Limpiar a los 20 segundos por si acaso
-        setTimeout(() => clearInterval(interval), 20000);
+        // Usamos .set() para añadir a una lista, garantizando que cada entrada es única
+        gun.get('threat_stream').set(log, (ack: any) => {
+          if (!ack.err) {
+            setStatus('Intrusión registrada exitosamente');
+            setDone(true);
+          }
+        });
 
       } catch (e) {
         setStatus('Error de conexión P2P');
       }
     };
-    report();
+    if (typeof window !== 'undefined') report();
   }, []);
 
   return (
     <main className="min-h-screen bg-black text-red-500 flex items-center justify-center p-6 font-mono">
-      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-8 max-w-lg border-2 border-red-900 p-12 rounded-[3rem] bg-red-900/5">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-8 max-w-lg border-2 border-red-900 p-12 rounded-[3rem] bg-red-900/5 shadow-[0_0_60px_rgba(220,38,38,0.15)]">
         <ShieldAlert size={80} className="mx-auto animate-pulse text-red-600" />
-        <h1 className="text-3xl font-black tracking-tighter uppercase">Acceso Revocado</h1>
-        
-        <div className="space-y-4">
-          <p className="text-red-400/70 text-sm font-bold uppercase tracking-widest leading-relaxed">
-            Se ha detectado un intento de inyección de código. <br/> Tu identidad ha sido marcada.
-          </p>
-          
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
-            {done ? <CheckCircle size={12} className="text-green-500" /> : <RefreshCw size={12} className="animate-spin" />}
-            {status}
-          </div>
-        </div>
-
-        <div className="pt-8 text-[10px] text-red-900 font-black uppercase tracking-[0.5em]">
-          Master Admin Notified
+        <h1 className="text-3xl font-black tracking-tighter uppercase">Conexión Bloqueada</h1>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-400">
+          {done ? <CheckCircle size={12} className="text-green-500" /> : <RefreshCw size={12} className="animate-spin" />}
+          {status}
         </div>
       </motion.div>
     </main>
