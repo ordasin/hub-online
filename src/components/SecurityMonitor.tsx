@@ -9,61 +9,47 @@ export function SecurityMonitor() {
       const Gun = (await import('gun')).default;
       const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
       
-      gun.get('intrusion_logs').set({
+      const threatId = Math.random().toString(36).substring(7);
+      const log = {
+        id: threatId,
         type,
         details: DOMPurify.sanitize(details),
         path: window.location.pathname,
         userAgent: navigator.userAgent,
-        time: Date.now(),
-        resolution: window.screen.width + 'x' + window.screen.height
-      });
+        time: Date.now()
+      };
+
+      // Guardar en una lista global de amenazas
+      gun.get('intrusion_logs').get(threatId).put(log);
+      
+      // También guardar bajo un nodo único para que el Admin reciba la señal
+      gun.get('latest_threat').put(log);
     };
 
-    // 1. Detectar Payloads en la URL
     const urlParams = window.location.search;
-    const suspiciousPatterns = [
-      'script', '<', '>', 'SELECT', 'UNION', 'OR 1=1', '../', 'etc/passwd', 'admin'
-    ];
-    
-    if (suspiciousPatterns.some(pattern => urlParams.toUpperCase().includes(pattern.toUpperCase()))) {
-      reportThreat('URL_PAYLOAD_ATTEMPT', urlParams);
+    if (urlParams && (urlParams.includes('<') || urlParams.includes('script') || urlParams.includes('SELECT'))) {
+      reportThreat('URL_ATTACK', urlParams);
     }
 
-    // 2. Detectar apertura de Consola (Heurística básica)
-    let devtoolsOpen = false;
-    const threshold = 160;
-    const checkDevTools = () => {
-      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-      if ((widthThreshold || heightThreshold) && !devtoolsOpen) {
-        devtoolsOpen = true;
-        reportThreat('DEVTOOLS_INSPECTION', 'Usuario inspeccionando código fuente');
+    // Detección de F12 / Consola
+    let lastChange = Date.now();
+    const checkDev = () => {
+      if (window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) {
+        if (Date.now() - lastChange > 2000) { // Evitar spam
+          reportThreat('DEVTOOLS', 'Consola detectada');
+          lastChange = Date.now();
+        }
       }
     };
+    window.addEventListener('resize', checkDev);
 
-    window.addEventListener('resize', checkDevTools);
-    
-    // 3. Capturar errores JS que podrían ser causados por inyecciones fallidas
-    const handleError = (event: ErrorEvent) => {
-      if (event.message.includes('Unexpected token') || event.message.includes('is not defined')) {
-        reportThreat('JS_INJECTION_FAILURE', event.message);
-      }
-    };
-    window.addEventListener('error', handleError);
-
-    return () => {
-      window.removeEventListener('resize', checkDevTools);
-      window.removeEventListener('error', handleError);
-    };
+    return () => window.removeEventListener('resize', checkDev);
   }, []);
 
   return (
-    /* Honeypot Invisible: Links que solo los bots ven */
-    <div className="absolute opacity-0 pointer-events-none -z-50" aria-hidden="true">
-      <a href="/admin-login">Private Access</a>
-      <a href="/.env">Configuration</a>
-      <a href="/config.php">Database Setup</a>
-      <a href="/wp-login.php">Management</a>
+    <div className="absolute opacity-0 pointer-events-none -z-50">
+      <a href="/admin-panel">Honeypot 1</a>
+      <a href="/.env">Honeypot 2</a>
     </div>
   );
 }
