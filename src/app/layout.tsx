@@ -11,7 +11,7 @@ export const viewport: Viewport = { themeColor: "#050505", width: "device-width"
 
 export const metadata: Metadata = {
   title: "Ordasin Hub Online",
-  description: "Plataforma de Software de Alto Impacto",
+  description: "Software de Alto Impacto",
   manifest: "/manifest.json",
 };
 
@@ -26,10 +26,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             (function() {
               try {
                 var url = decodeURIComponent(window.location.href).toUpperCase();
-                var suspicious = ['<SCRIPT', 'ALERT(', 'UNION SELECT', 'OR 1=1', 'DROP TABLE'];
-                if (suspicious.some(p => url.includes(p))) {
-                  window.stop();
-                  window.location.href = '/trap?q=' + encodeURIComponent(window.location.search);
+                // DICCIONARIO DE PAYLOADS EXPANDIDO
+                var patterns = {
+                  'XSS': ['<SCRIPT', 'ALERT(', 'ONERROR=', 'ONLOAD=', 'PROMPT(', 'CONFIRM(', 'EVAL(', 'JAVASCRIPT:'],
+                  'SQLi': ['SELECT', 'UNION', 'DROP', 'INSERT', 'UPDATE', 'OR 1=1', 'OR 1=0', '--', 'BENCHMARK('],
+                  'LFI/Path': ['../', '..%2F', 'ETC/PASSWD', '.ENV', 'BOOT.INI'],
+                  'RCE/Cmd': ['; LS', '| CAT', '$(WHOAMI)', 'SYSTEM(', 'SHELL_EXEC']
+                };
+                
+                for (var type in patterns) {
+                  if (patterns[type].some(p => url.indexOf(p) !== -1)) {
+                    window.stop();
+                    window.location.replace('/trap?cause=' + type + '&payload=' + btoa(window.location.search));
+                    break;
+                  }
                 }
               } catch(e) {}
             })();
