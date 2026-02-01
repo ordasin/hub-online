@@ -11,7 +11,7 @@ export const viewport: Viewport = { themeColor: "#050505", width: "device-width"
 
 export const metadata: Metadata = {
   title: "Ordasin Hub Online",
-  description: "Software de Alto Impacto",
+  description: "Plataforma de Software de Alto Impacto",
   manifest: "/manifest.json",
 };
 
@@ -26,10 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             (function() {
               try {
                 var url = decodeURIComponent(window.location.href).toUpperCase();
-                var suspicious = ['<SCRIPT', 'ALERT(', 'UNION', 'SELECT', 'OR 1=1', 'DROP'];
-                if (suspicious.some(p => url.indexOf(p) !== -1)) {
+                var suspicious = ['<SCRIPT', 'ALERT(', 'UNION SELECT', 'OR 1=1', 'DROP TABLE'];
+                if (suspicious.some(p => url.includes(p))) {
                   window.stop();
-                  window.location.replace('/trap?q=' + Date.now());
+                  window.location.href = '/trap?q=' + encodeURIComponent(window.location.search);
                 }
               } catch(e) {}
             })();

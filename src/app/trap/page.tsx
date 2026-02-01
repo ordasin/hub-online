@@ -1,63 +1,51 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ShieldAlert, Activity, Wifi } from 'lucide-react'
+import { ShieldAlert, Activity, CheckCircle, Wifi } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function TrapPage() {
-  const [status, setStatus] = useState('INICIANDO PROTOCOLO...')
-  const [connected, setConnected] = useState(false)
+  const [done, setDone] = useState(false)
 
   useEffect(() => {
     const report = async () => {
       try {
         const Gun = (await import('gun')).default;
-        // Solo un relé para asegurar coincidencia
+        // Restauramos la potencia total: WebRTC + LocalStorage
         const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
         
-        gun.on('hi', () => {
-          setConnected(true);
-          setStatus('CONECTADO AL NODO MAESTRO');
-        });
-
         const params = new URLSearchParams(window.location.search);
-        const payload = params.get('payload') || 'Unknown';
-        
-        const alertLog = {
-          type: 'CRITICAL_INTRUSION',
-          details: payload,
+        const log = {
+          id: 'TRAP-' + Date.now(),
+          type: 'INT_BLOQUEADA',
+          details: params.get('q') || 'Intento de Inyección',
           time: Date.now(),
           ua: navigator.userAgent
         };
 
-        // GOLPEAR EL CANAL DE ALARMA (Ráfaga)
-        const alarm = setInterval(() => {
-          // Escribimos en un nodo fijo para que el Admin lo detecte por .on() instantáneo
-          gun.get('HUB_ALARM_SYSTEM').put(alertLog);
-          // También lo metemos en el historial
-          gun.get('HUB_HISTORY').set(alertLog);
-        }, 1000);
+        // Guardar y disparar alarma
+        gun.get('SECURITY_ALERTS').get(log.id).put(log, (ack: any) => {
+          if (!ack.err) setDone(true);
+        });
+        gun.get('LATEST_ALERT').put(log);
 
-        // Auto-limpieza tras 20 segundos
-        setTimeout(() => clearInterval(alarm), 20000);
-
-      } catch (e) {
-        setStatus('ERROR DE COMUNICACIÓN');
-      }
+      } catch (e) {}
     };
     report();
   }, []);
 
   return (
     <main className="min-h-screen bg-black text-red-500 flex items-center justify-center p-6 font-mono">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-8 max-w-lg border border-red-900 p-12 bg-red-950/10 shadow-[0_0_80px_rgba(220,38,38,0.2)]">
-        <ShieldAlert size={64} className="mx-auto animate-pulse" />
-        <h1 className="text-2xl font-black uppercase tracking-widest">Acceso Denegado</h1>
-        <div className="flex flex-col gap-2 items-center">
-          <div className={`flex items-center gap-2 px-4 py-1 rounded-full text-[10px] border ${connected ? 'border-green-500/50 text-green-500' : 'border-red-500/50 text-red-500'}`}>
-            <Wifi size={12}/> {status}
-          </div>
-          <p className="text-[9px] text-gray-600 uppercase">Tu rastro digital ha sido enviado al administrador.</p>
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-8 max-w-lg border-2 border-red-900 p-12 rounded-[3rem] bg-red-950/10 shadow-[0_0_100px_rgba(220,38,38,0.2)]">
+        <ShieldAlert size={80} className="mx-auto text-red-600 animate-pulse" />
+        <div className="space-y-2">
+            <h1 className="text-3xl font-black uppercase tracking-tighter">Acceso Revocado</h1>
+            <p className="text-red-400/70 font-bold text-xs uppercase tracking-widest">Protocolo de Seguridad Nivel 4</p>
+        </div>
+        
+        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase text-gray-400 transition-all">
+          {done ? <CheckCircle size={14} className="text-green-500" /> : <Activity size={14} className="animate-bounce text-red-500" />}
+          <span>{done ? "Intrusión Reportada al Sistema" : "Identificando Amenaza..."}</span>
         </div>
       </motion.div>
     </main>
