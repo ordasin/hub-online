@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Download, Box, Star } from "lucide-react"
+import { Download, Box, ArrowUpRight, Cpu } from "lucide-react"
 
 interface ProjectCardProps {
   title: string
@@ -13,46 +13,43 @@ interface ProjectCardProps {
 
 export function ProjectCard({ title, description, version, downloadCount, fileUrl }: ProjectCardProps) {
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      className="glass rounded-xl p-6 relative overflow-hidden group hover:border-purple-500/50 transition-colors"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+    <div className="relative group p-[1px] rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 transition-all duration-500 hover:border-purple-500/50 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)]">
+      {/* Efecto de luz al pasar el ratón */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
       
-      <div className="relative z-10">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-white/5 rounded-lg border border-white/10 text-purple-400">
-            <Box size={24} />
+      <div className="relative z-10 bg-[#0a0a0a] rounded-[2rem] p-8 h-full flex flex-col">
+        <div className="flex justify-between items-start mb-6">
+          <div className="w-14 h-14 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform duration-500">
+            <Cpu size={28} />
           </div>
-          <span className="px-3 py-1 text-xs font-mono bg-white/5 rounded-full text-gray-400 border border-white/10">
-            v{version}
-          </span>
+          <div className="flex flex-col items-end gap-2">
+            <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-purple-500/10 rounded-full text-purple-400 border border-purple-500/20">
+              v{version}
+            </span>
+            <div className="flex items-center gap-1.5 text-gray-500">
+              <Download size={12} />
+              <span className="text-xs font-bold">{downloadCount.toLocaleString()}</span>
+            </div>
+          </div>
         </div>
 
-        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
-          {title}
+        <h3 className="text-2xl font-black text-white mb-3 group-hover:text-purple-400 transition-colors leading-tight">
+          {title.toUpperCase()}
         </h3>
         
-        <p className="text-gray-400 text-sm mb-6 line-clamp-2 h-10">
+        <p className="text-gray-500 text-sm mb-8 line-clamp-3 leading-relaxed font-medium">
           {description}
         </p>
 
-        <div className="flex items-center justify-between mt-auto">
-          <div className="flex items-center space-x-2 text-gray-500 text-sm">
-            <Download size={16} />
-            <span>{downloadCount.toLocaleString()}</span>
+        <div className="mt-auto flex items-center justify-between pt-6 border-t border-white/5">
+          <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
+            Ready to Deploy
+          </span>
+          <div className="flex items-center gap-2 text-white font-bold text-sm group-hover:translate-x-1 transition-transform">
+            Ver detalles <ArrowUpRight size={16} className="text-purple-500" />
           </div>
-
-          <a 
-            href={fileUrl}
-            className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/10"
-            download
-          >
-            <span>Download</span>
-            <Download size={16} />
-          </a>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }

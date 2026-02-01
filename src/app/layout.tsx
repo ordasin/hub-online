@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Developer903 Hub | Software & Tools",
-  description: "Explora y descarga mis proyectos, apps y herramientas de alto rendimiento. Comunidad y soporte interno.",
+  title: "Ordasin Hub Online | Software de Alto Impacto",
+  description: "Ecosistema de aplicaciones, optimizadores y herramientas de vanguardia desarrolladas por Ordasin.",
 };
 
 export default function RootLayout({
