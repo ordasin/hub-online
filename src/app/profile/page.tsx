@@ -1,22 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Gun from 'gun'
-import 'gun/sea'
 import { 
   User, Settings, Shield, Zap, Save, RefreshCw, 
-  Cpu, Database, gauge, Sliders, Activity, Binary 
+  Cpu, Database, Gauge, Sliders, Activity, Binary 
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-
-const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
-const user = (gun as any).user().recall({ sessionStorage: true });
 
 export default function ProfilePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [alias, setAlias] = useState('')
+  const [gunUser, setGunUser] = useState<any>(null)
   
-  // Configuración basada en OptimizerConfig real
   const [config, setConfig] = useState({
     optimizer: 'adam',
     lr: 0.001,
@@ -32,35 +27,44 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (user.is) {
-      setIsLoggedIn(true);
-      setAlias(user.is.alias);
-      
-      // Cargar configuración real desde la red P2P
-      user.get('advanced_optimizer_config').once((data: any) => {
-        if (data) {
-          const { _, ...cleanData } = data;
-          // Convertir strings numéricos de vuelta a números si es necesario
-          const parsedData = Object.keys(cleanData).reduce((acc: any, key) => {
-            const val = cleanData[key];
-            acc[key] = (typeof val === 'string' && !isNaN(Number(val)) && val !== '') ? Number(val) : val;
-            // Manejar booleanos guardados como strings por Gun
-            if (val === 'true') acc[key] = true;
-            if (val === 'false') acc[key] = false;
-            return acc;
-          }, {});
-          setConfig(prev => ({ ...prev, ...parsedData }));
-        }
-      });
-    } else {
-      window.location.href = '/login';
+    const initGun = async () => {
+      const Gun = (await import('gun')).default;
+      await import('gun/sea');
+      const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+      const user = (gun as any).user().recall({ sessionStorage: true });
+      setGunUser(user);
+
+      if (user.is) {
+        setIsLoggedIn(true);
+        setAlias(user.is.alias);
+        
+        user.get('advanced_optimizer_config').once((data: any) => {
+          if (data) {
+            const { _, ...cleanData } = data;
+            const parsedData = Object.keys(cleanData).reduce((acc: any, key) => {
+              const val = cleanData[key];
+              acc[key] = (typeof val === 'string' && !isNaN(Number(val)) && val !== '') ? Number(val) : val;
+              if (val === 'true') acc[key] = true;
+              if (val === 'false') acc[key] = false;
+              return acc;
+            }, {});
+            setConfig(prev => ({ ...prev, ...parsedData }));
+          }
+        });
+      } else {
+        window.location.href = '/login';
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      initGun();
     }
   }, [])
 
   const saveConfig = () => {
+    if (!gunUser) return;
     setSaving(true);
-    // Gun prefiere datos planos para persistencia simple
-    user.get('advanced_optimizer_config').put(config, (ack: any) => {
+    gunUser.get('advanced_optimizer_config').put(config, (ack: any) => {
       setSaving(false);
       if (!ack.err) {
         console.log("Configuración guardada");
@@ -82,7 +86,6 @@ export default function ProfilePage() {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto space-y-8">
-        {/* Header de Usuario */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -109,12 +112,10 @@ export default function ProfilePage() {
           >
             {saving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
             <span>SINCRONIZAR AJUSTES</span>
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform" />
           </button>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Panel Principal de Configuración */}
           <div className="lg:col-span-2 space-y-8">
             <motion.section 
               initial={{ opacity: 0, x: -20 }}
@@ -127,7 +128,6 @@ export default function ProfilePage() {
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* General Settings */}
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Optimizer Engine</label>
@@ -159,7 +159,7 @@ export default function ProfilePage() {
                       type="number" step="0.001"
                       value={config.weight_decay}
                       onChange={(e) => updateField('weight_decay', parseFloat(e.target.value))}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none text-white"
                     />
                   </div>
 
@@ -169,14 +169,13 @@ export default function ProfilePage() {
                       type="number" step="0.1"
                       value={config.clip_grad}
                       onChange={(e) => updateField('clip_grad', parseFloat(e.target.value))}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none text-white"
                     />
                   </div>
                 </div>
               </div>
             </motion.section>
 
-            {/* Precision & Scaling */}
             <motion.section 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -211,7 +210,6 @@ export default function ProfilePage() {
             </motion.section>
           </div>
 
-          {/* Sidebar de Estado */}
           <div className="space-y-8">
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
@@ -231,35 +229,7 @@ export default function ProfilePage() {
                     animate={{ width: '100%' }} 
                   />
                 </div>
-                
-                <div className="flex justify-between items-end">
-                  <span className="text-xs font-bold text-gray-500 uppercase">Latencia P2P</span>
-                  <span className="text-xl font-black text-blue-400">24ms</span>
-                </div>
-                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-blue-500" 
-                    initial={{ width: 0 }} 
-                    animate={{ width: '40%' }} 
-                  />
-                </div>
               </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <Shield className="text-purple-500" size={20} />
-                <h3 className="font-black text-xs uppercase tracking-widest">Protocolo de Cifrado</h3>
-              </div>
-              <p className="text-[10px] text-gray-500 leading-relaxed font-bold uppercase tracking-tighter">
-                Tus configuraciones de Megatron y Optuna están protegidas bajo el estándar SEA de GunDB. 
-                Ningún servidor central almacena estos parámetros.
-              </p>
             </motion.div>
           </div>
         </div>

@@ -1,14 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Gun from 'gun'
-import 'gun/sea'
 import { User as UserIcon, Lock, Shield, Sparkles, LogIn, UserPlus, LogOut, CheckCircle2 } from 'lucide-react'
 import { motion } from 'framer-motion'
-
-// Nodos de relevo P2P para sincronización
-const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
-const user = (gun as any).user().recall({ sessionStorage: true });
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -18,26 +12,39 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [gunUser, setGunUser] = useState<any>(null)
 
   useEffect(() => {
-    // Verificar sesión al cargar
-    if (user.is) {
-      setIsLoggedIn(true);
-      setCurrentUser(user.is.alias);
-    }
+    const initGun = async () => {
+      const Gun = (await import('gun')).default;
+      await import('gun/sea');
+      const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+      const user = (gun as any).user().recall({ sessionStorage: true });
+      setGunUser(user);
 
-    gun.on('auth', () => {
-      setIsLoggedIn(true);
-      setCurrentUser(user.is.alias);
-      setLoading(false);
-      setError('');
-    });
+      if (user.is) {
+        setIsLoggedIn(true);
+        setCurrentUser(user.is.alias);
+      }
+
+      gun.on('auth', () => {
+        setIsLoggedIn(true);
+        setCurrentUser(user.is.alias);
+        setLoading(false);
+        setError('');
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      initGun();
+    }
   }, [])
 
   const handleRegister = () => {
+    if (!gunUser) return;
     if (!username || !password) return setError('Por favor, completa todos los campos.');
     setLoading(true);
-    user.create(username, password, (ack: any) => {
+    gunUser.create(username, password, (ack: any) => {
       if (ack.err) {
         setError(ack.err === 'User already created!' ? 'El usuario ya existe.' : ack.err);
         setLoading(false);
@@ -48,9 +55,10 @@ export default function LoginPage() {
   }
 
   const handleLogin = () => {
+    if (!gunUser) return;
     if (!username || !password) return setError('Por favor, completa todos los campos.');
     setLoading(true);
-    user.auth(username, password, (ack: any) => {
+    gunUser.auth(username, password, (ack: any) => {
       if (ack.err) {
         setError('Usuario o contraseña incorrectos.');
         setLoading(false);
@@ -59,7 +67,7 @@ export default function LoginPage() {
   }
 
   const handleLogout = () => {
-    user.leave();
+    if (gunUser) gunUser.leave();
     setIsLoggedIn(false);
     setCurrentUser('');
     window.location.reload();
@@ -190,12 +198,6 @@ export default function LoginPage() {
               )}
             </div>
           </div>
-        </div>
-        
-        <div className="mt-8 flex items-center gap-4 justify-center text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-          <div className="flex items-center gap-1"><Shield size={12}/> ENCRIPTADO</div>
-          <div className="w-1 h-1 bg-gray-800 rounded-full"/>
-          <div className="flex items-center gap-1"><Sparkles size={12}/> DESCENTRALIZADO</div>
         </div>
       </motion.div>
     </main>

@@ -2,28 +2,36 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Gun from "gun"
-import 'gun/sea'
 import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User } from "lucide-react"
 import { motion } from "framer-motion"
-
-const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
-const user = (gun as any).user().recall({ sessionStorage: true });
 
 export function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userName, setUserName] = useState("")
 
   useEffect(() => {
-    const checkUser = () => {
-      if (user.is) {
-        setIsLoggedIn(true);
-        setUserName(user.is.alias);
-      }
+    // Importación dinámica de Gun solo en el cliente
+    const initGun = async () => {
+      const Gun = (await import('gun')).default;
+      await import('gun/sea');
+      
+      const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+      const user = (gun as any).user().recall({ sessionStorage: true });
+
+      const checkUser = () => {
+        if (user.is) {
+          setIsLoggedIn(true);
+          setUserName(user.is.alias);
+        }
+      };
+
+      checkUser();
+      gun.on('auth', checkUser);
     };
 
-    checkUser();
-    gun.on('auth', checkUser);
+    if (typeof window !== 'undefined') {
+      initGun();
+    }
   }, [])
 
   return (
