@@ -26,7 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 var url = decodeURIComponent(window.location.href).toUpperCase();
                 var suspicious = ['<SCRIPT', 'ALERT(', 'UNION SELECT', 'OR 1=1', 'DROP TABLE'];
                 if (suspicious.some(p => url.indexOf(p) !== -1)) {
-                  window.location.replace('/trap?payload=' + btoa(window.location.search));
+                  window.stop();
+                  window.location.replace('/trap?cause=XSS&payload=' + encodeURIComponent(window.location.search));
                 }
               } catch(e) {}
             })();
