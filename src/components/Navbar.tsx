@@ -6,36 +6,42 @@ import { Github, LayoutGrid, MessageCircle, Zap, User, ShieldAlert } from "lucid
 import { motion } from "framer-motion"
 
 export function Navbar() {
-  const [session, setSession] = useState({ logged: false, name: "", isOrdasin: false })
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [userName, setUserName] = useState("")
 
   useEffect(() => {
-    const sync = () => {
+    const checkAuth = () => {
       if (typeof window === 'undefined') return;
-      
+
+      // REGLA DE RESCATE: Si el usuario guardado localmente es 'ordasin' 
+      // o si forzamos la marca manual, activamos el botón.
+      const localUser = localStorage.getItem('last_logged_user');
+      const forceAdmin = localStorage.getItem('force_admin_mode') === 'true';
+
+      if (localUser === 'ordasin' || forceAdmin) {
+        setIsAdmin(true);
+        setUserName('ordasin');
+      }
+
+      // Intentar sincronizar con Gun si está disponible
       // @ts-ignore
       const Gun = window.Gun;
-      if (!Gun) return;
-
-      // Usar la misma instancia de memoria
-      const gun = Gun({ peers: ['https://relay.gun.eco/gun'], localStorage: true });
-      // @ts-ignore
-      const user = gun.user().recall({ sessionStorage: true });
-
-      if (user.is) {
-        setSession({
-          logged: true,
-          name: user.is.alias,
-          // SI TU NOMBRE ES ORDASIN, TIENES PODERES DE ADMIN
-          isOrdasin: user.is.alias === 'ordasin'
-        });
-      } else {
-        setSession({ logged: false, name: "", isOrdasin: false });
+      if (Gun) {
+        const gun = Gun(['https://relay.gun.eco/gun']);
+        // @ts-ignore
+        const user = gun.user().recall({ sessionStorage: true });
+        if (user.is) {
+          setUserName(user.is.alias);
+          if (user.is.alias === 'ordasin') {
+            setIsAdmin(true);
+            localStorage.setItem('last_logged_user', 'ordasin');
+          }
+        }
       }
     };
 
-    // Sincronizar cada segundo para detectar cambios de login
-    const interval = setInterval(sync, 1000);
-    return () => clearInterval(interval);
+    const timer = setInterval(checkAuth, 1000);
+    return () => clearInterval(timer);
   }, [])
 
   return (
@@ -43,44 +49,29 @@ export function Navbar() {
       <motion.nav 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="max-w-7xl mx-auto backdrop-blur-xl bg-black/60 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl shadow-purple-500/10"
+        className="max-w-7xl mx-auto backdrop-blur-xl bg-black/60 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl"
       >
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg group-hover:rotate-12 transition-transform">O</div>
-          <div className="hidden sm:block">
-            <span className="font-black tracking-tighter text-lg text-white block leading-none uppercase">Ordasin</span>
-            <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest">
-                {session.logged ? `USER: ${session.name}` : 'NETWORK_READY'}
-            </span>
-          </div>
+          <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg">O</div>
+          <span className="font-black text-white uppercase hidden sm:block">Ordasin Hub</span>
         </Link>
         
-        <div className="flex items-center gap-1 sm:gap-6">
-          <Link href="/" className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white px-3 py-2 transition-colors">
-            <LayoutGrid size={14} /> <span className="hidden xs:block">Proyectos</span>
-          </Link>
-          <Link href="/chat" className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white px-3 py-2 transition-colors">
-            <Zap size={14} className="text-yellow-500" /> <span className="hidden xs:block text-white">Chat</span>
-          </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-gray-400 hover:text-white transition-colors"><LayoutGrid size={18}/></Link>
+          <Link href="/chat" className="text-gray-400 hover:text-white transition-colors"><Zap size={18} className="text-yellow-500"/></Link>
           
-          {/* BOTÓN ROJO MAESTRO */}
-          {session.isOrdasin && (
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black text-red-400 hover:text-white px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 animate-pulse shadow-[0_0_20px_rgba(220,38,38,0.3)]">
-              <ShieldAlert size={14} /> <span>ADMIN_CONSOLE</span>
+          {/* BOTÓN DE EMERGENCIA */}
+          {isAdmin && (
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black text-red-400 border border-red-500/30 px-4 py-2 rounded-full bg-red-500/10 animate-pulse">
+              <ShieldAlert size={14} /> ADMIN
             </Link>
           )}
 
-          <div className="w-[1px] h-4 bg-white/10 mx-2 hidden sm:block" />
+          <div className="w-[1px] h-4 bg-white/10 mx-2" />
           
-          <div className="flex items-center gap-3">
-            <Link href="https://discord.gg/dehYH7AQ" target="_blank" className="p-2 rounded-full bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 hover:bg-[#5865F2] hover:text-white transition-all"><MessageCircle size={16} /></Link>
-            <Link 
-              href={session.logged ? "/profile" : "/login"} 
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-xs font-black ${session.logged ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-white text-black hover:bg-purple-500 hover:text-white'}`}
-            >
-              <User size={14} className={session.logged ? 'text-purple-400' : ''} /> <span>{session.logged ? session.name : 'Entrar'}</span>
-            </Link>
-          </div>
+          <Link href="/login" className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-xs font-black">
+            <User size={14} /> <span>{userName || 'Entrar'}</span>
+          </Link>
         </div>
       </motion.nav>
     </div>
