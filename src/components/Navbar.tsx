@@ -39,7 +39,7 @@ export function Navbar() {
       <motion.nav 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="max-w-6xl mx-auto backdrop-blur-xl bg-black/40 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl shadow-purple-500/10"
+        className="max-w-7xl mx-auto backdrop-blur-xl bg-black/40 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl shadow-purple-500/10"
       >
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg group-hover:rotate-12 transition-transform">
@@ -60,9 +60,13 @@ export function Navbar() {
             <Zap size={16} className="text-yellow-500" />
             <span className="hidden xs:block">Chat P2P</span>
           </Link>
+          <Link href="/community" className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-colors">
+            <Users size={16} />
+            <span className="hidden xs:block">Comunidad</span>
+          </Link>
           
           {isAdmin && (
-            <Link href="/admin" className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 px-3 py-2 rounded-lg transition-colors bg-red-400/10 border border-red-400/20">
+            <Link href="/admin" className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 px-3 py-2 rounded-lg transition-colors bg-red-400/10 border border-red-400/20 animate-pulse">
               <ShieldAlert size={16} />
               <span className="hidden xs:block">Admin</span>
             </Link>
@@ -70,16 +74,35 @@ export function Navbar() {
 
           <div className="w-[1px] h-4 bg-white/10 mx-2 hidden sm:block" />
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Discord */}
+            <Link 
+              href="https://discord.gg/dehYH7AQ" 
+              target="_blank"
+              className="p-2 rounded-full bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 hover:bg-[#5865F2] hover:text-white transition-all"
+            >
+              <MessageCircle size={18} />
+            </Link>
+
+            {/* GitHub */}
+            <Link 
+              href="https://github.com/ordasin" 
+              target="_blank"
+              className="p-2 rounded-full bg-white/5 text-gray-400 border border-white/10 hover:bg-white hover:text-black transition-all"
+            >
+              <Github size={18} />
+            </Link>
+
+            {/* Login / Profile */}
             <Link 
               href={isLoggedIn ? "/profile" : "/login"} 
               className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-bold ${
                 isLoggedIn 
                 ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20' 
-                : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                : 'bg-white text-black hover:bg-purple-500 hover:text-white'
               }`}
             >
-              <User size={16} className={isLoggedIn ? 'text-purple-400' : 'text-gray-400'} />
+              <User size={16} className={isLoggedIn ? 'text-purple-400' : ''} />
               <span>{isLoggedIn ? userName : 'Entrar'}</span>
             </Link>
           </div>
