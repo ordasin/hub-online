@@ -20,18 +20,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <head>
         <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
               try {
                 var url = decodeURIComponent(window.location.href).toUpperCase();
                 var patterns = ['<SCRIPT', 'ALERT(', 'UNION', 'OR 1=1', 'DROP', 'CAT /ETC/'];
-                if (patterns.some(p => url.indexOf(p) !== -1)) {
+                if (patterns.some(function(p) { return url.indexOf(p) !== -1; })) {
+                  console.warn("!!! ATAQUE DETECTADO !!!");
                   window.stop();
-                  window.location.replace('/trap?payload=' + btoa(window.location.search) + '&cause=PAYLOAD_DETECTION');
+                  window.location.replace('/trap?details=' + encodeURIComponent(window.location.search));
                 }
-              } catch(e) {}
+              } catch(e) { console.error("Security script error", e); }
             })();
           `
         }} />
