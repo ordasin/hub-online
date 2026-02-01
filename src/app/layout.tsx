@@ -13,18 +13,17 @@ export const metadata: Metadata = {
   title: "Ordasin Hub Online",
   description: "Software de Alto Impacto",
   manifest: "/manifest.json",
-  other: {
-    // ABRIMOS CONNECT-SRC para que GunDB no sea bloqueado por el navegador
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://grainy-gradients.vercel.app https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src * 'self' blob: data: wss: ws: https:; frame-src 'none'; object-src 'none';",
-    "X-Frame-Options": "DENY",
-    "X-Content-Type-Options": "nosniff"
-  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <head>
+        {/* CARGA DE LIBRERÍAS P2P DESDE CDN (Más estable) */}
+        <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+        
+        {/* ESCUDO DE SEGURIDAD PRE-CARGA */}
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
