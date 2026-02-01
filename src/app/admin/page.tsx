@@ -1,17 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Activity, AlertTriangle, Trash2, Home, Wifi, WifiOff } from 'lucide-react'
+import { Shield, Activity, Wifi, WifiOff, Terminal } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 
 const MASTER_PUB = "1ssBJ21YO8u8ONhlR1iokrR1_23Vnci4o1nPQDJvyU0.MjwgKU7CCEKsI08ptqpGgdwnp-IVRtxRDjHCt9XiWhw";
-const PEERS = ['https://gun-manhattan.herokuapp.com/gun'];
+const PEERS = ['https://gun-manhattan.herokuapp.com/gun', 'https://gun-us.herokuapp.com/gun'];
 
 export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [threats, setThreats] = useState<any[]>([])
-  const [isConnected, setIsConnected] = useState(false)
+  const [netLog, setNetLog] = useState<string[]>([])
   const [gun, setGun] = useState<any>(null)
 
   useEffect(() => {
@@ -25,30 +25,26 @@ export default function AdminPage() {
 
       if (user.is && user.is.pub === MASTER_PUB) {
         setIsAdmin(true);
-        setIsConnected(true);
-        toast.success("CONEXIÓN ESTABLECIDA CON LA RED P2P");
+        setNetLog(prev => [...prev, "Autenticación Maestra: OK"]);
       } else {
         if (typeof window !== 'undefined') window.location.href = '/login';
       }
 
-      // Escuchar logs de forma persistente
+      // Escuchar logs de intrusión
       g.get('intrusion_logs').map().on((data: any) => {
         if (data && data.id) {
           setThreats(prev => {
-            const exists = prev.find(t => t.id === data.id);
-            if (exists) return prev;
-            return [data, ...prev].sort((a,b) => b.time - a.time).slice(0, 15);
+            if (prev.find(t => t.id === data.id)) return prev;
+            return [data, ...prev].sort((a,b) => b.time - a.time).slice(0, 10);
           });
+          setNetLog(prev => [`Recibido: ${data.type}`, ...prev].slice(0, 5));
         }
       });
 
-      // Escuchar última amenaza para notificación
-      g.get('latest_threat').on((data: any) => {
-        if (data && data.time > Date.now() - 10000) {
-          toast.error(`!!! ALERTA DE SEGURIDAD !!!`, {
-            description: `${data.type}: ${data.path}`,
-            duration: 6000
-          });
+      // Alerta sonora (toast)
+      g.get('latest_threat_signal').on((data: any) => {
+        if (data && data.time > Date.now() - 15000) {
+          toast.error("AMENAZA EN TIEMPO REAL", { description: data.type });
         }
       });
     };
@@ -61,56 +57,41 @@ export default function AdminPage() {
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Network Status Bar */}
-        <div className="flex justify-between items-center px-6 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest">
-            <div className="flex items-center gap-2">
-                {isConnected ? <Wifi className="text-green-500" size={14}/> : <WifiOff className="text-red-500" size={14}/>}
-                <span>Red P2P: {isConnected ? 'Sincronizada' : 'Conectando...'}</span>
-            </div>
-            <div className="flex items-center gap-4">
-                <span className="text-gray-500">NODO MAESTRO: {MASTER_PUB.substring(0, 10)}...</span>
-            </div>
-        </div>
-
-        {/* Dashboard Content */}
-        <div className="p-10 rounded-[3rem] bg-gradient-to-br from-red-900/20 to-black border-2 border-red-600/20 backdrop-blur-xl">
-          <div className="flex items-center gap-6 mb-12">
-            <Shield size={48} className="text-red-600 animate-pulse" />
-            <h1 className="text-4xl font-black uppercase tracking-tighter">Command & Control</h1>
+        <div className="p-8 rounded-[3rem] bg-red-900/10 border border-red-600/20 backdrop-blur-xl">
+          <div className="flex items-center gap-6 mb-8">
+            <Shield size={40} className="text-red-600" />
+            <h1 className="text-3xl font-black uppercase tracking-tighter">Admin Vigilance</h1>
           </div>
 
-          <div className="space-y-4">
-            <h2 className="text-lg font-black uppercase flex items-center gap-2 text-red-400">
-              <Activity size={18} /> Monitor de Intrusión
-            </h2>
-            <div className="space-y-2">
-              {threats.length === 0 && (
-                <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
-                    <p className="text-gray-600 text-xs font-bold uppercase tracking-widest">Escaneando red en busca de firmas de ataque...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Lista de Amenazas */}
+            <div className="space-y-4">
+                <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2"><Activity size={14}/> Intrusion History</h2>
+                <div className="space-y-2">
+                    {threats.map(t => (
+                        <div key={t.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex justify-between items-center">
+                            <span className="text-red-500 font-bold text-[10px]">{t.type}</span>
+                            <span className="text-white font-bold text-[10px]">{new Date(t.time).toLocaleTimeString()}</span>
+                        </div>
+                    ))}
+                    {threats.length === 0 && <p className="text-gray-700 text-xs italic">Escuchando red...</p>}
                 </div>
-              )}
-              <AnimatePresence>
-                {threats.map((t) => (
-                  <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} key={t.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center hover:border-red-500/50 transition-colors">
-                    <div>
-                      <span className="bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-md mr-4 uppercase">{t.type}</span>
-                      <span className="text-gray-400 text-[10px] font-bold">{t.userAgent.substring(0, 60)}</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-white font-black text-[10px]">{new Date(t.time).toLocaleTimeString()}</p>
-                      <p className="text-red-500 text-[9px] font-bold uppercase">{t.path}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+            </div>
+
+            {/* Consola de Red */}
+            <div className="p-6 bg-black rounded-[2rem] border border-white/5">
+                <h2 className="text-[10px] font-black text-gray-600 uppercase mb-4 flex items-center gap-2"><Terminal size={12}/> Live Network Traffic</h2>
+                <div className="space-y-1">
+                    {netLog.map((log, i) => (
+                        <p key={i} className="text-[10px] text-green-500/70">{">"} {log}</p>
+                    ))}
+                    <p className="text-[10px] text-green-400 animate-pulse">{">"} Escuchando paquetes P2P...</p>
+                </div>
             </div>
           </div>
         </div>
 
-        <div className="flex gap-4">
-            <button onClick={() => gun.get('intrusion_logs').put(null)} className="flex-1 py-4 bg-red-600/10 border border-red-600/20 rounded-2xl text-[10px] font-black uppercase text-red-400 hover:bg-red-600/20 transition-all">Limpiar Historial</button>
-            <button onClick={() => window.location.href = '/'} className="flex-1 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase hover:bg-purple-600 hover:text-white transition-all">Ir al Hub</button>
-        </div>
+        <button onClick={() => window.location.href='/'} className="w-full py-4 bg-white text-black rounded-2xl font-black text-xs uppercase hover:bg-purple-500 hover:text-white transition-all">Salir del Modo Admin</button>
       </div>
     </main>
   )

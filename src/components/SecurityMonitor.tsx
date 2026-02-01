@@ -3,69 +3,60 @@
 import { useEffect, useRef } from 'react'
 import DOMPurify from 'dompurify'
 
-const PEERS = ['https://gun-manhattan.herokuapp.com/gun'];
+// Usamos los dos relés más fiables
+const PEERS = [
+  'https://gun-manhattan.herokuapp.com/gun',
+  'https://gun-us.herokuapp.com/gun'
+];
 
 export function SecurityMonitor() {
   const gunRef = useRef<any>(null);
 
   useEffect(() => {
-    const initSecurity = async () => {
+    const init = async () => {
       const Gun = (await import('gun')).default;
       gunRef.current = Gun({ peers: PEERS });
       
-      // Comprobar URL inmediatamente después de inicializar
+      // Ping inicial para despertar la conexión
+      gunRef.current.get('p2p_status').put({ last_ping: Date.now() });
+      
       checkUrl();
     };
 
     const reportThreat = (type: string, details: string) => {
       if (!gunRef.current) return;
 
-      const threatId = Math.random().toString(36).substring(7);
+      const threatId = "threat_" + Date.now();
       const log = {
         id: threatId,
         type,
         details: DOMPurify.sanitize(details),
         path: window.location.pathname,
-        userAgent: navigator.userAgent,
         time: Date.now()
       };
 
-      console.log("🛡️ REGISTRANDO AMENAZA:", log);
-
-      // Enviamos y esperamos confirmación (ack)
+      // Forzar escritura inmediata
       gunRef.current.get('intrusion_logs').get(threatId).put(log, (ack: any) => {
+        console.log("P2P ACK:", ack);
         if (type === 'URL_ATTACK') {
-          // Solo redirigimos cuando Gun confirma que ha procesado el dato
-          window.location.href = '/trap';
+          // Esperar medio segundo extra para asegurar propagación
+          setTimeout(() => { window.location.href = '/trap'; }, 800);
         }
       });
       
-      // Actualizar el nodo de alerta rápida
-      gunRef.current.get('latest_threat').put(log);
+      gunRef.current.get('latest_threat_signal').put(log);
     };
 
     const checkUrl = () => {
       try {
-        const fullUrl = decodeURIComponent(window.location.href).toUpperCase();
-        const suspicious = ['<SCRIPT', 'UNION SELECT', 'OR 1=1', 'ALERT(', 'DROP TABLE', '<IMG'];
-        
-        if (suspicious.some(pattern => fullUrl.includes(pattern))) {
+        const decoded = decodeURIComponent(window.location.href).toUpperCase();
+        if (decoded.includes('<SCRIPT') || decoded.includes('ALERT(') || decoded.includes('OR 1=1')) {
           reportThreat('URL_ATTACK', window.location.search);
         }
-      } catch (e) {
-        // En caso de error en decodificación, ignorar
-      }
+      } catch (e) {}
     };
 
-    const checkDev = () => {
-      if (window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) {
-        reportThreat('DEVTOOLS', 'Inspección activa');
-      }
-    };
-
-    initSecurity();
-    window.addEventListener('resize', checkDev);
-    return () => window.removeEventListener('resize', checkDev);
+    init();
   }, []);
 
   return null;
