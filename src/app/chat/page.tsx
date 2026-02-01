@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Peer, { DataConnection } from 'peerjs'
 import { Send, User, Copy, Link as LinkIcon, Shield, Zap, MessageSquare, Ban } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import DOMPurify from 'dompurify'
 
 export default function ChatPage() {
   const [peer, setPeer] = useState<Peer | null>(null)
@@ -23,19 +24,16 @@ export default function ChatPage() {
       const g = Gun(['https://gun-manhattan.herokuapp.com/gun']);
       setGun(g);
 
-      // 1. Inicializar PeerJS
       const newPeer = new Peer()
       newPeer.on('open', (id) => {
         setPeer(newPeer)
         setMyId(id)
         setStatus('Listo')
 
-        // 2. Sistema de Baneo: Verificar si mi ID está en la lista negra
         g.get('ban_list').get(id).on((val: any) => {
           if (val === true) setIsBanned(true);
         });
 
-        // 3. Heartbeat: Informar que estoy online cada 5 segundos
         const heartbeat = setInterval(() => {
           g.get('online_users').get(id).put(Date.now());
         }, 5000);
@@ -60,68 +58,65 @@ export default function ChatPage() {
     })
 
     connection.on('data', (data: any) => {
+      // Saneamiento del mensaje recibido
+      const cleanText = DOMPurify.sanitize(data.text || "");
       setMessages(prev => [...prev, {
         sender: 'Peer',
-        text: data.text,
+        text: cleanText,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }])
     })
   }
 
   const sendMessage = () => {
-    if (isBanned) return alert('Has sido baneado de este canal.');
-    if (conn && input.trim()) {
-      const msg = { text: input, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+    if (isBanned) return alert('Has sido baneado.');
+    const cleanInput = DOMPurify.sanitize(input.trim());
+    if (conn && cleanInput) {
+      const msg = { text: cleanInput, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
       conn.send(msg)
       setMessages(prev => [...prev, { sender: 'Tú', ...msg }])
       setInput('')
     }
   }
 
-  if (isBanned) {
-    return (
-      <main className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-6">
-        <div className="text-center space-y-6 max-w-md">
-          <div className="w-24 h-24 bg-red-600/20 rounded-[2rem] flex items-center justify-center mx-auto text-red-500 border border-red-500/30">
-            <Ban size={48} />
-          </div>
-          <h1 className="text-4xl font-black tracking-tighter">ACCESO DENEGADO</h1>
-          <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Tu ID ha sido incluido en la lista negra de la red P2P.</p>
-          <button onClick={() => window.location.href = '/'} className="px-8 py-3 bg-white text-black font-black rounded-xl">VOLVER AL HUB</button>
-        </div>
-      </main>
-    )
-  }
+  // ... resto del componente (manteniendo el JSX saneado por defecto por React)
+  if (isBanned) return <div className="text-center p-20 text-red-500">ACCESO DENEGADO</div>;
 
-  // ... resto del renderizado (igual que antes) ...
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6">
       <div className="relative z-10 max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Paneles laterales */}
         <div className="space-y-6">
           <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-xl">
             <h2 className="text-xl font-black mb-6 flex items-center gap-2 uppercase tracking-tighter">Tu Identidad</h2>
             <code className="text-[10px] text-purple-300 font-mono block p-4 bg-black/40 rounded-xl border border-white/5 truncate mb-4">{myId || 'Generando...'}</code>
-            <button onClick={() => navigator.clipboard.writeText(myId)} className="w-full py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Copiar ID</button>
+            <button onClick={() => navigator.clipboard.writeText(myId)} className="w-full py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white/10">Copiar ID</button>
           </div>
           <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-xl">
             <h2 className="text-xl font-black mb-6 flex items-center gap-2 uppercase tracking-tighter">Conectar</h2>
-            <input value={targetId} onChange={(e) => setTargetId(e.target.value)} placeholder="ID de un amigo..." className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs outline-none mb-4" />
-            <button onClick={() => peer?.connect(targetId) && setTargetId('')} className="w-full py-3 bg-blue-600 rounded-xl font-black text-xs hover:bg-blue-500 transition-all">ESTABLECER ENLACE</button>
+            <input 
+              value={targetId} 
+              onChange={(e) => setTargetId(DOMPurify.sanitize(e.target.value))} // Sanear ID de destino
+              placeholder="ID de un amigo..." 
+              className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs outline-none mb-4" 
+            />
+            <button onClick={() => peer?.connect(targetId) && setTargetId('')} className="w-full py-3 bg-blue-600 rounded-xl font-black text-xs">ESTABLECER ENLACE</button>
           </div>
         </div>
 
+        {/* Ventana de Chat */}
         <div className="lg:col-span-2">
           <div className="h-[600px] flex flex-col rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl overflow-hidden">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center text-purple-400 border border-purple-400/20"><MessageSquare size={20} /></div>
-                <div><h3 className="font-bold text-sm">Canal P2P</h3><p className="text-[10px] text-gray-500 uppercase font-black">{status}</p></div>
+                <div><h3 className="font-bold text-sm">Canal P2P Seguro</h3><p className="text-[10px] text-gray-500 uppercase font-black">{status}</p></div>
               </div>
             </div>
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.sender === 'Tú' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`p-4 rounded-2xl max-w-[80%] ${msg.sender === 'Tú' ? 'bg-purple-600' : 'bg-white/10 border border-white/5'}`}>
+                  <div className={`p-4 rounded-2xl max-w-[80%] ${msg.sender === 'Tú' ? 'bg-purple-600 shadow-[0_0_20px_rgba(147,51,234,0.3)]' : 'bg-white/10 border border-white/5'}`}>
                     <p className="text-sm">{msg.text}</p>
                     <p className="text-[10px] opacity-40 mt-1 text-right">{msg.time}</p>
                   </div>
@@ -129,7 +124,14 @@ export default function ChatPage() {
               ))}
             </div>
             <div className="p-6 border-t border-white/10 flex gap-4">
-              <input value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendMessage()} placeholder="Escribe un mensaje..." className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 outline-none" />
+              <input 
+                value={input} 
+                onChange={(e) => setInput(e.target.value)} 
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()} 
+                placeholder="Escribe un mensaje..." 
+                maxLength={500}
+                className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 outline-none" 
+              />
               <button onClick={sendMessage} className="p-4 bg-purple-600 rounded-xl hover:bg-purple-500 transition-all"><Send size={20}/></button>
             </div>
           </div>
