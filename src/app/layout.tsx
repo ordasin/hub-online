@@ -11,19 +11,19 @@ export const viewport: Viewport = { themeColor: "#050505", width: "device-width"
 
 export const metadata: Metadata = {
   title: "Ordasin Hub Online",
-  description: "Software de Alto Impacto",
-  manifest: "/manifest.json",
+  description: "Plataforma de Software de Alto Impacto",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <head>
-        {/* CARGA DE LIBRERÍAS CORE */}
+        {/* CARGA DE LIBRERÍAS CORE (ORDEN OBLIGATORIO) */}
         <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
         
-        {/* ESCUDO DE SEGURIDAD PRE-CARGA */}
+        {/* ESCUDO DE BLOQUEO INSTANTÁNEO */}
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#050505]`}>
-        <Toaster position="bottom-right" theme="dark" richColors />
+        <Toaster position="bottom-right" theme="dark" richColors closeButton />
         <Navbar />
         {children}
       </body>
