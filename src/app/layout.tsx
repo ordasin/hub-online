@@ -12,16 +12,16 @@ export const viewport: Viewport = { themeColor: "#050505", width: "device-width"
 export const metadata: Metadata = {
   title: "Ordasin Hub Online",
   description: "Software de Alto Impacto",
-  manifest: "/manifest.json",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <head>
-        {/* CARGA DE LIBRERÍAS DESDE CDN ESTABLE */}
+        {/* CARGA DE LIBRERÍAS CORE (ORDEN CRÍTICO) */}
         <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-        {/* ESCUDO DE ENTRADA */}
+        <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+        
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
