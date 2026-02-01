@@ -24,21 +24,30 @@ export default function AdminPage() {
       if (user.is && user.is.pub === MASTER_PUB) setIsAdmin(true);
       else if (typeof window !== 'undefined') window.location.href = '/login';
 
-      // Alerta sonora (toast) con margen amplio para incógnito (2 minutos)
+      // 1. Lógica de Alerta Rápida + Inserción Manual (Respaldo)
       g.get('latest_threat_signal').on((data: any) => {
-        if (data && data.time > Date.now() - 120000) {
+        if (data && data.time > Date.now() - 60000) {
+          // Mostrar notificación
           toast.error("¡AMENAZA DETECTADA!", { 
             description: `${data.type} en ${data.path}`,
             duration: 10000
           });
+
+          // RESPALDO: Si no está en la lista, lo añadimos nosotros manualmente
+          setThreats(prev => {
+            const exists = prev.find(t => t.id === data.id || (t.time === data.time && t.type === data.type));
+            if (exists) return prev;
+            return [data, ...prev].sort((a,b) => b.time - a.time).slice(0, 20);
+          });
         }
       });
 
-      // Mapear historial completo
+      // 2. Lógica de Historial P2P (Sincronización profunda)
       g.get('intrusion_logs').map().on((data: any) => {
         if (data && data.id) {
           setThreats(prev => {
-            if (prev.find(t => t.id === data.id)) return prev;
+            const exists = prev.find(t => t.id === data.id);
+            if (exists) return prev;
             return [data, ...prev].sort((a,b) => b.time - a.time).slice(0, 20);
           });
         }
@@ -46,6 +55,15 @@ export default function AdminPage() {
     };
     init();
   }, [])
+
+  const clearHistory = () => {
+    if (gun) {
+      gun.get('intrusion_logs').put(null);
+      gun.get('latest_threat_signal').put(null);
+      setThreats([]);
+      toast.info("Historial purgado");
+    }
+  }
 
   if (!isAdmin) return null;
 
@@ -56,27 +74,41 @@ export default function AdminPage() {
           <div className="flex justify-between items-center mb-12">
             <div className="flex items-center gap-6">
                 <Shield size={48} className="text-red-600" />
-                <h1 className="text-4xl font-black uppercase tracking-tighter">Command Center</h1>
+                <h1 className="text-4xl font-black uppercase tracking-tighter">VIGILANCIA MAESTRA</h1>
             </div>
-            <button onClick={() => gun.get('intrusion_logs').put(null)} className="p-4 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white rounded-2xl transition-all"><Trash2 size={24}/></button>
+            <button onClick={clearHistory} className="p-4 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white rounded-2xl transition-all"><Trash2 size={24}/></button>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-lg font-black uppercase flex items-center gap-2"><Activity size={18} /> Intrusion Logs</h2>
+            <h2 className="text-lg font-black uppercase flex items-center gap-2 border-b border-white/10 pb-4"><Activity size={18} /> Historial de Ataques</h2>
             <div className="space-y-2">
-              {threats.map((t) => (
-                <div key={t.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <AlertTriangle size={16} className="text-red-500" />
-                    <div><p className="text-red-500 font-black text-xs uppercase">{t.type}</p><p className="text-gray-500 text-[10px] truncate max-w-md">{t.userAgent}</p></div>
-                  </div>
-                  <div className="text-right"><p className="text-white font-black text-[10px]">{new Date(t.time).toLocaleTimeString()}</p><p className="text-red-500 text-[9px] font-bold uppercase">{t.path}</p></div>
-                </div>
-              ))}
+              <AnimatePresence initial={false}>
+                {threats.map((t) => (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }} 
+                    key={t.id || t.time} 
+                    className="p-4 bg-white/5 border border-white/10 rounded-2xl flex justify-between items-center overflow-hidden"
+                  >
+                    <div className="flex items-center gap-4">
+                      <AlertTriangle size={16} className="text-red-500" />
+                      <div>
+                        <p className="text-red-500 font-black text-xs uppercase">{t.type}</p>
+                        <p className="text-gray-500 text-[9px] truncate max-w-xs">{t.details || 'No details'}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-black text-[10px]">{new Date(t.time).toLocaleTimeString()}</p>
+                      <p className="text-red-500 text-[9px] font-bold uppercase">{t.path}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {threats.length === 0 && <p className="text-center py-20 text-gray-700 uppercase text-xs font-black tracking-[0.3em]">Sin actividad...</p>}
             </div>
           </div>
         </div>
-        <button onClick={() => window.location.href='/'} className="w-full py-4 bg-white text-black rounded-2xl font-black text-xs uppercase hover:bg-purple-500 hover:text-white transition-all">Regresar</button>
+        <button onClick={() => window.location.href='/'} className="w-full py-4 bg-white text-black rounded-2xl font-black text-xs uppercase hover:bg-purple-500 hover:text-white transition-all">Hub Home</button>
       </div>
     </main>
   )
