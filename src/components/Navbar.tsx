@@ -1,10 +1,31 @@
 'use client'
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User } from "lucide-react"
+import Gun from "gun"
+import 'gun/sea'
+import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap, User, LogOut } from "lucide-react"
 import { motion } from "framer-motion"
 
+const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+const user = (gun as any).user().recall({ sessionStorage: true });
+
 export function Navbar() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userName, setUserName] = useState("")
+
+  useEffect(() => {
+    const checkUser = () => {
+      if (user.is) {
+        setIsLoggedIn(true);
+        setUserName(user.is.alias);
+      }
+    };
+
+    checkUser();
+    gun.on('auth', checkUser);
+  }, [])
+
   return (
     <div className="fixed top-6 left-0 right-0 z-50 px-6">
       <motion.nav 
@@ -35,16 +56,22 @@ export function Navbar() {
             <Users size={16} />
             <span className="hidden xs:block">Comunidad</span>
           </Link>
+          
           <div className="w-[1px] h-4 bg-white/10 mx-2 hidden sm:block" />
           
           <div className="flex items-center gap-2">
             <Link 
               href="/login" 
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-sm font-bold hover:bg-white/10 transition-all"
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-bold ${
+                isLoggedIn 
+                ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20' 
+                : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+              }`}
             >
-              <User size={16} className="text-purple-400" />
-              <span>Entrar</span>
+              <User size={16} className={isLoggedIn ? 'text-purple-400' : 'text-gray-400'} />
+              <span>{isLoggedIn ? userName : 'Entrar'}</span>
             </Link>
+            
             <Link 
               href="https://discord.gg/dehYH7AQ" 
               target="_blank"
