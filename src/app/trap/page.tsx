@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ShieldAlert, RefreshCw, CheckCircle } from 'lucide-react'
+import { ShieldAlert, RefreshCw, CheckCircle, Wifi, WifiOff } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function TrapPage() {
+  const [peers, setPeers] = useState(0)
   const [sent, setSent] = useState(false)
 
   useEffect(() => {
@@ -12,31 +13,35 @@ export default function TrapPage() {
       try {
         const Gun = (await import('gun')).default;
         const gun = Gun({
-          peers: ['https://gun-manhattan.herokuapp.com/gun', 'https://gun-us.herokuapp.com/gun'],
+          peers: ['https://gun-manhattan.herokuapp.com/gun'],
           localStorage: false
         });
+
+        // Monitor de conexión
+        gun.on('hi', () => setPeers(prev => prev + 1));
+        gun.on('bye', () => setPeers(prev => Math.max(0, prev - 1)));
         
         const params = new URLSearchParams(window.location.search);
-        const data = {
-          id: 'T' + Date.now() + Math.random().toString(36).substring(7),
-          type: 'TRAP_HIT',
-          details: params.get('payload') || 'Attack',
+        const log = {
+          type: 'INTRUSION',
+          details: params.get('payload') || 'Attack Detected',
           time: Date.now()
         };
 
-        // Enviar ráfaga agresiva
-        let count = 0;
-        const blast = setInterval(() => {
-          gun.get('CORE_SECURITY_V4').get(data.id).put(data, (ack: any) => {
+        // Generar ID simple
+        const id = 'T' + Math.floor(Math.random() * 1000000);
+
+        // Envío repetitivo hasta que haya éxito
+        const timer = setInterval(() => {
+          gun.get('CORE_SECURITY_V4').get(id).put(log, (ack: any) => {
             if (ack && !ack.err) {
               setSent(true);
-              clearInterval(blast);
+              clearInterval(timer);
             }
           });
-          count++;
-          if (count > 8) clearInterval(blast);
-        }, 1000);
+        }, 2000);
 
+        setTimeout(() => clearInterval(timer), 20000);
       } catch (e) {}
     };
     report();
@@ -44,12 +49,22 @@ export default function TrapPage() {
 
   return (
     <main className="min-h-screen bg-black text-red-500 flex items-center justify-center p-6 font-mono">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-8 border-2 border-red-900 p-12 rounded-[3rem] bg-red-950/10 shadow-[0_0_60px_rgba(220,38,38,0.2)]">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-8 max-w-lg border-2 border-red-900 p-12 rounded-[3rem] bg-red-950/10">
         <ShieldAlert size={80} className="mx-auto text-red-600 animate-pulse" />
-        <h1 className="text-3xl font-black uppercase tracking-tighter">Acceso Bloqueado</h1>
-        <div className="flex items-center justify-center gap-3 text-[10px] bg-white/5 py-2 px-4 rounded-full border border-white/10">
-          {sent ? <CheckCircle size={14} className="text-green-500" /> : <RefreshCw size={14} className="animate-spin text-purple-500" />}
-          <span>{sent ? "AMENAZA REPORTADA AL HUB" : "SINCRONIZANDO CON NODO MAESTRO..."}</span>
+        <h1 className="text-2xl font-black uppercase">Seguridad Activa</h1>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-center gap-3 text-[10px] bg-white/5 py-2 px-4 rounded-full border border-white/10">
+            {peers > 0 ? <Wifi size={12} className="text-blue-400"/> : <WifiOff size={12} className="text-red-500"/>}
+            <span className="text-gray-400 uppercase">Servidores P2P detectados: {peers}</span>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 text-[10px] bg-white/5 py-2 px-4 rounded-full border border-white/10">
+            {sent ? <CheckCircle size={12} className="text-green-500" /> : <RefreshCw size={12} className="animate-spin text-purple-500" />}
+            <span className={sent ? 'text-green-400' : 'text-gray-400'}>
+              {sent ? "ALERTA ENTREGADA AL NODO MAESTRO" : "TRANSMITIENDO FIRMA DE ATAQUE..."}
+            </span>
+          </div>
         </div>
       </motion.div>
     </main>
