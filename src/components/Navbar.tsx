@@ -27,7 +27,10 @@ export function Navbar() {
         if (user.is) {
           setIsLoggedIn(true);
           setUserName(user.is.alias);
-          if (user.is.pub === MASTER_PUB) setIsAdmin(true);
+          // BYPASS TEMPORAL: Permitir por nombre para recuperar acceso
+          if (user.is.pub === MASTER_PUB || user.is.alias === 'ordasin') {
+            setIsAdmin(true);
+          }
         }
       };
 
@@ -35,7 +38,6 @@ export function Navbar() {
       gun.on('auth', checkUser);
     };
 
-    // Esperar a la carga de Gun desde CDN
     const check = setInterval(() => {
       // @ts-ignore
       if (window.Gun) {
