@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link"
-import { Sparkles, Github, LayoutGrid, Users, MessageCircle } from "lucide-react"
+import { Sparkles, Github, LayoutGrid, Users, MessageCircle, Zap } from "lucide-react"
 import { motion } from "framer-motion"
 
 export function Navbar() {
@@ -26,6 +26,10 @@ export function Navbar() {
           <Link href="/" className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-colors">
             <LayoutGrid size={16} />
             <span className="hidden xs:block">Proyectos</span>
+          </Link>
+          <Link href="/chat" className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-colors">
+            <Zap size={16} className="text-yellow-500" />
+            <span className="hidden xs:block">Chat P2P</span>
           </Link>
           <Link href="/community" className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-colors">
             <Users size={16} />
