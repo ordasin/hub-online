@@ -19,20 +19,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <head>
-        {/* CARGA DE LIBRERÍAS P2P DESDE CDN (Más estable) */}
         <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
-        
-        {/* ESCUDO DE SEGURIDAD PRE-CARGA */}
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
               try {
                 var url = decodeURIComponent(window.location.href).toUpperCase();
-                var suspicious = ['<SCRIPT', 'ALERT(', 'UNION SELECT', 'OR 1=1', 'DROP TABLE'];
+                var suspicious = ['<SCRIPT', 'ALERT(', 'UNION', 'SELECT', 'OR 1=1', 'DROP'];
                 if (suspicious.some(p => url.indexOf(p) !== -1)) {
                   window.stop();
-                  window.location.replace('/trap?payload=' + btoa(window.location.search));
+                  window.location.replace('/trap?q=' + Date.now());
                 }
               } catch(e) {}
             })();
