@@ -12,27 +12,24 @@ export const viewport: Viewport = { themeColor: "#050505", width: "device-width"
 export const metadata: Metadata = {
   title: "Ordasin Hub Online",
   description: "Software de Alto Impacto",
-  manifest: "/manifest.json",
-  other: {
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://grainy-gradients.vercel.app https://images.unsplash.com; font-src 'self' https://fonts.gstatic.com; connect-src * 'self' blob: data: wss: ws: https:; frame-src 'none'; object-src 'none';",
-  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <head>
+        {/* CARGA DE LIBRERÍA CORE */}
         <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+        {/* SCRIPT DE BLOQUEO ULTRARÁPIDO */}
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
               try {
                 var url = decodeURIComponent(window.location.href).toUpperCase();
-                var patterns = ['<SCRIPT', 'ALERT(', 'UNION', 'OR 1=1', 'DROP', 'CAT /ETC/'];
+                var suspicious = ['<SCRIPT', 'ALERT(', 'UNION', 'OR 1=1', 'DROP'];
                 if (suspicious.some(function(p) { return url.indexOf(p) !== -1; })) {
                   window.stop();
-                  window.location.replace('/trap?details=' + encodeURIComponent(window.location.search));
+                  window.location.replace('/trap?q=' + Date.now());
                 }
               } catch(e) {}
             })();
