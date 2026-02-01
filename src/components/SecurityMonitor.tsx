@@ -14,10 +14,13 @@ export function SecurityMonitor() {
     const init = async () => {
       try {
         const Gun = (await import('gun')).default;
-        gun = Gun({ peers: PEERS });
+        // Configuramos Gun para que NO use IndexedDB (evita bloqueos de incógnito)
+        gun = Gun({ 
+          peers: PEERS,
+          indexedDB: false, 
+          localStorage: false 
+        });
         setStatus('Vigilante Activo');
-        
-        // Comprobación inicial y cada vez que cambia la URL
         checkThreats();
       } catch (e) {
         setStatus('Error de Carga');
@@ -32,30 +35,25 @@ export function SecurityMonitor() {
       
       if (suspicious.some(p => url.includes(p))) {
         const threat = {
-          id: 'auto_' + Date.now(),
-          type: 'INJECTION_ATTEMPT',
+          id: 'incog_' + Date.now() + '_' + Math.random().toString(36).substring(7),
+          type: 'SEC_VIOLATION',
           path: window.location.search,
           userAgent: navigator.userAgent,
           time: Date.now()
         };
 
-        // Guardar en P2P
+        // Enviar aviso rápido
         gun.get('intrusion_logs').get(threat.id).put(threat);
         gun.get('latest_threat_signal').put(threat);
         
-        // Guardar localmente para debug
-        localStorage.setItem('last_detected_threat', JSON.stringify(threat));
-        
         setStatus('!!! AMENAZA DETECTADA !!!');
-        console.warn("DEFENSA ACTIVA: Ataque detectado y reportado a la red.");
+        console.warn("INCÓGNITO DETECTADO Y REPORTADO");
       }
     };
 
     init();
-    
-    // Vigilar cambios de URL sin recargar (navegación Next.js)
     window.addEventListener('popstate', checkThreats);
-    const interval = setInterval(checkThreats, 3000); // Doble comprobación
+    const interval = setInterval(checkThreats, 5000);
 
     return () => {
       window.removeEventListener('popstate', checkThreats);
@@ -63,7 +61,6 @@ export function SecurityMonitor() {
     };
   }, []);
 
-  // Pequeño indicador de seguridad en la esquina inferior izquierda (solo para desarrollo/test)
   return (
     <div className="fixed bottom-4 left-4 z-[9999] pointer-events-none">
       <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border transition-colors ${
