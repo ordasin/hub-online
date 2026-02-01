@@ -1,19 +1,21 @@
-'use client'
-
 import { projects } from "@/data/projects"
 import { notFound } from "next/navigation"
 import { Download, Calendar, ShieldCheck, Zap, ArrowLeft, Image as ImageIcon, Sparkles, Globe, Cpu } from "lucide-react"
 import Link from "next/link"
 import { Feedback } from "@/components/Feedback"
-import { motion } from "framer-motion"
-import { use } from "react"
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>
 }
 
-export default function ProjectPage({ params }: ProjectPageProps) {
-  const { slug } = use(params)
+export async function generateStaticParams() {
+  return projects.map((project) => ({
+    slug: project.slug,
+  }))
+}
+
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const { slug } = await params
   const project = projects.find((p) => p.slug === slug)
 
   if (!project) notFound()
@@ -29,7 +31,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       <div className="relative z-10 container mx-auto px-6 py-24">
         <div className="max-w-6xl mx-auto">
           {/* Volver */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <div>
             <Link 
               href="/" 
               className="inline-flex items-center space-x-2 text-gray-400 hover:text-white mb-12 transition-colors group px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm"
@@ -37,16 +39,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
               <span className="text-sm font-medium">Volver al catálogo</span>
             </Link>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             {/* Columna Principal */}
             <div className="lg:col-span-2 space-y-12">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
+              <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <span className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-xs font-bold text-purple-400 uppercase tracking-widest">
                     v{project.version}
@@ -64,31 +62,21 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                 <p className="text-xl text-gray-400 font-light leading-relaxed">
                   {project.description}
                 </p>
-              </motion.div>
+              </div>
 
               {/* Screenshots Placeholder */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="aspect-video w-full bg-white/5 rounded-[2.5rem] flex items-center justify-center border border-white/10 overflow-hidden group relative"
-              >
+              <div className="aspect-video w-full bg-white/5 rounded-[2.5rem] flex items-center justify-center border border-white/10 overflow-hidden group relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="text-center space-y-4 relative z-10">
                   <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto border border-white/10 group-hover:scale-110 transition-transform duration-500">
                     <ImageIcon size={32} className="text-gray-500 group-hover:text-purple-400 transition-colors" />
                   </div>
-                  <p className="text-gray-500 font-medium tracking-wide">CAPTURAS DE PANTALLA PRÓXIMAMENTE</p>
+                  <p className="text-gray-500 font-medium tracking-wide text-center uppercase">Capturas de pantalla próximamente</p>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Características */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="p-6 rounded-3xl bg-white/5 border border-white/10 flex items-start gap-5 hover:bg-white/10 transition-colors">
                   <div className="p-3 bg-green-500/10 rounded-2xl text-green-400">
                     <ShieldCheck size={28} />
@@ -107,30 +95,20 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                     <p className="text-sm text-gray-400 leading-relaxed">Optimizado al máximo para no consumir recursos innecesarios.</p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="pt-12 border-t border-white/5"
-              >
+              <div className="pt-12 border-t border-white/5">
                 <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
                   <Sparkles className="text-purple-400" />
                   Opiniones de Usuarios
                 </h3>
                 <Feedback projectTitle={project.title} />
-              </motion.div>
+              </div>
             </div>
 
             {/* Sidebar de Descarga */}
             <aside className="space-y-8">
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl sticky top-24 overflow-hidden group"
-              >
+              <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl sticky top-24 overflow-hidden group">
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-[64px]" />
                 
                 <div className="relative z-10 space-y-8">
@@ -167,7 +145,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </aside>
           </div>
         </div>
