@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Plus, Megaphone, Trash2, Save, Terminal, Activity, Server } from 'lucide-react'
+import { Shield, Plus, Megaphone, Trash2, Save, Terminal, Activity, Users, Ban, XCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function AdminPage() {
@@ -9,7 +9,10 @@ export default function AdminPage() {
   const [announcement, setAnnouncement] = useState('')
   const [gun, setGun] = useState<any>(null)
   const [newProject, setNewProject] = useState({ title: '', desc: '', version: '', url: '' })
-  const [stats, setStats] = useState({ peers: 0, ops: 0 })
+  const [p2pProjects, setP2pProjects] = useState<any[]>([])
+  const [banList, setBanList] = useState<string[]>([])
+  const [targetBan, setTargetBan] = useState('')
+  const [onlineCount, setOnlineCount] = useState(0)
 
   useEffect(() => {
     const initAdmin = async () => {
@@ -18,13 +21,31 @@ export default function AdminPage() {
       setGun(g);
       const user = (g as any).user().recall({ sessionStorage: true });
 
-      // Solo tú tienes acceso (nombre de usuario: ordasin)
       if (user.is && user.is.alias === 'ordasin') {
         setIsAdmin(true);
       } else {
-        // Si no eres tú, te redirigimos al login
         if (typeof window !== 'undefined') window.location.href = '/login';
       }
+
+      // 1. Cargar proyectos para borrar
+      g.get('p2p_projects').map().on((data: any, id: string) => {
+        if (data) setP2pProjects(prev => [...prev.filter(p => p.id !== id), { ...data, id }]);
+        else setP2pProjects(prev => prev.filter(p => p.id !== id));
+      });
+
+      // 2. Cargar lista de baneos
+      g.get('ban_list').map().on((val: any, key: string) => {
+        if (val) setBanList(prev => [...new Set([...prev, key])]);
+        else setBanList(prev => prev.filter(k => k !== key));
+      });
+
+      // 3. Contador de usuarios (Heartbeat)
+      const now = Date.now();
+      g.get('online_users').map().on((time: number, id: string) => {
+        if (now - time < 10000) { // Usuarios activos en los últimos 10s
+          setOnlineCount(prev => prev + 1);
+        }
+      });
     };
 
     if (typeof window !== 'undefined') initAdmin();
@@ -33,7 +54,7 @@ export default function AdminPage() {
   const broadcastMessage = () => {
     if (gun && announcement) {
       gun.get('hub_announcements').put({ text: announcement, time: Date.now() });
-      alert('Anuncio enviado a la red P2P');
+      alert('Anuncio enviado');
       setAnnouncement('');
     }
   }
@@ -41,17 +62,32 @@ export default function AdminPage() {
   const addProjectP2P = () => {
     if (gun && newProject.title) {
       gun.get('p2p_projects').set(newProject);
-      alert('Proyecto añadido a la base de datos P2P');
       setNewProject({ title: '', desc: '', version: '', url: '' });
     }
+  }
+
+  const deleteProject = (id: string) => {
+    if (gun) gun.get('p2p_projects').get(id).put(null);
+  }
+
+  const handleBan = () => {
+    if (gun && targetBan) {
+      gun.get('ban_list').get(targetBan).put(true);
+      alert(`Usuario ${targetBan} baneado.`);
+      setTargetBan('');
+    }
+  }
+
+  const removeBan = (user: string) => {
+    if (gun) gun.get('ban_list').get(user).put(null);
   }
 
   if (!isAdmin) return null;
 
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header Admin */}
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header con Contador Real-Time */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -59,102 +95,100 @@ export default function AdminPage() {
         >
           <div className="flex items-center gap-6">
             <div className="w-20 h-20 bg-red-600 rounded-[2rem] flex items-center justify-center shadow-[0_0_30px_rgba(220,38,38,0.4)]">
-              <Shield size={40} className="text-white" />
+              <Shield size={40} />
             </div>
             <div>
               <h1 className="text-4xl font-black tracking-tighter">CENTRO DE MANDO</h1>
-              <p className="text-red-400 font-bold text-xs uppercase tracking-[0.3em]">Nivel de Acceso: Master Admin</p>
+              <p className="text-red-400 font-bold text-xs uppercase tracking-[0.3em]">Master Admin Console</p>
             </div>
           </div>
-          <div className="hidden md:flex gap-4">
-             <div className="text-right">
-                <p className="text-[10px] font-black text-gray-500 uppercase">Estado Global</p>
-                <p className="text-green-400 font-black flex items-center gap-2">SISTEMA NOMINAL <Activity size={14}/></p>
-             </div>
+          <div className="flex gap-12">
+            <div className="text-right">
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nodos Activos</p>
+              <p className="text-3xl font-black text-green-400 flex items-center gap-3 justify-end">
+                {onlineCount} <Users size={24}/>
+              </p>
+            </div>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Enviar Anuncio */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-xl space-y-6"
-          >
-            <h2 className="text-xl font-black flex items-center gap-3">
-              <Megaphone className="text-purple-400" />
-              DIFUSIÓN GLOBAL P2P
-            </h2>
-            <textarea 
-              value={announcement}
-              onChange={(e) => setAnnouncement(e.target.value)}
-              placeholder="Escribe un mensaje para todos los usuarios..."
-              className="w-full h-32 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none resize-none"
-            />
-            <button 
-              onClick={broadcastMessage}
-              className="w-full py-4 bg-purple-600 hover:bg-purple-500 rounded-2xl font-black transition-all flex items-center justify-center gap-2"
-            >
-              ENVIAR A LA RED
-            </button>
-          </motion.div>
-
-          {/* Añadir Proyecto */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-xl space-y-6"
-          >
-            <h2 className="text-xl font-black flex items-center gap-3">
-              <Plus className="text-blue-400" />
-              NUEVO PROYECTO DINÁMICO
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <input 
-                placeholder="Título"
-                value={newProject.title}
-                onChange={(e) => setNewProject({...newProject, title: e.target.value})}
-                className="bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none"
-              />
-              <input 
-                placeholder="Versión"
-                value={newProject.version}
-                onChange={(e) => setNewProject({...newProject, version: e.target.value})}
-                className="bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none"
-              />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Columna Izquierda: Gestión y Baneos */}
+          <div className="space-y-8">
+            <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl space-y-6">
+              <h2 className="text-xl font-black flex items-center gap-3 text-red-400">
+                <Ban size={20} /> CONTROL DE ACCESO
+              </h2>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <input 
+                    placeholder="ID de usuario a banear..."
+                    value={targetBan}
+                    onChange={(e) => setTargetBan(e.target.value)}
+                    className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none"
+                  />
+                  <button onClick={handleBan} className="p-3 bg-red-600 rounded-xl hover:bg-red-500 transition-colors">
+                    <Ban size={16} />
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {banList.map(user => (
+                    <div key={user} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
+                      <span className="text-[10px] font-mono text-gray-400 truncate w-32">{user}</span>
+                      <button onClick={() => removeBan(user)} className="text-red-400 hover:text-white transition-colors">
+                        <XCircle size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <textarea 
-              placeholder="Descripción corta"
-              value={newProject.desc}
-              onChange={(e) => setNewProject({...newProject, desc: e.target.value})}
-              className="w-full h-20 bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none resize-none"
-            />
-            <button 
-              onClick={addProjectP2P}
-              className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-black transition-all"
-            >
-              PUBLICAR PROYECTO
-            </button>
-          </motion.div>
+
+            <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl space-y-6">
+              <h2 className="text-xl font-black flex items-center gap-3">
+                <Megaphone className="text-purple-400" /> ANUNCIOS
+              </h2>
+              <textarea 
+                value={announcement}
+                onChange={(e) => setAnnouncement(e.target.value)}
+                className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none resize-none"
+              />
+              <button onClick={broadcastMessage} className="w-full py-3 bg-purple-600 rounded-xl font-black text-sm">ENVIAR DIFUSIÓN</button>
+            </div>
+          </div>
+
+          {/* Columna Derecha: Proyectos */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl space-y-6">
+              <h2 className="text-xl font-black flex items-center gap-3 text-blue-400">
+                <Plus size={20} /> GESTIÓN DE CATÁLOGO
+              </h2>
+              <div className="grid grid-cols-2 gap-4">
+                <input placeholder="Título" value={newProject.title} onChange={(e) => setNewProject({...newProject, title: e.target.value})} className="bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none" />
+                <input placeholder="Versión" value={newProject.version} onChange={(e) => setNewProject({...newProject, version: e.target.value})} className="bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none" />
+              </div>
+              <textarea placeholder="Descripción..." value={newProject.desc} onChange={(e) => setNewProject({...newProject, desc: e.target.value})} className="w-full h-20 bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none resize-none" />
+              <button onClick={addProjectP2P} className="w-full py-3 bg-blue-600 rounded-xl font-black">AÑADIR PROYECTO</button>
+
+              <div className="pt-6 border-t border-white/5 space-y-4">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Proyectos en la Red P2P</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {p2pProjects.map(p => (
+                    <div key={p.id} className="p-4 rounded-2xl bg-white/5 border border-white/10 flex justify-between items-center group">
+                      <div>
+                        <p className="font-bold text-sm">{p.title}</p>
+                        <p className="text-[10px] text-gray-500">v{p.version}</p>
+                      </div>
+                      <button onClick={() => deleteProject(p.id)} className="p-2 text-gray-600 hover:text-red-400 transition-colors">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Consola de Sistema */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-8 rounded-[2.5rem] bg-black border border-white/10 font-mono text-xs"
-        >
-          <div className="flex items-center gap-2 mb-4 text-gray-500">
-            <Terminal size={14} />
-            <span>CONSOLE_ORDASIN_HUB_v1.0.log</span>
-          </div>
-          <div className="space-y-1 text-green-500/70">
-            <p>[OK] Handshake con relé Manhattan exitoso.</p>
-            <p>[OK] Cifrado de nivel 4 activado.</p>
-            <p>[INFO] Escaneando nodos activos...</p>
-            <p className="text-green-400 font-bold tracking-widest animate-pulse mt-2">{'>'} ESTADO: ESCUCHANDO PETICIONES P2P_</p>
-          </div>
-        </motion.div>
       </div>
     </main>
   )
