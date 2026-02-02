@@ -8,9 +8,12 @@ import { toast } from 'sonner'
 const MASTER_PUB = "6mwMzGdVuCtE-sd_7_5RJ5AUeEbA-i3JwZ0UjiaxAtE.KH6lWH55LxsAE2D7ZBQQKlJgod5hqIHzwcoJ25gjqHo";
 // Refresco de despliegue forzado para GitHub Pages v1.2
 const PEERS = [
-  'wss://gun.v6.rocks/gun',
+  'https://gun-manhattan.herokuapp.com/gun',
+  'wss://gun-us.herokuapp.com/gun',
+  'wss://gun-eu.herokuapp.com/gun',
   'https://peer.wall.org/gun',
-  'https://relay.gun.eco/gun'
+  'https://relay.gun.eco/gun',
+  'https://dletta.herokuapp.com/gun'
 ];
 
 export default function AdminPage() {
@@ -23,6 +26,7 @@ export default function AdminPage() {
   const [socialPost, setSocialPost] = useState('')
   const [peers, setPeers] = useState(0)
   const [activePeer, setActivePeer] = useState<string>("Buscando...")
+  const [netError, setNetError] = useState<string>("")
 
   useEffect(() => {
     const init = () => {
@@ -33,33 +37,28 @@ export default function AdminPage() {
       const g = Gun({ 
         peers: PEERS, 
         localStorage: true,
-        retry: 1000 
+        retry: 500,
+        wait: 0 
       });
       setGun(g);
-
-      // FORZAR recuperación de sesión
-      // @ts-expect-error Gun types
-      g.user().recall({ sessionStorage: true });
 
       g.on('hi', (peer: { url: string }) => {
         setPeers(p => p + 1);
         setActivePeer(peer.url || "Nodo Desconocido");
-        console.log("✅ Conectado a:", peer.url);
+        setNetError("");
       });
 
-      // Capturamos errores de conexión para saber si hay bloqueo
+      // @ts-expect-error Gun events
+      g.on('bye', (peer: { url: string }) => {
+        setPeers(p => Math.max(0, p - 1));
+      });
+
+      // Capturar errores críticos de red
       // @ts-expect-error Gun internal events
       g.on('out', (msg: { err: string }) => {
         if (msg.err) {
-          console.error("❌ Error de salida/bloqueo:", msg.err);
-          if (msg.err === 'Unsupported record type') return; 
-          toast.error("Error de Red: Posible bloqueo de IP");
+          setNetError(msg.err.toString());
         }
-      });
-
-      g.on('bye', (peer: { url: string }) => {
-        setPeers(p => Math.max(0, p - 1));
-        console.warn("⚠️ Nodo desconectado:", peer.url);
       });
       
       const sync = () => {
@@ -211,6 +210,11 @@ export default function AdminPage() {
                     <div className="text-gray-500 opacity-50 uppercase tracking-tighter">
                       Relay: {activePeer}
                     </div>
+                    {netError && (
+                      <div className="text-red-500 text-[8px] animate-pulse uppercase">
+                        ⚠️ Error: {netError}
+                      </div>
+                    )}
                 </div>
             </div>
           </div>
