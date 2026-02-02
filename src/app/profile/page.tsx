@@ -8,11 +8,10 @@ export default function ProfilePage() {
   const [alias, setAlias] = useState('')
   const [pub, setPub] = useState('')
   const [joined, setJoined] = useState('')
+  const [xp, setXp] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [gunUser, setGunUser] = useState<any>(null)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [config, setConfig] = useState({ optimizer: 'adam', lr: 0.001, weight_decay: 0.01 })
   
   const MASTER_PUB = "6mwMzGdVuCtE-sd_7_5RJ5AUeEbA-i3JwZ0UjiaxAtE.KH6lWH55LxsAE2D7ZBQQKlJgod5hqIHzwcoJ25gjqHo";
 
@@ -42,12 +41,9 @@ export default function ProfilePage() {
           }
         });
 
-        user.get('advanced_optimizer_config').once((data: Record<string, unknown>) => {
-          if (data) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { _, ...cleanData } = data;
-            setConfig(prev => ({ ...prev, ...cleanData }));
-          }
+        // Cargar XP en tiempo real
+        user.get('profile_xp').on((val: number) => {
+          setXp(val || 0);
         });
       } else {
         setTimeout(() => { if (!user.is) window.location.href = '/login'; }, 3000);
@@ -62,6 +58,18 @@ export default function ProfilePage() {
   }, [])
 
   const isMaster = pub === MASTER_PUB;
+  
+  // Lógica de Niveles
+  const getLevel = (pts: number) => {
+    if (isMaster) return { n: 99, title: "Master Developer", next: 0, color: "text-red-500" };
+    if (pts >= 600) return { n: 4, title: "Especialista en Cifrado", next: 1000, color: "text-yellow-500" };
+    if (pts >= 300) return { n: 3, title: "Analista de Red", next: 600, color: "text-blue-500" };
+    if (pts >= 100) return { n: 2, title: "Técnico de Campo", next: 300, color: "text-green-500" };
+    return { n: 1, title: "Operativo Base", next: 100, color: "text-purple-500" };
+  };
+
+  const level = getLevel(xp);
+  const progress = isMaster ? 100 : Math.min((xp / (level.next || 1)) * 100, 100);
 
   if (!isLoggedIn && typeof window !== 'undefined') return (
     <div className="min-h-screen bg-black flex items-center justify-center font-mono text-white animate-pulse">
@@ -91,7 +99,7 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4">
                   <h1 className="text-5xl font-black uppercase tracking-tighter italic">{alias}</h1>
                   <span className={`px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${isMaster ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'}`}>
-                    {isMaster ? 'Master Developer' : 'Operativo Hub'}
+                    {level.title}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -126,36 +134,53 @@ export default function ProfilePage() {
             {/* Security DNA */}
             <div className="lg:col-span-2 space-y-8">
               <div className="p-10 rounded-[3rem] bg-white/5 border border-white/10 space-y-6">
-                  <h2 className="text-xl font-black uppercase flex items-center gap-3 italic text-purple-400"><Key size={20}/> ADN Digital (Public Key)</h2>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-black uppercase flex items-center gap-3 italic text-purple-400"><Key size={20}/> ADN Digital</h2>
+                    <div className="text-[10px] font-black uppercase text-gray-500">XP TOTAL: <span className="text-white">{xp}</span></div>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                      <span className={level.color}>RANGO {level.n}: {level.title}</span>
+                      <span className="text-gray-600">SIGUIENTE NIVEL: {level.next} XP</span>
+                    </div>
+                    <div className="h-4 bg-white/5 rounded-full border border-white/10 overflow-hidden p-1">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        className={`h-full rounded-full bg-gradient-to-r ${isMaster ? 'from-red-600 to-orange-600' : 'from-purple-600 to-blue-600'} shadow-[0_0_15px_rgba(147,51,234,0.5)]`}
+                      />
+                    </div>
+                  </div>
+
                   <div className="p-6 bg-black/40 rounded-2xl border border-white/5 break-all group relative">
                       <code className="text-[10px] text-gray-500 font-bold leading-relaxed">{pub}</code>
                       <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none" />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                      <p className="text-[10px] font-black uppercase text-gray-500 mb-1">Reputación</p>
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
-                          <div className="h-full bg-purple-500 w-1/3" />
-                        </div>
-                        <span className="text-[10px] font-black">NIVEL 1</span>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                      <p className="text-[10px] font-black uppercase text-gray-500 mb-1">Contribuciones</p>
-                      <p className="text-lg font-black italic">0 SCRIPTS</p>
-                    </div>
-                  </div>
               </div>
 
-              {/* Lab Access Card */}
-              <div className="p-10 rounded-[3rem] bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-white/10 flex items-center justify-between group cursor-pointer hover:border-purple-500/50 transition-all">
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-black uppercase italic tracking-tighter">Acceso al Laboratorio</h2>
-                  <p className="text-xs text-gray-400 font-bold uppercase">Sube tus propios scripts a la red descentralizada</p>
-                </div>
-                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-purple-600 transition-colors">
-                  <Activity size={20} />
+              {/* Badges Section */}
+              <div className="p-10 rounded-[3rem] bg-white/5 border border-white/10 space-y-6">
+                <h2 className="text-xl font-black uppercase italic tracking-tighter text-blue-400">Medallas de Operativo</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-3xl bg-white/5 border border-white/5 text-center space-y-2 grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100 cursor-help">
+                    <div className="text-2xl">🛡️</div>
+                    <p className="text-[8px] font-black uppercase">Early Bird</p>
+                  </div>
+                  <div className={`p-4 rounded-3xl bg-white/5 border border-white/5 text-center space-y-2 transition-all ${xp > 0 ? 'grayscale-0 opacity-100' : 'grayscale opacity-50'}`}>
+                    <div className="text-2xl">💬</div>
+                    <p className="text-[8px] font-black uppercase">Contributor</p>
+                  </div>
+                  <div className="p-4 rounded-3xl bg-white/5 border border-white/5 text-center space-y-2 grayscale opacity-50">
+                    <div className="text-2xl">🐍</div>
+                    <p className="text-[8px] font-black uppercase">Script Master</p>
+                  </div>
+                  <div className="p-4 rounded-3xl bg-white/5 border border-white/5 text-center space-y-2 grayscale opacity-50">
+                    <div className="text-2xl">📡</div>
+                    <p className="text-[8px] font-black uppercase">Node Host</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -166,8 +191,8 @@ export default function ProfilePage() {
                 <div className="space-y-6">
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase">
-                        <span className="text-gray-500">Sincronización P2P</span>
-                        <span className="text-green-500">Estable</span>
+                        <span className="text-gray-500">Sincronización XP</span>
+                        <span className="text-green-500">Live</span>
                       </div>
                       <div className="h-1 bg-white/5 rounded-full overflow-hidden">
                         <motion.div animate={{ x: [-100, 200] }} transition={{ repeat: Infinity, duration: 3 }} className="w-20 h-full bg-green-500/50" />
@@ -175,14 +200,14 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase">
-                        <span className="text-gray-500">Cifrado de Capa</span>
-                        <span className="text-blue-500">AES-GCM</span>
+                        <span className="text-gray-500">ADN Criptográfico</span>
+                        <span className="text-blue-500">SEA-256</span>
                       </div>
                       <div className="h-1 bg-white/5 rounded-full" />
                     </div>
                     <div className="pt-4 border-t border-white/5">
                       <p className="text-[8px] text-gray-600 font-bold leading-relaxed uppercase">
-                        Tu identidad está protegida por una firma elíptica (SEA). Nadie más puede modificar tus datos en la red.
+                        Tu reputación en la red HUB 903 es inmutable. Los puntos de XP se almacenan en tu grafo personal descentralizado.
                       </p>
                     </div>
                 </div>

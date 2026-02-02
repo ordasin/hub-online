@@ -69,6 +69,13 @@ export default function GamesPage() {
       if (!ack.err) {
         setNewComment('');
         toast.success("Opinión compartida en la red P2P");
+        
+        // OTORGAR XP (Gamificación)
+        user.get('profile_xp').once((current: number) => {
+          const newXP = (current || 0) + 50;
+          user.get('profile_xp').put(newXP);
+          toast.success("+50 XP: Contribuidor de Comunidad");
+        });
       }
     });
   };
