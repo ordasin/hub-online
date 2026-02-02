@@ -37,16 +37,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         {children}
         
-        {/* Escudo de Vigilancia Global: V4 ULTRA SENSITIVITY */}
+        {/* Escudo de Vigilancia Global: V5 ULTRA-AGRESSIVE */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
-            const TOPIC = 'ordasin_security_v10';
-            
-            const report = (type, details, risk) => {
-              console.warn("🛡️ SECURITY ALERT:", type, details);
+            var TOPIC = 'ordasin_security_v10';
+            var devtoolsOpen = false;
+
+            var report = function(type, details, risk) {
               var riskVal = risk || 'HIGH';
-              // Usamos ntfy con parámetros de prioridad máxima para F12
-              var ntfyUrl = 'https://ntfy.sh/' + TOPIC + '?title=' + encodeURIComponent('🚨 ' + type) + '&priority=' + (riskVal === 'CRITICAL' ? '5' : '4') + '&tags=warning,skull';
+              var ntfyUrl = 'https://ntfy.sh/' + TOPIC + '?title=' + encodeURIComponent('🚨 SECURITY: ' + type) + '&priority=' + (riskVal === 'CRITICAL' ? '5' : '4') + '&tags=warning,skull';
               
               var payload = {
                 id: 'G_' + Math.random().toString(36).substring(2, 9),
@@ -58,8 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   lang: navigator.language,
                   screen: window.screen.width + 'x' + window.screen.height,
                   tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                  platform: navigator.platform,
-                  cores: navigator.hardwareConcurrency
+                  platform: navigator.platform
                 },
                 details: details
               };
@@ -69,69 +67,54 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 body: JSON.stringify(payload),
                 headers: { 'Content-Type': 'text/plain' },
                 keepalive: true
-              }).catch(function(e) { console.error("WAF Error:", e); });
+              }).catch(function() {});
             };
 
-            // 1. DETECCIÓN AGRESIVA DE F12 Y ATAJOS
+            // 1. Detección por Atajos de Teclado (F12, Inspect, View Source)
             window.addEventListener('keydown', function(e) {
-              const isF12 = e.key === 'F12';
-              const isInspect = e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C');
-              const isViewSource = e.ctrlKey && (e.key === 'u' || e.key === 's');
-
-              if (isF12 || isInspect || isViewSource) {
-                report('DEVTOOLS_KEY_TRIGGER', 'Atajo prohibido detectado: ' + (isF12 ? 'F12' : isInspect ? 'INSPECT' : 'VIEW SOURCE'), 'CRITICAL');
+              if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || (e.ctrlKey && e.keyCode === 85)) {
+                report('F12_KEY_PRESSED', 'El usuario ha pulsado F12 o Atajo de Inspección', 'CRITICAL');
               }
             });
 
-            // 2. DETECCIÓN POR TAMAÑO (CONSOLA ABIERTA)
-            let devtools = false;
-            const checkSize = function() {
-              const widthDiff = window.outerWidth - window.innerWidth > 160;
-              const heightDiff = window.outerHeight - window.innerHeight > 160;
-              if (widthDiff || heightDiff) {
-                if (!devtools) {
-                  report('DEVTOOLS_OPENED', 'Consola de desarrollador detectada mediante redimensionamiento', 'CRITICAL');
-                  devtools = true;
-                }
-              } else {
-                devtools = false;
+            // 2. Detección por Tamaño de Ventana (Drawer Detect)
+            var checkSize = function() {
+              var threshold = 160;
+              var isDev = (window.outerWidth - window.innerWidth > threshold) || (window.outerHeight - window.innerHeight > threshold);
+              if (isDev && !devtoolsOpen) {
+                devtoolsOpen = true;
+                report('CONSOLE_DRAWER_DETECTED', 'Se ha abierto la consola de desarrollador', 'CRITICAL');
+              } else if (!isDev) {
+                devtoolsOpen = false;
               }
             };
             setInterval(checkSize, 1000);
+            window.addEventListener('resize', checkSize);
 
-            // 3. BLOQUEO Y REPORTE DE CLICK DERECHO
-            document.addEventListener('contextmenu', function(e) {
-              e.preventDefault();
-              report('RIGHT_CLICK_ATTEMPT', 'Intento de abrir menú contextual (Inspeccionar)', 'HIGH');
-            });
-
-            // 4. SNIFFER DE ATAQUES
-            const ATTACK_VECTORS = [
-              { id: 'SQLi', regex: /'|--|union\s+select|select\s+from|benchmark\(|sleep\(/i },
-              { id: 'XSS', regex: /<script|<img|<svg|onload=|onerror=|eval\(|javascript:/i },
-              { id: 'RCE', regex: /;\s*sh|;\s*bash|\|\s*cmd/i }
-            ];
-
-            const checkPayload = (value, source) => {
-              if (!value || typeof value !== 'string' || value.length < 3) return false;
-              for (var i = 0; i < ATTACK_VECTORS.length; i++) {
-                if (ATTACK_VECTORS[i].regex.test(value)) {
-                  report('WAF_ATTACK_DETECTED', ATTACK_VECTORS[i].id + ' en ' + source, 'CRITICAL');
-                  return true;
+            // 3. Detección por Console Getter (Deep Inspect)
+            var devtools = { open: false };
+            var element = new Image();
+            Object.defineProperty(element, 'id', {
+              get: function() {
+                if (!devtools.open) {
+                  report('DEEP_CONSOLE_ACCESS', 'Acceso interno a consola detectado (Getter)', 'CRITICAL');
+                  devtools.open = true;
                 }
               }
-              return false;
-            };
+            });
+            setInterval(function() {
+              console.log(element);
+              console.clear();
+            }, 2000);
 
-            checkPayload(window.location.search, 'URL_QUERY');
-            
-            document.addEventListener('input', function(e) {
-              if (e.target.value) checkPayload(e.target.value, 'INPUT_' + (e.target.name || e.target.placeholder || 'UNK'));
-            }, { passive: true });
+            // 4. Bloqueo de Click Derecho
+            document.addEventListener('contextmenu', function(e) {
+              e.preventDefault();
+              report('CONTEXT_MENU_BLOCKED', 'Intento de Click Derecho / Inspeccionar', 'HIGH');
+            });
 
-            // 5. HONEYPOTS DE CONSOLA
-            Object.defineProperty(window, 'admin_config', { get: function() { report('HONEYPOT', 'window.admin_config', 'CRITICAL'); return "DENIED"; } });
-            Object.defineProperty(window, 'debug_mode', { get: function() { report('HONEYPOT', 'window.debug_mode'); return "TRAP_ACTIVE"; } });
+            // Honeypots
+            Object.defineProperty(window, '_admin', { get: function() { report('HONEYPOT', 'window._admin'); return "ACCESS_DENIED"; } });
           })();
         `}} />
       </body>
