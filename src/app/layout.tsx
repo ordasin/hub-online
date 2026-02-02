@@ -40,15 +40,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Escudo de Vigilancia Global: MAXIMUM SENSITIVITY */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
-            // --- SISTEMA DE REPORTE ROBUSTO (CORS-PROOF) ---
-            const report = (type, details, risk = 'HIGH') => {
-              const url = new URL('https://ntfy.sh/ordasin_security_v10');
+            const report = (type, details, risk) => {
+              var riskVal = risk || 'HIGH';
+              var url = new URL('https://ntfy.sh/ordasin_security_v10');
               url.searchParams.set('title', '🛡️ GLOBAL WAF ALERT');
-              url.searchParams.set('priority', risk === 'CRITICAL' ? 'urgent' : 'high');
+              url.searchParams.set('priority', riskVal === 'CRITICAL' ? 'urgent' : 'high');
               url.searchParams.set('tags', 'shield,detective');
               
-              const fingerprint = {
-                ua: navigator.userAgent,
+              var fingerprint = {
+                ua: navigator.userAgent.substring(0, 150),
                 lang: navigator.language,
                 screen: window.screen.width + 'x' + window.screen.height,
                 tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -58,13 +58,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 cores: navigator.hardwareConcurrency
               };
 
-              const payload = {
+              var payload = {
                 id: 'G_' + Math.random().toString(36).substring(2, 9),
-                type,
+                type: type,
                 time: Date.now(),
-                url: window.location.pathname,
-                fp: fingerprint, // Max Data
-                details
+                url: window.location.href,
+                fp: fingerprint,
+                details: details
               };
 
               fetch(url.toString(), {
@@ -72,98 +72,67 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 body: JSON.stringify(payload),
                 headers: { 'Content-Type': 'text/plain' },
                 keepalive: true
-              }).catch(e => console.error("WAF Reporting Error:", e));
+              }).catch(function(e) { console.error("WAF Reporting Error:", e); });
             };
 
-            // --- 1. DICCIONARIO DE ATAQUES EXTENDIDO ---
             const ATTACK_VECTORS = [
-              // SQL Injection
-              { id: 'SQLi', regex: /('|"|%27|%22)(?:\\s*)(?:=|or|and|like|is)|(?:\\/\\*|--|#)|union(?:\\s+)select|select(?:\\s+)from|waitfor(?:\\s+)delay|benchmark\\(/i },
-              { id: 'SQLi_Adv', regex: /exec(?:\\s+)xp_|sp_executesql|declare(?:\\s+)@|update(?:\\s+)set|delete(?:\\s+)from/i },
-              
-              // XSS (Cross Site Scripting)
-              { id: 'XSS', regex: /<script|<img|<svg|<body|<iframe|javascript:|vbscript:|onload=|onerror=|onmouseover=|onfocus=|eval\\(|setTimeout\\(/i },
+              { id: 'SQLi', regex: /('|"|%27|%22)(?:\s*)(?:=|or|and|like|is)|(?:\/\*|--|#)|union(?:\s+)select|select(?:\s+)from|waitfor(?:\s+)delay|benchmark\(/i },
+              { id: 'SQLi_Adv', regex: /exec(?:\s+)xp_|sp_executesql|declare(?:\s+)@|update(?:\s+)set|delete(?:\s+)from/i },
+              { id: 'XSS', regex: /<script|<img|<svg|<body|<iframe|javascript:|vbscript:|onload=|onerror=|onmouseover=|onfocus=|eval\(|setTimeout\(/i },
               { id: 'XSS_Encoded', regex: /%3Cscript|%3Cimg|%3Csvg|&#x/i },
-              
-              // Path Traversal / LFI
-              { id: 'LFI', regex: /(\\.|%2e){2,}(\\/|%2f|\\\\|%5c)|etc\\/passwd|windows\\/win.ini|boot\\.ini/i },
-              
-              // Command Injection (RCE)
-              { id: 'RCE', regex: /(?:;|\\||\\&|\\$\\()(?:\\s*)(?:sh|bash|cmd|powershell|nc|netcat|curl|wget|ping|whoami|cat|dir|ls|type)/i },
-              
-              // Prototype Pollution
-              { id: 'ProtoPollution', regex: /__proto__|\\.prototype|\\.constructor/i },
-              
-              // LDAP / XPath / SSI Injection
-              { id: 'LDAP_XPath', regex: /\\*\\(|\\)\\(|\\|\\(|\\/node\\(\\)|\\/text\\(\\)|<!--#/i },
-              
-              // Serialized Object Attacks
-              { id: 'Serialization', regex: /O:[0-9]+:"|ro0/i }
+              { id: 'LFI', regex: /(\.|%2e){2,}(\/|%2f|\\|%5c)|etc\/passwd|windows\/win.ini|boot\.ini/i },
+              { id: 'RCE', regex: /(?:;|\||\&|\$\()(?:\s*)(?:sh|bash|cmd|powershell|nc|netcat|curl|wget|ping|whoami|cat|dir|ls|type)/i },
+              { id: 'ProtoPollution', regex: /__proto__|\.prototype|\.constructor/i },
+              { id: 'LDAP_XPath', regex: /\*\(|\)\(|\|\(|\/node\(\)|\/text\(\)|<!--#/i }
             ];
 
-            // --- 2. SNIFFER DE INPUTS (Teclado y Pegado) ---
             const checkPayload = (value, source) => {
-              if (!value || value.length < 3) return;
-              
-              for (const vector of ATTACK_VECTORS) {
+              if (!value || value.length < 3) return false;
+              for (var i = 0; i < ATTACK_VECTORS.length; i++) {
+                var vector = ATTACK_VECTORS[i];
                 if (vector.regex.test(value)) {
-                  report('ATTACK_DETECTED', \`\${vector.id} detected in \${source}: "\${value.substring(0, 50)}..."\`, 'CRITICAL');
-                  return; // Report one match per event to avoid spam
+                  report('ATTACK_DETECTED', vector.id + ' in ' + source + ': "' + value.substring(0, 50) + '..."', 'CRITICAL');
+                  return true;
                 }
               }
+              return false;
             };
 
-            document.addEventListener('input', (e) => {
+            checkPayload(window.location.search, 'URL Query');
+            checkPayload(window.location.hash, 'URL Hash');
+
+            document.addEventListener('input', function(e) {
               if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
                 checkPayload(e.target.value, e.target.placeholder || e.target.name || 'Input');
               }
             }, { passive: true });
 
-            document.addEventListener('paste', (e) => {
-              const paste = (e.clipboardData || window.clipboardData).getData('text');
+            document.addEventListener('paste', function(e) {
+              var paste = (e.clipboardData || window.clipboardData).getData('text');
               checkPayload(paste, 'Clipboard Paste');
             }, { passive: true });
 
-            // --- 3. VIGILANCIA DE ENTORNO ---
-            // Detectar DevTools por diferencia de tamaño
             let devtoolsOpen = false;
             const threshold = 160;
-            setInterval(() => {
-              const widthDiff = window.outerWidth - window.innerWidth > threshold;
-              const heightDiff = window.outerHeight - window.innerHeight > threshold;
-              
+            setInterval(function() {
+              var widthDiff = window.outerWidth - window.innerWidth > threshold;
+              var heightDiff = window.outerHeight - window.innerHeight > threshold;
               if ((widthDiff || heightDiff) && !devtoolsOpen) {
                 devtoolsOpen = true;
-                report('DEVTOOLS_OPENED', 'Consola de desarrollador detectada (Window Resizing)');
+                report('DEVTOOLS_OPENED', 'Consola detectada');
               } else if (!widthDiff && !heightDiff) {
                 devtoolsOpen = false;
               }
-            }, 1000);
+            }, 1500);
 
-            // Detectar Teclas Prohibidas
-            window.addEventListener('keydown', (e) => {
-              if (e.key === 'F12' || 
-                 (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
-                 (e.ctrlKey && (e.key === 'u' || e.key === 's'))) {
-                report('FORBIDDEN_KEY', \`Intento de acceso a código fuente: \${e.ctrlKey ? 'CTRL+' : ''}\${e.shiftKey ? 'SHIFT+' : ''}\${e.key}\`);
+            window.addEventListener('keydown', function(e) {
+              if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && (e.key === 'u' || e.key === 's'))) {
+                report('FORBIDDEN_KEY', 'Acceso fuente: ' + e.key);
               }
             });
 
-            // --- 4. HONEYPOT DE CONSOLA ---
-            // Si el atacante intenta acceder a variables globales "obvias"
-            Object.defineProperty(window, 'admin', {
-              get: function() {
-                report('HONEYPOT_TRIGGERED', 'Intento de acceso a variable global falsa: window.admin', 'CRITICAL');
-                return "ACCESS DENIED - LOGGED";
-              }
-            });
-            Object.defineProperty(window, 'debug', {
-              get: function() {
-                report('HONEYPOT_TRIGGERED', 'Intento de acceso a variable global falsa: window.debug');
-                return "DEBUG MODE: TRAP ACTIVE";
-              }
-            });
-
+            Object.defineProperty(window, 'admin', { get: function() { report('HONEYPOT', 'window.admin', 'CRITICAL'); return "DENIED"; } });
+            Object.defineProperty(window, 'debug', { get: function() { report('HONEYPOT', 'window.debug'); return "TRAP"; } });
           })();
         `}} />
       </body>

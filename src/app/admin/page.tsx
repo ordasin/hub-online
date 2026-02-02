@@ -88,8 +88,8 @@ export default function AdminPage() {
         if (eventSource) eventSource.close();
         
         console.log("Iniciando conexión de seguridad...");
-        // Usamos un pequeño delay en el history para no saturar al inicio
-        eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse?since=2m');
+        // Historial de 15 minutos para asegurar capturas
+        eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse?since=15m');
         
         eventSource.onopen = () => {
           console.log("✅ Escudo de Red: CONECTADO");
@@ -220,7 +220,11 @@ export default function AdminPage() {
                        <div className="col-span-2">Loc: {t.geo.city}, {t.geo.region}, {t.geo.country_name}</div>
                     </div>
                   )}
-                  {t.url && <p className="text-[8px] text-gray-600 mt-1 truncate">Ruta: {t.url}</p>}
+                  {t.url && (
+                    <p className="text-[8px] text-gray-600 mt-1 break-all border-t border-white/5 pt-1">
+                      URL: <span className="text-blue-400/70">{t.url}</span>
+                    </p>
+                  )}
                 </div>
               ))}
               {threats.length === 0 && <p className="text-center py-10 text-gray-700 text-xs italic">Escaneando red...</p>}

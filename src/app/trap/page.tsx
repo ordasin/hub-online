@@ -36,7 +36,7 @@ export default function TrapPage() {
         id, 
         type: 'CRITICAL_HONEYPOT_HIT', 
         time: Date.now(),
-        url: window.location.pathname,
+        url: window.location.href, // Full URL with Query Params
         geo, // Keep geo for extra info if available
         fp,  // Match Admin expectation
         details: `¡INVASOR CAPTURADO! Proviniencia: ${fp.ref}`
