@@ -88,7 +88,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   </a>
                   <div className="pt-8 border-t border-white/5 space-y-4">
                     <div className="flex justify-between items-center text-sm"><span className="text-gray-500 flex items-center gap-2"><Globe size={14}/> Región</span><span className="font-medium">Global</span></div>
-                    <div className="flex justify-between items-center text-sm"><span className="text-gray-500 flex items-center gap-2"><Cpu size={14}/> Sistema</span><span className="font-medium">Windows</span></div>
+                    <div className="flex justify-between items-center text-sm"><span className="text-gray-500 flex items-center gap-2"><Cpu size={14}/> Sistema</span><span className="font-medium">{(project as any).system || 'Multi'}</span></div>
                   </div>
                 </div>
               </div>
