@@ -32,7 +32,7 @@ export default function AdminPage() {
 
       const g = Gun({ 
         peers: PEERS, 
-        localStorage: false,
+        localStorage: true,
         retry: 1000 
       });
       setGun(g);
@@ -64,21 +64,29 @@ export default function AdminPage() {
       const sync = () => {
         if (user.is) {
           const currentPub = user.is.pub.trim();
+          console.log("Firma Detectada:", currentPub);
+          console.log("Firma Esperada:", MASTER_PUB);
           setDetectedPub(currentPub);
           
-          // Comparamos permitiendo que falte o sobre el prefijo ~
           const normalizedMaster = MASTER_PUB.replace(/^~/, '').trim();
           const normalizedCurrent = currentPub.replace(/^~/, '').trim();
 
           if (normalizedCurrent === normalizedMaster) {
+            console.log("¡ADMIN AUTORIZADO!");
             setIsAdmin(true);
           } else {
             console.log("Diferencia de claves:", { expected: normalizedMaster, got: normalizedCurrent });
             setIsAdmin(false);
           }
         } else {
-          // Aumentamos a 5 segundos el margen de conexión
-          setTimeout(() => { if (!user.is) setIsAdmin(false); }, 5000);
+          // Aumentamos a 10 segundos el margen de conexión
+          setTimeout(() => { 
+            if (g.user().is) {
+              sync();
+            } else {
+              setIsAdmin(false); 
+            }
+          }, 10000);
         }
       };
 
