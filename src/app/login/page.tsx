@@ -6,10 +6,8 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
 const PEERS = [
+  'wss://gun.v6.rocks/gun',
   'https://peer.wall.org/gun',
-  'https://gun-manhattan.herokuapp.com/gun',
-  'https://gun-us.herokuapp.com/gun',
-  'https://gun-eu.herokuapp.com/gun',
   'https://relay.gun.eco/gun'
 ];
 

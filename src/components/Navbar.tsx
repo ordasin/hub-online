@@ -7,10 +7,9 @@ import { motion, AnimatePresence } from "framer-motion"
 
 // NUEVA LISTA DE RELÉS DE ÉLITE (Más estables)
 const PEERS = [
-  'https://relay.gun.eco/gun',
-  'https://gun-manhattan.herokuapp.com/gun',
-  'https://gunjs.herokuapp.com/gun',
-  'https://peer.wall.org/gun'
+  'wss://gun.v6.rocks/gun',
+  'https://peer.wall.org/gun',
+  'https://relay.gun.eco/gun'
 ];
 
 export function Navbar() {

@@ -5,10 +5,8 @@ import { ShieldAlert, RefreshCw, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const FRESH_PEERS = [
+  'wss://gun.v6.rocks/gun',
   'https://peer.wall.org/gun',
-  'https://gun-manhattan.herokuapp.com/gun',
-  'https://gun-us.herokuapp.com/gun',
-  'https://gun-eu.herokuapp.com/gun',
   'https://relay.gun.eco/gun'
 ];
 

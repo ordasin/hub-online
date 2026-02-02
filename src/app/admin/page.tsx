@@ -8,7 +8,6 @@ import { toast } from 'sonner'
 
 const MASTER_PUB = "0pNT98jUCqGPNNJ-5kZc-8bwrarhKh1nLTUg77QfVjU.RNGFBPpxJuTq71KlX5KIV69Z6NUHZLFrCTMTPPWZTxs";
 const PEERS = [
-  'https://gun-manhattan.herokuapp.com/gun',
   'wss://gun.v6.rocks/gun',
   'https://peer.wall.org/gun',
   'https://relay.gun.eco/gun'
