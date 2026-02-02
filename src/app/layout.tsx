@@ -37,15 +37,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         {children}
         
-        {/* Escudo de Vigilancia Global: V3 ROBUST */}
+        {/* Escudo de Vigilancia Global: V4 ULTRA SENSITIVITY */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             const TOPIC = 'ordasin_security_v10';
             
             const report = (type, details, risk) => {
-              console.warn("🛡️ WAF ALERT TRIGGERED:", type, details);
+              console.warn("🛡️ SECURITY ALERT:", type, details);
               var riskVal = risk || 'HIGH';
-              var ntfyUrl = 'https://ntfy.sh/' + TOPIC + '?title=' + encodeURIComponent('🛡️ WAF: ' + type) + '&priority=' + (riskVal === 'CRITICAL' ? '5' : '4') + '&tags=shield,detective';
+              // Usamos ntfy con parámetros de prioridad máxima para F12
+              var ntfyUrl = 'https://ntfy.sh/' + TOPIC + '?title=' + encodeURIComponent('🚨 ' + type) + '&priority=' + (riskVal === 'CRITICAL' ? '5' : '4') + '&tags=warning,skull';
               
               var payload = {
                 id: 'G_' + Math.random().toString(36).substring(2, 9),
@@ -68,13 +69,46 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 body: JSON.stringify(payload),
                 headers: { 'Content-Type': 'text/plain' },
                 keepalive: true
-              }).catch(function(e) { console.error("WAF Fetch Error:", e); });
+              }).catch(function(e) { console.error("WAF Error:", e); });
             };
 
+            // 1. DETECCIÓN AGRESIVA DE F12 Y ATAJOS
+            window.addEventListener('keydown', function(e) {
+              const isF12 = e.key === 'F12';
+              const isInspect = e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C');
+              const isViewSource = e.ctrlKey && (e.key === 'u' || e.key === 's');
+
+              if (isF12 || isInspect || isViewSource) {
+                report('DEVTOOLS_KEY_TRIGGER', 'Atajo prohibido detectado: ' + (isF12 ? 'F12' : isInspect ? 'INSPECT' : 'VIEW SOURCE'), 'CRITICAL');
+              }
+            });
+
+            // 2. DETECCIÓN POR TAMAÑO (CONSOLA ABIERTA)
+            let devtools = false;
+            const checkSize = function() {
+              const widthDiff = window.outerWidth - window.innerWidth > 160;
+              const heightDiff = window.outerHeight - window.innerHeight > 160;
+              if (widthDiff || heightDiff) {
+                if (!devtools) {
+                  report('DEVTOOLS_OPENED', 'Consola de desarrollador detectada mediante redimensionamiento', 'CRITICAL');
+                  devtools = true;
+                }
+              } else {
+                devtools = false;
+              }
+            };
+            setInterval(checkSize, 1000);
+
+            // 3. BLOQUEO Y REPORTE DE CLICK DERECHO
+            document.addEventListener('contextmenu', function(e) {
+              e.preventDefault();
+              report('RIGHT_CLICK_ATTEMPT', 'Intento de abrir menú contextual (Inspeccionar)', 'HIGH');
+            });
+
+            // 4. SNIFFER DE ATAQUES
             const ATTACK_VECTORS = [
               { id: 'SQLi', regex: /'|--|union\s+select|select\s+from|benchmark\(|sleep\(/i },
               { id: 'XSS', regex: /<script|<img|<svg|onload=|onerror=|eval\(|javascript:/i },
-              { id: 'LFI', regex: /\.\.\/|\.\\|etc\/passwd/i },
               { id: 'RCE', regex: /;\s*sh|;\s*bash|\|\s*cmd/i }
             ];
 
@@ -82,32 +116,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               if (!value || typeof value !== 'string' || value.length < 3) return false;
               for (var i = 0; i < ATTACK_VECTORS.length; i++) {
                 if (ATTACK_VECTORS[i].regex.test(value)) {
-                  report('ATTACK_DETECTED', ATTACK_VECTORS[i].id + ' in ' + source + ': ' + value.substring(0, 30), 'CRITICAL');
+                  report('WAF_ATTACK_DETECTED', ATTACK_VECTORS[i].id + ' en ' + source, 'CRITICAL');
                   return true;
                 }
               }
               return false;
             };
 
-            // Escaneo Inicial
             checkPayload(window.location.search, 'URL_QUERY');
-            checkPayload(window.location.hash, 'URL_HASH');
-
-            // Listeners
+            
             document.addEventListener('input', function(e) {
               if (e.target.value) checkPayload(e.target.value, 'INPUT_' + (e.target.name || e.target.placeholder || 'UNK'));
             }, { passive: true });
 
-            // DevTools Detection (Legacy but working)
-            let devtools = false;
-            setInterval(function() {
-              if (window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) {
-                if (!devtools) { report('DEVTOOLS', 'Consola abierta'); devtools = true; }
-              } else { devtools = false; }
-            }, 2000);
-
-            // Honeypots
-            Object.defineProperty(window, 'admin_panel', { get: function() { report('HONEYPOT', 'window.admin_panel'); return "ACCESS_DENIED"; } });
+            // 5. HONEYPOTS DE CONSOLA
+            Object.defineProperty(window, 'admin_config', { get: function() { report('HONEYPOT', 'window.admin_config', 'CRITICAL'); return "DENIED"; } });
+            Object.defineProperty(window, 'debug_mode', { get: function() { report('HONEYPOT', 'window.debug_mode'); return "TRAP_ACTIVE"; } });
           })();
         `}} />
       </body>
