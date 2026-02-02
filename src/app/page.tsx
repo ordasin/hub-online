@@ -134,6 +134,30 @@ export default function Home() {
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500 text-4xl md:text-6xl">Software de Alto Impacto</span>
               </h1>
             </motion.div>
+
+            {/* Nueva Sección: Mini Presentación */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="max-w-3xl space-y-6 pt-4"
+            >
+              <p className="text-xl md:text-2xl font-bold text-gray-300 leading-tight italic">
+                Bienvenidos a la vanguardia del desarrollo descentralizado.
+              </p>
+              <p className="text-sm md:text-base text-gray-500 font-medium uppercase tracking-wide leading-relaxed">
+                HUB 903 no es solo un repositorio; es un ecosistema diseñado para quienes buscan herramientas de <span className="text-white">máximo rendimiento</span> y <span className="text-white">privacidad absoluta</span>. 
+                Aquí, el software no se sirve desde servidores opacos, sino que fluye a través de una red <span className="text-purple-500 font-black">P2P</span> inquebrantable. 
+                Desde optimizadores de sistema hasta frameworks de seguridad, cada línea de código está pensada para tener un impacto real.
+              </p>
+              <div className="flex gap-4 pt-2">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase text-gray-400">
+                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" /> Sin Rastreadores
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase text-gray-400">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" /> 100% Criptográfico
+                </div>
+              </div>
+            </motion.div>
             
             <motion.div 
               initial={{ opacity: 0, y: 20 }} 
