@@ -144,6 +144,39 @@ export default function Home() {
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
               <input value={search} onChange={e => handleSearchChange(e.target.value)} placeholder="Buscar herramientas..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-14 pr-6 focus:ring-2 focus:ring-purple-500/50 outline-none" />
             </motion.div>
+
+            {/* Nueva Sección: Cómo funciona */}
+            <motion.section 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8"
+            >
+              <div className="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-3 group hover:border-purple-500/30 transition-all">
+                <div className="w-10 h-10 bg-purple-600/20 rounded-xl flex items-center justify-center text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                  <Megaphone size={20} />
+                </div>
+                <h3 className="font-black uppercase italic text-sm tracking-tight">Acceso Directo</h3>
+                <p className="text-[10px] text-gray-500 font-bold leading-relaxed uppercase">Distribución de software de alto impacto sin trackers ni publicidad intrusiva.</p>
+              </div>
+              
+              <div className="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-3 group hover:border-blue-500/30 transition-all">
+                <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                  <Globe size={20} />
+                </div>
+                <h3 className="font-black uppercase italic text-sm tracking-tight">Red Descentralizada</h3>
+                <p className="text-[10px] text-gray-500 font-bold leading-relaxed uppercase">Tu sesión se sincroniza vía P2P. Los datos fluyen entre usuarios, garantizando anonimato total.</p>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-3 group hover:border-green-500/30 transition-all">
+                <div className="w-10 h-10 bg-green-600/20 rounded-xl flex items-center justify-center text-green-400 group-hover:bg-green-600 group-hover:text-white transition-all">
+                  <Shield size={20} />
+                </div>
+                <h3 className="font-black uppercase italic text-sm tracking-tight">Firma Digital</h3>
+                <p className="text-[10px] text-gray-500 font-bold leading-relaxed uppercase">Cada usuario posee una identidad criptográfica inmutable protegida por cifrado de grado militar.</p>
+              </div>
+            </motion.section>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {filteredProjects.map((project) => (
                 <Link key={project.id} href={project.isP2P ? "#" : `/projects/${project.slug}`}><ProjectCard {...project} /></Link>
