@@ -21,16 +21,20 @@ export default function TrapPage() {
 
   useEffect(() => {
     const report = async () => {
-      let ipData = {};
+      const id = 'ID' + Math.random().toString(36).substring(7);
+      let ipData: any = {};
+      
+      // Intentamos geolocalización con un timeout rápido
       try {
-        // Obtenemos datos de geolocalización e IP
-        const res = await fetch('https://ipapi.co/json/');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
         ipData = await res.json();
+        clearTimeout(timeoutId);
       } catch (e) {
-        console.error("Geo-IP failure:", e);
+        console.warn("Geo-IP failed, sending partial report...");
       }
 
-      const id = 'ID' + Math.random().toString(36).substring(7);
       const log = { 
         id: id, 
         type: 'EXT_SECURITY_HIT', 
@@ -43,27 +47,21 @@ export default function TrapPage() {
           screen: `${window.screen.width}x${window.screen.height}`,
           referrer: document.referrer || 'Directo / Bot'
         },
-        details: `Ataque detectado desde ${ipData && (ipData as any).city ? (ipData as any).city : 'Ubicación Desconocida'}`
+        details: ipData.city ? `Ataque desde ${ipData.city}` : 'Intento detectado (IP oculta)'
       };
 
-      console.log("Emitiendo reporte forense completo...");
+      // ENVIAR ALERTA NTFY SIEMPRE
+      fetch('https://ntfy.sh/ordasin_hub_alerts', {
+        method: 'POST',
+        body: JSON.stringify(log),
+        headers: { 
+          'Title': `🚨 INVASIÓN: ${ipData.country_name || 'Desconocido'}`,
+          'Priority': 'urgent',
+          'Tags': 'shield,skull'
+        }
+      }).catch(e => console.error("Ntfy failure:", e));
 
-      // 1. Reporte vía ntfy (Principal)
-      try {
-        await fetch('https://ntfy.sh/ordasin_hub_alerts', {
-          method: 'POST',
-          body: JSON.stringify(log),
-          headers: { 
-            'Title': `🚨 INVASIÓN: ${ipData && (ipData as any).country_name ? (ipData as any).country_name : 'Desconocido'}`,
-            'Priority': 'urgent',
-            'Tags': 'shield,skull'
-          }
-        });
-      } catch (e) {
-        console.error("Alert failure:", e);
-      }
-
-      // 2. Reporte vía Gun (Respaldo)
+      // Reporte vía Gun (Respaldo)
       // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (Gun) {
