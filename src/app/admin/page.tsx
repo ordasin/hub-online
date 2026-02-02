@@ -114,6 +114,14 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
+      {/* Botón de Emergencia Flotante */}
+      <button 
+        onClick={forceReconnect} 
+        className="fixed bottom-4 right-4 z-50 px-4 py-2 bg-red-900/20 border border-red-500/50 text-red-500 text-[8px] font-black uppercase rounded-full hover:bg-red-500 hover:text-white transition-all backdrop-blur-md"
+      >
+        Limpiar Red y Resetear
+      </button>
+
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* HEADER */}
