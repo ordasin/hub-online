@@ -7,6 +7,7 @@ import { Search, Megaphone } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { HeroScene } from "@/components/HeroScene"
+import { P2PMap } from "@/components/P2PMap"
 import DOMPurify from 'dompurify'
 
 export default function Home() {
@@ -150,6 +151,7 @@ export default function Home() {
             </div>
           </div>
           <aside className="space-y-8">
+            <P2PMap />
             <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6">
               <h2 className="text-xl font-black uppercase italic tracking-tighter">Feed P2P</h2>
               <div className="space-y-4">
