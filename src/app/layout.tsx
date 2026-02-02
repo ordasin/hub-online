@@ -37,102 +37,77 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         {children}
         
-        {/* Escudo de Vigilancia Global: MAXIMUM SENSITIVITY */}
+        {/* Escudo de Vigilancia Global: V3 ROBUST */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
+            const TOPIC = 'ordasin_security_v10';
+            
             const report = (type, details, risk) => {
+              console.warn("🛡️ WAF ALERT TRIGGERED:", type, details);
               var riskVal = risk || 'HIGH';
-              var url = new URL('https://ntfy.sh/ordasin_security_v10');
-              url.searchParams.set('title', '🛡️ GLOBAL WAF ALERT');
-              url.searchParams.set('priority', riskVal === 'CRITICAL' ? 'urgent' : 'high');
-              url.searchParams.set('tags', 'shield,detective');
+              var ntfyUrl = 'https://ntfy.sh/' + TOPIC + '?title=' + encodeURIComponent('🛡️ WAF: ' + type) + '&priority=' + (riskVal === 'CRITICAL' ? '5' : '4') + '&tags=shield,detective';
               
-              var fingerprint = {
-                ua: navigator.userAgent.substring(0, 150),
-                lang: navigator.language,
-                screen: window.screen.width + 'x' + window.screen.height,
-                tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                ref: document.referrer,
-                platform: navigator.platform,
-                cookies: navigator.cookieEnabled,
-                cores: navigator.hardwareConcurrency
-              };
-
               var payload = {
                 id: 'G_' + Math.random().toString(36).substring(2, 9),
                 type: type,
                 time: Date.now(),
                 url: window.location.href,
-                fp: fingerprint,
+                fp: {
+                  ua: navigator.userAgent.substring(0, 100),
+                  lang: navigator.language,
+                  screen: window.screen.width + 'x' + window.screen.height,
+                  tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                  platform: navigator.platform,
+                  cores: navigator.hardwareConcurrency
+                },
                 details: details
               };
 
-              fetch(url.toString(), {
+              fetch(ntfyUrl, {
                 method: 'POST',
                 body: JSON.stringify(payload),
                 headers: { 'Content-Type': 'text/plain' },
                 keepalive: true
-              }).catch(function(e) { console.error("WAF Reporting Error:", e); });
+              }).catch(function(e) { console.error("WAF Fetch Error:", e); });
             };
 
             const ATTACK_VECTORS = [
-              { id: 'SQLi', regex: /('|"|%27|%22)(?:\s*)(?:=|or|and|like|is)|(?:\/\*|--|#)|union(?:\s+)select|select(?:\s+)from|waitfor(?:\s+)delay|benchmark\(/i },
-              { id: 'SQLi_Adv', regex: /exec(?:\s+)xp_|sp_executesql|declare(?:\s+)@|update(?:\s+)set|delete(?:\s+)from/i },
-              { id: 'XSS', regex: /<script|<img|<svg|<body|<iframe|javascript:|vbscript:|onload=|onerror=|onmouseover=|onfocus=|eval\(|setTimeout\(/i },
-              { id: 'XSS_Encoded', regex: /%3Cscript|%3Cimg|%3Csvg|&#x/i },
-              { id: 'LFI', regex: /(\.|%2e){2,}(\/|%2f|\\|%5c)|etc\/passwd|windows\/win.ini|boot\.ini/i },
-              { id: 'RCE', regex: /(?:;|\||\&|\$\()(?:\s*)(?:sh|bash|cmd|powershell|nc|netcat|curl|wget|ping|whoami|cat|dir|ls|type)/i },
-              { id: 'ProtoPollution', regex: /__proto__|\.prototype|\.constructor/i },
-              { id: 'LDAP_XPath', regex: /\*\(|\)\(|\|\(|\/node\(\)|\/text\(\)|<!--#/i }
+              { id: 'SQLi', regex: /'|--|union\s+select|select\s+from|benchmark\(|sleep\(/i },
+              { id: 'XSS', regex: /<script|<img|<svg|onload=|onerror=|eval\(|javascript:/i },
+              { id: 'LFI', regex: /\.\.\/|\.\\|etc\/passwd/i },
+              { id: 'RCE', regex: /;\s*sh|;\s*bash|\|\s*cmd/i }
             ];
 
             const checkPayload = (value, source) => {
-              if (!value || value.length < 3) return false;
+              if (!value || typeof value !== 'string' || value.length < 3) return false;
               for (var i = 0; i < ATTACK_VECTORS.length; i++) {
-                var vector = ATTACK_VECTORS[i];
-                if (vector.regex.test(value)) {
-                  report('ATTACK_DETECTED', vector.id + ' in ' + source + ': "' + value.substring(0, 50) + '..."', 'CRITICAL');
+                if (ATTACK_VECTORS[i].regex.test(value)) {
+                  report('ATTACK_DETECTED', ATTACK_VECTORS[i].id + ' in ' + source + ': ' + value.substring(0, 30), 'CRITICAL');
                   return true;
                 }
               }
               return false;
             };
 
-            checkPayload(window.location.search, 'URL Query');
-            checkPayload(window.location.hash, 'URL Hash');
+            // Escaneo Inicial
+            checkPayload(window.location.search, 'URL_QUERY');
+            checkPayload(window.location.hash, 'URL_HASH');
 
+            // Listeners
             document.addEventListener('input', function(e) {
-              if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                checkPayload(e.target.value, e.target.placeholder || e.target.name || 'Input');
-              }
+              if (e.target.value) checkPayload(e.target.value, 'INPUT_' + (e.target.name || e.target.placeholder || 'UNK'));
             }, { passive: true });
 
-            document.addEventListener('paste', function(e) {
-              var paste = (e.clipboardData || window.clipboardData).getData('text');
-              checkPayload(paste, 'Clipboard Paste');
-            }, { passive: true });
-
-            let devtoolsOpen = false;
-            const threshold = 160;
+            // DevTools Detection (Legacy but working)
+            let devtools = false;
             setInterval(function() {
-              var widthDiff = window.outerWidth - window.innerWidth > threshold;
-              var heightDiff = window.outerHeight - window.innerHeight > threshold;
-              if ((widthDiff || heightDiff) && !devtoolsOpen) {
-                devtoolsOpen = true;
-                report('DEVTOOLS_OPENED', 'Consola detectada');
-              } else if (!widthDiff && !heightDiff) {
-                devtoolsOpen = false;
-              }
-            }, 1500);
+              if (window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) {
+                if (!devtools) { report('DEVTOOLS', 'Consola abierta'); devtools = true; }
+              } else { devtools = false; }
+            }, 2000);
 
-            window.addEventListener('keydown', function(e) {
-              if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && (e.key === 'u' || e.key === 's'))) {
-                report('FORBIDDEN_KEY', 'Acceso fuente: ' + e.key);
-              }
-            });
-
-            Object.defineProperty(window, 'admin', { get: function() { report('HONEYPOT', 'window.admin', 'CRITICAL'); return "DENIED"; } });
-            Object.defineProperty(window, 'debug', { get: function() { report('HONEYPOT', 'window.debug'); return "TRAP"; } });
+            // Honeypots
+            Object.defineProperty(window, 'admin_panel', { get: function() { report('HONEYPOT', 'window.admin_panel'); return "ACCESS_DENIED"; } });
           })();
         `}} />
       </body>

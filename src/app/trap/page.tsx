@@ -5,76 +5,55 @@ import { ShieldAlert, RefreshCw, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
-const FRESH_PEERS = [
-  'https://gun-manhattan.herokuapp.com/gun',
-  'wss://gun-us.herokuapp.com/gun',
-  'https://peer.wall.org/gun',
-  'https://relay.gun.eco/gun'
-];
-
 export default function TrapPage() {
   const [sent, setSent] = useState(false)
 
   useEffect(() => {
-    const report = async () => {
-      // Captura de Huella Digital básica
-      // Standardize payload for Admin Dashboard (fp key)
+    const reportTrap = async () => {
+      let geo = {};
+      try {
+        const res = await fetch('https://ipapi.co/json/').then(r => r.json()).catch(() => ({}));
+        geo = res;
+      } catch(e) {}
+
       const fp = {
-        ua: navigator.userAgent,
+        ua: navigator.userAgent.substring(0, 100),
         lang: navigator.language,
-        cores: navigator.hardwareConcurrency || 'N/A',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        memory: (navigator as any).deviceMemory || 'N/A',
         screen: `${window.screen.width}x${window.screen.height}`,
         tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
         platform: navigator.platform,
-        cookies: navigator.cookieEnabled,
         ref: document.referrer || 'Directo'
       };
 
       const log = { 
-        id, 
-        type: 'CRITICAL_HONEYPOT_HIT', 
+        id: 'T_' + Math.random().toString(36).substring(7), 
+        type: 'CRITICAL_TRAP_HIT', 
         time: Date.now(),
-        url: window.location.href, // Full URL with Query Params
-        geo, // Keep geo for extra info if available
-        fp,  // Match Admin expectation
-        details: `¡INVASOR CAPTURADO! Proviniencia: ${fp.ref}`
+        url: window.location.href,
+        geo: geo,
+        fp: fp,
+        details: '¡INVASOR CAPTURADO EN TRAMPA!'
       };
 
-      // 1. Reporte NTFY (Usa URL params para evitar CORS Preflight)
-      const ntfyUrl = new URL('https://ntfy.sh/ordasin_security_v10');
-      ntfyUrl.searchParams.set('title', '🚨 INVASOR CAPTURADO');
-      ntfyUrl.searchParams.set('priority', 'urgent');
-      ntfyUrl.searchParams.set('tags', 'skull,fire');
+      const ntfyUrl = 'https://ntfy.sh/ordasin_security_v10?title=🚨_TRAP_HIT&priority=5&tags=skull,fire';
 
-      const promise = fetch(ntfyUrl.toString(), {
+      fetch(ntfyUrl, {
         method: 'POST',
         body: JSON.stringify(log),
         headers: { 'Content-Type': 'text/plain' },
         keepalive: true
+      })
+      .then(() => {
+        setSent(true);
+        toast.success("Alerta enviada al sistema central");
+      })
+      .catch((err) => {
+        console.error("Trap Report Error:", err);
+        toast.error("Error enviando alerta");
       });
-
-      toast.promise(promise, {
-        loading: 'Enviando reporte forense...',
-        success: 'Alerta enviada al Admin',
-        error: 'Error de conexión con el servidor de seguridad'
-      });
-
-      promise.catch(err => console.error("Error enviando alerta:", err));
-
-      // 2. Reporte GUN
-      // @ts-expect-error Gun via CDN
-      const Gun = window.Gun;
-      if (Gun) {
-        const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
-        gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log);
-      }
-
-      setSent(true);
     };
 
-    report();
+    reportTrap();
   }, []);
 
   return (

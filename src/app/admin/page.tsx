@@ -25,13 +25,17 @@ export default function AdminPage() {
   const [activePeer, setActivePeer] = useState<string>("Buscando...")
   const [latency, setLatency] = useState<number>(0)
   const [wafStatus, setWafStatus] = useState<"connecting" | "active" | "error">("connecting")
+  const [lastPulse, setLastPulse] = useState<string>("N/A")
 
   useEffect(() => {
     // --- 1. CARGAR HISTORIAL INICIAL (JSON POLL) ---
     const loadHistory = async () => {
       try {
+        console.log("Cargando historial de seguridad...");
         const res = await fetch('https://ntfy.sh/ordasin_security_v10/json?poll=1&since=30m');
         const text = await res.text();
+        if (!text) return setWafStatus("active");
+
         const lines = text.trim().split('\n');
         const history: any[] = [];
         
@@ -48,9 +52,10 @@ export default function AdminPage() {
         setThreats(prev => {
           const combined = [...history, ...prev];
           const unique = Array.from(new Map(combined.map(item => [item.id, item])).values());
-          return unique.sort((a,b) => b.time - a.time).slice(0, 20);
+          return unique.sort((a,b) => b.time - a.time).slice(0, 30);
         });
         setWafStatus("active");
+        setLastPulse(new Date().toLocaleTimeString());
       } catch (e) {
         console.error("Error cargando historial:", e);
         setWafStatus("error");
@@ -111,6 +116,7 @@ export default function AdminPage() {
       let eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
       
       eventSource.onmessage = (e) => {
+        setLastPulse(new Date().toLocaleTimeString());
         try {
           const ntfyData = JSON.parse(e.data);
           if (ntfyData.message) {
@@ -118,20 +124,26 @@ export default function AdminPage() {
             setThreats(prev => {
               const exists = prev.find(t => t.id === logData.id);
               if (exists) return prev;
-              const newThreats = [logData, ...prev].sort((a,b) => b.time - a.time).slice(0, 20);
               toast.warning("¡Actividad Detectada!", { description: logData.details });
-              return newThreats;
+              return [logData, ...prev].sort((a,b) => b.time - a.time).slice(0, 30);
             });
           }
-        } catch {}
+        } catch (err) {
+          console.log("Mensaje ntfy recibido (no JSON):", e.data);
+        }
+      };
+
+      eventSource.onopen = () => {
+        console.log("Stream de seguridad conectado");
+        setWafStatus("active");
       };
 
       eventSource.onerror = () => {
         setWafStatus("error");
         eventSource.close();
         setTimeout(() => {
-          eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
-        }, 5000);
+          init(); // Reintentar todo el proceso
+        }, 10000);
       };
 
       return () => {
@@ -280,6 +292,13 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <Shield size={24} className={wafStatus === 'active' ? 'text-green-500' : wafStatus === 'error' ? 'text-red-500' : 'text-yellow-500'} />
+              </div>
+              <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase">Último Pulso</p>
+                  <p className="text-2xl font-black italic">{lastPulse}</p>
+                </div>
+                <Activity size={24} className="text-blue-500" />
               </div>
             </section>
 
