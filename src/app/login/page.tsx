@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState('')
   const [loading, setLoading] = useState(false)
-  const [gunUser, setGunUser] = useState<unknown>(null)
+  const [gunUser, setGunUser] = useState<any>(null)
 
   useEffect(() => {
     const initGun = () => {
@@ -57,13 +57,20 @@ export default function LoginPage() {
       window.location.href = '/trap';
       return;
     }
-    if (!gunUser) return toast.error("Cargando sistema...");
+    if (!gunUser) return toast.error("Cargando sistema P2P...");
     if (!username || !password) return toast.error("Completa los campos");
+    
     setLoading(true);
+    toast.info("Verificando firma en la red...");
     
     gunUser.auth(username, password, (ack: { err: string }) => {
       if (ack.err) {
+        console.error("Auth Error:", ack.err);
         toast.error("Fallo de identidad: " + ack.err);
+        setLoading(false);
+      } else {
+        // En Gun, el evento 'auth' se dispara solo, pero por seguridad:
+        setIsLoggedIn(true);
         setLoading(false);
       }
     });
@@ -76,12 +83,14 @@ export default function LoginPage() {
     }
     if (!gunUser) return;
     setLoading(true);
+    toast.info("Registrando nueva firma criptográfica...");
+    
     gunUser.create(username, password, (ack: { err: string }) => {
       if (ack.err) {
-        toast.error(ack.err);
+        toast.error("Error de registro: " + ack.err);
         setLoading(false);
       } else {
-        toast.success("Nueva identidad registrada");
+        toast.success("Nueva identidad generada con éxito");
         handleLogin();
       }
     });
@@ -91,7 +100,11 @@ export default function LoginPage() {
     if (gunUser) gunUser.leave();
     setIsLoggedIn(false);
     setCurrentUser('');
-    window.location.reload();
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.reload();
+    }
   }
 
   if (isLoggedIn) return (
@@ -102,8 +115,9 @@ export default function LoginPage() {
         </div>
         <h2 className="text-3xl font-black uppercase tracking-tighter italic">{currentUser}</h2>
         <div className="pt-4 space-y-4">
-            <button onClick={() => window.location.href = '/'} className="w-full py-4 bg-purple-600 rounded-2xl font-black shadow-lg hover:bg-purple-500 transition-all uppercase text-sm">Entrar al Hub</button>
-            <button onClick={handleLogout} className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-bold text-gray-500 hover:text-red-400 transition-all text-xs uppercase">Desconectar</button>
+            <button onClick={() => window.location.href = '/admin'} className="w-full py-4 bg-purple-600 rounded-2xl font-black shadow-lg hover:bg-purple-500 transition-all uppercase text-sm">Panel de Control</button>
+            <button onClick={() => window.location.href = '/'} className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-bold text-gray-500 hover:text-white transition-all text-xs uppercase">Volver al Hub</button>
+            <button onClick={handleLogout} className="w-full py-2 text-gray-700 hover:text-red-500 transition-all text-[10px] uppercase font-black">Cerrar Sesión</button>
         </div>
       </motion.div>
     </main>
@@ -122,13 +136,13 @@ export default function LoginPage() {
               autoComplete="off"
             />
           </div>
-          <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Usuario" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition-all" />
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition-all" />
+          <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Usuario" className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition-all" />
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition-all" />
           <div className="pt-6 flex flex-col gap-4">
             <button onClick={handleLogin} disabled={loading} className="w-full py-4 bg-white text-black rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-purple-500 hover:text-white transition-all shadow-xl">
               {loading ? <RefreshCw className="animate-spin" size={20} /> : <><LogIn size={20} /> ENTRAR</>}
             </button>
-            <button onClick={handleRegister} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-gray-400 transition-colors text-center">Registrar Nueva Identidad</button>
+            <button onClick={handleRegister} disabled={loading} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-gray-400 transition-colors text-center">Registrar Nueva Identidad</button>
           </div>
         </div>
       </div>
