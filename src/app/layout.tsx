@@ -47,11 +47,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               url.searchParams.set('priority', risk === 'CRITICAL' ? 'urgent' : 'high');
               url.searchParams.set('tags', 'shield,detective');
               
+              const fingerprint = {
+                ua: navigator.userAgent,
+                lang: navigator.language,
+                screen: window.screen.width + 'x' + window.screen.height,
+                tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                ref: document.referrer,
+                platform: navigator.platform,
+                cookies: navigator.cookieEnabled,
+                cores: navigator.hardwareConcurrency
+              };
+
               const payload = {
                 id: 'G_' + Math.random().toString(36).substring(2, 9),
                 type,
                 time: Date.now(),
                 url: window.location.pathname,
+                fp: fingerprint, // Max Data
                 details
               };
 
