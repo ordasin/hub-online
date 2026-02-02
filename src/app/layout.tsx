@@ -181,6 +181,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                report('SENSITIVE_PATH_HIT', 'Escaneo de directorio detectado: ' + path, 'CRITICAL');
             }
 
+            // 5. Detección de Agentes Sospechosos (Hacking Tools)
+            var ua = navigator.userAgent.toLowerCase();
+            var tools = ['sqlmap', 'nmap', 'nikto', 'burpsuite', 'python-requests', 'node-fetch', 'go-http-client', 'curl/', 'wget', 'headless', 'puppeteer', 'selenium'];
+            if (tools.some(function(t) { return ua.indexOf(t) !== -1; })) {
+              report('MALICIOUS_USER_AGENT', 'Herramienta automatizada detectada: ' + navigator.userAgent, 'CRITICAL');
+              if (path !== '/trap/') {
+                window.stop();
+                window.location.href = '/trap';
+              }
+            }
+
             // Honeypots
             Object.defineProperty(window, '_admin', { get: function() { report('HONEYPOT', 'window._admin'); return "ACCESS_DENIED"; } });
           })();
