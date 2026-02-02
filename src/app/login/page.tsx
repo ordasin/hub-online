@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState('')
   const [loading, setLoading] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [gunUser, setGunUser] = useState<any>(null)
 
   useEffect(() => {

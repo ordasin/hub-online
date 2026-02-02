@@ -49,7 +49,7 @@ export default function AdminPage() {
       });
 
       // @ts-expect-error Gun events
-      g.on('bye', (peer: { url: string }) => {
+      g.on('bye', () => {
         setPeers(p => Math.max(0, p - 1));
       });
 
