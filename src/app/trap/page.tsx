@@ -26,10 +26,24 @@ export default function TrapPage() {
         id: id, 
         type: 'EXT_SECURITY_HIT', 
         time: Date.now(),
-        details: 'Intento de acceso detectado vía Nostr P2P'
+        details: 'Intento de acceso detectado (Honeypot Active)'
       };
 
-      // 1. Reporte vía Gun (Como respaldo)
+      console.log("Emitiendo alerta de seguridad...");
+
+      // 1. Reporte vía ntfy (Principal - Instantáneo)
+      try {
+        await fetch('https://ntfy.sh/ordasin_hub_alerts', {
+          method: 'POST',
+          body: JSON.stringify(log),
+          headers: { 'Title': 'ALERTA DE SEGURIDAD', 'Priority': 'high' }
+        });
+        console.log("Alerta ntfy enviada");
+      } catch (e) {
+        console.error("Alert failure:", e);
+      }
+
+      // 2. Reporte vía Gun (Respaldo)
       // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (Gun) {
@@ -37,28 +51,10 @@ export default function TrapPage() {
         gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log);
       }
 
-      // 2. Reporte vía ntfy (Ultra-fiable y anónimo)
-      try {
-        await fetch('https://ntfy.sh/ordasin_hub_alerts', {
-          method: 'POST',
-          body: JSON.stringify(log),
-          headers: { 'Title': 'ALERTA DE SEGURIDAD', 'Priority': 'high' }
-        });
-      } catch (e) {
-        console.error("Alert failure:", e);
-      }
-
-      setTimeout(() => setSent(true), 2000);
+      setSent(true);
     };
 
-    const check = setInterval(() => {
-      // @ts-expect-error Gun is loaded via CDN
-      if (window.Gun) {
-        report();
-        clearInterval(check);
-      }
-    }, 500);
-    return () => clearInterval(check);
+    report();
   }, []);
 
   return (

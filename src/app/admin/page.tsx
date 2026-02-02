@@ -111,16 +111,27 @@ export default function AdminPage() {
       });
 
       // 3. ESCUCHA VÍA NTFY (Alta disponibilidad)
+      console.log("Conectando al canal de alertas ntfy...");
       const eventSource = new EventSource('https://ntfy.sh/ordasin_hub_alerts/sse');
+      
+      eventSource.onopen = () => console.log("✅ Canal de alertas activo");
+      
       eventSource.onmessage = (e) => {
         try {
           const ntfyData = JSON.parse(e.data);
-          if (ntfyData.message) {
+          console.log("Mensaje ntfy recibido:", ntfyData);
+          if (ntfyData.event === 'message' && ntfyData.message) {
             const data = JSON.parse(ntfyData.message);
             setThreats(prev => [data, ...prev.filter(t => t.id !== data.id)].sort((a,b) => b.time - a.time).slice(0, 10));
-            toast.warning("¡Invasor detectado!");
+            toast.warning("¡Invasor detectado!", { description: data.details });
           }
-        } catch (err) { console.error("Error receiving alert", err); }
+        } catch (err) { 
+          // Es normal que algunos mensajes no sean JSON (como el 'open')
+        }
+      };
+
+      eventSource.onerror = (e) => {
+        console.error("❌ Error en canal de alertas:", e);
       };
 
       return () => {
