@@ -5,44 +5,37 @@ import Link from "next/link"
 import { Github, LayoutGrid, MessageCircle, Zap, User, ShieldAlert } from "lucide-react"
 import { motion } from "framer-motion"
 
+// TU NUEVA IDENTIDAD MAESTRA DEFINITIVA
+const MASTER_PUB = "_VFsB7wZfL0sqU6GGW5ucTjkBOazp-CR6B4_52-1rOY.iNt-9rXPnGyZbTXfk2AyqVtnATVgEAU_dbCoOySYT4w";
+
 export function Navbar() {
   const [session, setSession] = useState({ logged: false, name: "", isAdmin: false })
 
   useEffect(() => {
-    const checkStatus = () => {
+    const sync = () => {
       if (typeof window === 'undefined') return;
-
-      // 1. VERIFICACIÓN INSTANTÁNEA POR DISCO (No depende de internet)
-      const localUser = localStorage.getItem('last_logged_user');
-      const isMaster = localUser === 'ordasin';
-
-      if (isMaster) {
-        setSession({ logged: true, name: 'ordasin', isAdmin: true });
-        return; // Prioridad absoluta al admin local
-      }
-
-      // 2. VERIFICACIÓN POR RED (Para usuarios normales)
+      
       // @ts-ignore
       const Gun = window.Gun;
-      if (Gun) {
-        const gun = Gun({ peers: ['https://relay.gun.eco/gun'], localStorage: true });
-        // @ts-ignore
-        const user = gun.user().recall({ sessionStorage: true });
-        
-        if (user.is) {
-          setSession({
-            logged: true,
-            name: user.is.alias,
-            isAdmin: user.is.alias === 'ordasin'
-          });
-        } else {
-          setSession({ logged: false, name: "", isAdmin: false });
-        }
+      if (!Gun || !Gun.SEA) return;
+
+      const gun = Gun({ peers: ['https://relay.gun.eco/gun'], localStorage: true });
+      // @ts-ignore
+      const user = gun.user().recall({ sessionStorage: true });
+
+      if (user.is) {
+        setSession({
+          logged: true,
+          name: user.is.alias,
+          // Verificación Criptográfica Real
+          isAdmin: user.is.pub === MASTER_PUB
+        });
+      } else {
+        setSession({ logged: false, name: "", isAdmin: false });
       }
     };
 
-    // Revisar sesión cada segundo
-    const interval = setInterval(checkStatus, 1000);
+    const interval = setInterval(sync, 2000);
     return () => clearInterval(interval);
   }, [])
 
@@ -54,7 +47,7 @@ export function Navbar() {
         className="max-w-7xl mx-auto backdrop-blur-xl bg-black/60 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl"
       >
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg">O</div>
+          <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg">O</div>
           <span className="font-black text-white uppercase hidden sm:block tracking-tighter italic">Ordasin Hub</span>
         </Link>
         
@@ -63,16 +56,22 @@ export function Navbar() {
           <Link href="/chat" className="text-gray-400 hover:text-white transition-colors"><Zap size={18} className="text-yellow-500"/></Link>
           
           {session.isAdmin && (
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black text-red-400 border border-red-500/30 px-4 py-2 rounded-full bg-red-500/10 animate-pulse shadow-lg shadow-red-900/20">
-              <ShieldAlert size={14} /> ADMIN
+            <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black text-red-400 border border-red-500/30 px-4 py-2 rounded-full bg-red-500/10 animate-pulse">
+              <ShieldAlert size={14} /> MASTER_NODE
             </Link>
           )}
 
           <div className="w-[1px] h-4 bg-white/10 mx-2 hidden sm:block" />
           
-          <Link href={session.logged ? "/profile" : "/login"} className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-white text-xs font-black hover:bg-white hover:text-black transition-all">
-            <User size={14} /> <span>{session.logged ? session.name : 'Entrar'}</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="https://discord.gg/dehYH7AQ" target="_blank" className="p-2 rounded-full bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20 hover:bg-[#5865F2] hover:text-white transition-all"><MessageCircle size={16} /></Link>
+            <Link 
+              href={session.logged ? "/profile" : "/login"} 
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-white text-xs font-black hover:bg-white hover:text-black transition-all`}
+            >
+              <User size={14} className={session.logged ? 'text-purple-400' : ''} /> <span>{session.logged ? session.name : 'Entrar'}</span>
+            </Link>
+          </div>
         </div>
       </motion.nav>
     </div>
