@@ -11,8 +11,8 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const viewport: Viewport = { themeColor: "#050505", width: "device-width", initialScale: 1 };
 
 export const metadata: Metadata = {
-  title: "Ordasin Hub Online | Software de Alto Impacto",
-  description: "Ecosistema de software descentralizado y herramientas de vanguardia.",
+  title: "HUB 903 | Descargar Software de Alto Impacto y Herramientas P2P",
+  description: "Explora HUB 903, el ecosistema líder en software descentralizado. Descarga herramientas de alto impacto, scripts Python avanzados y experimenta la red P2P en tiempo real.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

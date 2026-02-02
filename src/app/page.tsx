@@ -130,8 +130,8 @@ export default function Home() {
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
               <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter italic leading-none">
-                Ordasin <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500">Hub Online</span>
+                HUB 903 <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500 text-4xl md:text-6xl">Software de Alto Impacto</span>
               </h1>
             </motion.div>
             
