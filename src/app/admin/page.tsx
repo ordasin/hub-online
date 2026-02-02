@@ -146,12 +146,6 @@ export default function AdminPage() {
     }, 1000);
     return () => clearInterval(loader);
   }, []);
-    const loader = setInterval(() => {
-      // @ts-expect-error Gun via CDN
-      if (window.Gun && window.Gun.SEA) { init(); clearInterval(loader); }
-    }, 1000);
-    return () => clearInterval(loader);
-  }, []);
 
   const forceReconnect = () => {
     localStorage.clear();
