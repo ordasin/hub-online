@@ -92,7 +92,13 @@ export default function Home() {
           onClick={() => {
             fetch('https://ntfy.sh/ordasin_security_v10', {
               method: 'POST',
-              body: JSON.stringify({ id: 'LINK_TRAP_'+Date.now(), type: 'INVISIBLE_LINK_HIT', time: Date.now(), details: 'Bot detectado: Siguió el enlace invisible' })
+              body: JSON.stringify({ 
+                id: 'LINK_TRAP_'+Date.now(), 
+                type: 'INVISIBLE_LINK_HIT', 
+                time: Date.now(), 
+                details: 'Bot detectado: Siguió el enlace invisible' 
+              }),
+              keepalive: true
             }).catch(() => {});
           }}
           className="opacity-0 absolute pointer-events-none" 

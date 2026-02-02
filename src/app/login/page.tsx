@@ -53,7 +53,6 @@ export default function LoginPage() {
     return () => clearInterval(checker);
   }, [])
 
-  const handleLogin = () => {
     if (honeypot) {
       console.log("⚠️ TRAMPA LOGIN ACTIVADA");
       const id = 'WAF_LOGIN_' + Math.random().toString(36).substring(7);
@@ -64,10 +63,11 @@ export default function LoginPage() {
           type: 'HONEYPOT_INJECTION', 
           time: Date.now(), 
           details: `Bot detectado en Login. Payload: "${honeypot}"` 
-        })
+        }),
+        keepalive: true
       }).catch(() => {});
       
-      setTimeout(() => { window.location.href = '/trap'; }, 500);
+      window.location.href = '/trap';
       return;
     }
     if (!gunUser) return toast.error("Cargando sistema P2P...");
