@@ -16,6 +16,7 @@ const PEERS = [
 
 export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const [detectedPub, setDetectedPub] = useState<string>("")
   const [gun, setGun] = useState<any>(null)
   const [threats, setThreats] = useState<any[]>([])
   const [p2pProjects, setP2pProjects] = useState<any[]>([])
@@ -30,7 +31,6 @@ export default function AdminPage() {
       const Gun = window.Gun;
       if (!Gun || !Gun.SEA) return;
 
-      // localStorage: false obliga a Gun a no usar datos antiguos/bloqueados
       const g = Gun({ 
         peers: PEERS, 
         localStorage: false,
@@ -41,7 +41,6 @@ export default function AdminPage() {
       g.on('hi', (peer: any) => {
         setPeers(p => p + 1);
         setActivePeer(peer.url || "Nodo Desconocido");
-        console.log("Conectado a:", peer.url);
       });
 
       g.on('bye', () => setPeers(p => Math.max(0, p - 1)));
@@ -50,12 +49,16 @@ export default function AdminPage() {
       const user = g.user().recall({ sessionStorage: true });
       
       const sync = () => {
-        if (user.is && user.is.pub === MASTER_PUB) {
-          setIsAdmin(true);
-        } else if (user.is) {
-          setIsAdmin(false);
+        if (user.is) {
+          setDetectedPub(user.is.pub);
+          if (user.is.pub === MASTER_PUB) {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
         } else {
-          setTimeout(() => { if (!user.is) setIsAdmin(false); }, 3000);
+          // Aumentamos a 5 segundos el margen de conexión
+          setTimeout(() => { if (!user.is) setIsAdmin(false); }, 5000);
         }
       };
 
@@ -110,7 +113,26 @@ export default function AdminPage() {
       <button onClick={forceReconnect} className="text-[9px] text-gray-600 hover:text-white border border-white/5 px-4 py-1 rounded-full">¿No conecta? Forzar Reseteo</button>
     </div>
   );
-  if (isAdmin === false) return <div className="min-h-screen bg-black text-red-500 flex items-center justify-center font-black p-10 text-center uppercase tracking-widest">Acceso Denegado: Identidad no Autorizada</div>;
+  if (isAdmin === false) return (
+    <div className="min-h-screen bg-black text-red-500 flex flex-col items-center justify-center font-black p-10 text-center uppercase tracking-widest space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-2xl">Acceso Denegado</h2>
+        <p className="text-[10px] text-red-900 font-mono">Identidad no Autorizada para este Sistema</p>
+      </div>
+      
+      {detectedPub && (
+        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl max-w-lg">
+          <p className="text-gray-600 text-[8px] mb-2 italic">Tu Clave Pública Detectada:</p>
+          <code className="text-[8px] text-purple-400 break-all">{detectedPub}</code>
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        <button onClick={() => window.location.href='/login'} className="px-6 py-2 bg-white text-black text-[10px] rounded-full hover:bg-purple-500 hover:text-white transition-all">Ir al Login</button>
+        <button onClick={forceReconnect} className="px-6 py-2 border border-white/10 text-gray-500 text-[10px] rounded-full hover:text-white transition-all">Resetear Red</button>
+      </div>
+    </div>
+  );
 
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
