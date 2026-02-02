@@ -5,15 +5,12 @@ import { ShieldAlert, RefreshCw, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const FRESH_PEERS = [
-  'wss://gun.v6.rocks/gun',
+  'https://gun-manhattan.herokuapp.com/gun',
+  'wss://gun-us.herokuapp.com/gun',
+  'wss://gun-eu.herokuapp.com/gun',
   'https://peer.wall.org/gun',
-  'https://relay.gun.eco/gun'
-];
-
-const NOSTR_RELAYS = [
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-  'wss://relay.snort.social'
+  'https://relay.gun.eco/gun',
+  'https://dletta.herokuapp.com/gun'
 ];
 
 export default function TrapPage() {
@@ -22,50 +19,30 @@ export default function TrapPage() {
   useEffect(() => {
     const report = async () => {
       const id = 'ID' + Math.random().toString(36).substring(7);
-      const startTime = Date.now();
-      
-      // 1. ALERTA INSTANTÁNEA (Sin esperar a nadie)
-      const quickLog = { id, type: 'EXT_SECURITY_HIT', time: startTime, details: 'Invasión detectada (Sincronizando info forense...)' };
-      
-      const sendNtfy = (data: any) => {
-        fetch('https://ntfy.sh/ordasin_security_6mwMzG', {
-          method: 'POST',
-          body: JSON.stringify(data),
-          headers: { 'Title': '🚨 ALERTA DE SEGURIDAD', 'Priority': 'urgent', 'Tags': 'shield,skull' }
-        }).catch(() => {});
+      const log = { 
+        id: id, 
+        type: 'EXT_SECURITY_HIT', 
+        time: Date.now(),
+        details: 'Intento de acceso detectado (Honeypot Active)'
       };
 
-      sendNtfy(quickLog); // Enviamos el primer aviso ya.
-
-      // 2. OBTENER INFO FORENSE EN SEGUNDO PLANO
+      // 1. Reporte vía ntfy (Simple e instantáneo)
       try {
-        const res = await fetch('https://ipapi.co/json/').catch(() => null);
-        const ipData = res ? await res.json() : {};
-        
-        const fullLog = {
-          ...quickLog,
-          ip: ipData,
-          browser: {
-            agent: navigator.userAgent,
-            platform: navigator.platform,
-            screen: `${window.screen.width}x${window.screen.height}`,
-            referrer: document.referrer || 'Directo'
-          },
-          details: `Ataque confirmado desde ${ipData.city || 'Ubicación oculta'}`
-        };
-
-        // Enviamos la actualización con todo el peritaje
-        sendNtfy(fullLog);
-
-        // 3. RESPALDO EN GUN
-        // @ts-expect-error Gun is loaded via CDN
-        const Gun = window.Gun;
-        if (Gun) {
-          const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
-          gun.get('ORDASIN_FINAL_SHIELD').get(id).put(fullLog);
-        }
+        await fetch('https://ntfy.sh/ordasin_hub_alerts', {
+          method: 'POST',
+          body: JSON.stringify(log),
+          headers: { 'Title': '🚨 ALERTA DE SEGURIDAD', 'Priority': 'high' }
+        });
       } catch (e) {
-        console.error("Forensic error:", e);
+        console.error("Alert failure:", e);
+      }
+
+      // 2. Reporte vía Gun (Respaldo)
+      // @ts-expect-error Gun is loaded via CDN
+      const Gun = window.Gun;
+      if (Gun) {
+        const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
+        gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log);
       }
 
       setSent(true);

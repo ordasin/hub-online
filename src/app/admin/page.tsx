@@ -20,8 +20,8 @@ export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [detectedPub, setDetectedPub] = useState<string>("")
   const [gun, setGun] = useState<unknown>(null)
-  const [threats, setThreats] = useState<Record<string, unknown>[]>([])
-  const [p2pProjects, setP2pProjects] = useState<Record<string, unknown>[]>([])
+  const [threats, setThreats] = useState<Record<string, any>[]>([])
+  const [p2pProjects, setP2pProjects] = useState<Record<string, any>[]>([])
   const [newProject, setNewProject] = useState({ title: '', version: '', desc: '' })
   const [socialPost, setSocialPost] = useState('')
   const [peers, setPeers] = useState(0)
@@ -42,7 +42,6 @@ export default function AdminPage() {
       });
       setGun(g);
 
-      // Restaurar recuperación de sesión
       // @ts-expect-error Gun types
       g.user().recall({ sessionStorage: true });
 
@@ -57,12 +56,9 @@ export default function AdminPage() {
         setPeers(p => Math.max(0, p - 1));
       });
 
-      // Capturar errores críticos de red
       // @ts-expect-error Gun internal events
       g.on('out', (msg: { err: string }) => {
-        if (msg.err) {
-          setNetError(msg.err.toString());
-        }
+        if (msg.err) setNetError(msg.err.toString());
       });
       
       const sync = () => {
@@ -70,16 +66,10 @@ export default function AdminPage() {
         if (currentUser.is) {
           const currentPub = currentUser.is.pub;
           setDetectedPub(currentPub);
-          console.log("ID Detectada:", currentPub);
-
           const normalizedMaster = MASTER_PUB.replace(/^~/, '').trim();
           const normalizedCurrent = currentPub.replace(/^~/, '').trim();
-
-          if (normalizedCurrent === normalizedMaster) {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
-          }
+          if (normalizedCurrent === normalizedMaster) setIsAdmin(true);
+          else setIsAdmin(false);
         }
       };
 
@@ -98,42 +88,31 @@ export default function AdminPage() {
 
       g.on('auth', sync);
 
-      g.get('ORDASIN_FINAL_SHIELD').map().on((data: { id: string, time: number, details: string }, id: string) => {
-        console.log("Amenaza recibida en Admin:", data);
+      g.get('ORDASIN_FINAL_SHIELD').map().on((data: any, id: string) => {
         if (data && data.time) {
           setThreats(prev => [data, ...prev.filter(t => t.id !== id)].sort((a,b) => b.time - a.time).slice(0, 10));
         }
       });
 
-      g.get('p2p_projects').map().on((data: { title: string, version: string, id: string }, id: string) => {
+      g.get('p2p_projects').map().on((data: any, id: string) => {
         if (data) setP2pProjects(prev => [...prev.filter(p => p.id !== id), { ...data, id }]);
         else setP2pProjects(prev => prev.filter(p => p.id !== id));
       });
 
-      // 3. ESCUCHA VÍA NTFY (Alta disponibilidad)
-      console.log("Conectando al canal privado de alertas...");
-      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_6mwMzG/sse');
-      
+      // 3. ESCUCHA VÍA NTFY (Simple)
+      const eventSource = new EventSource('https://ntfy.sh/ordasin_hub_alerts/sse');
       eventSource.onmessage = (e) => {
         try {
           const ntfyData = JSON.parse(e.data);
           if (ntfyData.event === 'message' && ntfyData.message) {
             const data = JSON.parse(ntfyData.message);
-            // Evitamos duplicados manteniendo el más reciente
             setThreats(prev => [data, ...prev.filter(t => t.id !== data.id)].sort((a,b) => b.time - a.time).slice(0, 10));
-            if (data.ip) toast.warning("¡Invasor identificado!", { description: data.details });
-            else toast.error("¡Alerta de Invasión!", { description: "Sincronizando procedencia..." });
+            toast.warning("¡Invasor detectado!");
           }
         } catch (err) { }
       };
 
-      eventSource.onerror = (e) => {
-        console.error("❌ Error en canal de alertas:", e);
-      };
-
-      return () => {
-        eventSource.close();
-      };
+      return () => eventSource.close();
     };
 
     const loader = setInterval(() => {
@@ -144,7 +123,9 @@ export default function AdminPage() {
   }, [])
 
   const publishProject = () => {
+    // @ts-expect-error gun method
     if (gun && newProject.title) {
+      // @ts-expect-error gun method
       gun.get('p2p_projects').set({ ...newProject, title: DOMPurify.sanitize(newProject.title), time: Date.now() });
       setNewProject({ title: '', version: '', desc: '' });
       toast.success("Publicado en la red");
@@ -152,7 +133,9 @@ export default function AdminPage() {
   }
 
   const postToFeed = () => {
+    // @ts-expect-error gun method
     if (gun && socialPost) {
+      // @ts-expect-error gun method
       gun.get('global_social_feed').set({ text: DOMPurify.sanitize(socialPost), author: 'Master Admin', time: Date.now() });
       setSocialPost('');
       toast.success("Feed actualizado");
@@ -168,24 +151,16 @@ export default function AdminPage() {
   const forceBypass = () => {
     const normalizedMaster = MASTER_PUB.replace(/^~/, '').trim();
     const normalizedCurrent = detectedPub.replace(/^~/, '').trim();
-    
     if (normalizedCurrent === normalizedMaster) {
       setIsAdmin(true);
       toast.success("Bypass de Seguridad Activado");
-    } else {
-      toast.error("Firma no coincide con el Master");
-    }
+    } else toast.error("Firma no coincide");
   };
 
   if (isAdmin === null) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center font-mono space-y-4">
       <div className="text-purple-500 uppercase text-[10px] animate-pulse">Verificando Firma Criptográfica...</div>
-      <div className="flex flex-col items-center gap-2">
-        <button onClick={forceReconnect} className="text-[9px] text-gray-600 hover:text-white border border-white/5 px-4 py-1 rounded-full">Forzar Reseteo</button>
-        {detectedPub && (
-          <button onClick={forceBypass} className="text-[9px] text-green-600 hover:text-green-400 border border-green-900/30 px-4 py-1 rounded-full animate-bounce">Entrada Forzada (Bypass)</button>
-        )}
-      </div>
+      <button onClick={forceReconnect} className="text-[9px] text-gray-600 hover:text-white border border-white/5 px-4 py-1 rounded-full">Forzar Reseteo</button>
     </div>
   );
 
@@ -193,39 +168,22 @@ export default function AdminPage() {
     <div className="min-h-screen bg-black text-red-500 flex flex-col items-center justify-center font-black p-10 text-center uppercase tracking-widest space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl">Acceso Denegado</h2>
-        <p className="text-[10px] text-red-900 font-mono italic">
-          {!detectedPub ? "No se detecta ninguna sesión activa" : "Firma criptográfica no autorizada"}
-        </p>
+        <p className="text-[10px] text-red-900 font-mono italic">{!detectedPub ? "No se detecta sesión" : "Firma no autorizada"}</p>
       </div>
-
-      {detectedPub ? (
+      {detectedPub && (
         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl max-w-2xl space-y-4">
           <p className="text-gray-500 text-[8px] uppercase tracking-widest">Firma Detectada:</p>
           <code className="text-[10px] text-purple-400 break-all block p-4 bg-black/50 rounded-xl border border-white/5">{detectedPub}</code>
-          <button onClick={forceBypass} className="w-full py-4 bg-green-600 text-white text-[10px] rounded-xl hover:bg-green-500 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]">ACTIVAR BYPASS MAESTRO</button>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-4">
-          <div className="text-[10px] text-gray-600 animate-pulse">Debes identificarte en la red P2P primero</div>
-          <button onClick={() => window.location.href='/login'} className="px-10 py-4 bg-purple-600 text-white text-xs rounded-2xl hover:bg-purple-500 transition-all shadow-[0_0_30px_rgba(147,51,234,0.3)]">INICIAR SESIÓN MAESTRA</button>
+          <button onClick={forceBypass} className="w-full py-4 bg-green-600 text-white text-[10px] rounded-xl hover:bg-green-500 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]">ACTIVAR BYPASS</button>
         </div>
       )}
-      
-      <div className="flex gap-4 pt-8">
-        <button onClick={forceReconnect} className="px-6 py-2 border border-white/10 text-gray-500 text-[10px] rounded-full hover:text-white transition-all">Limpiar y Reintentar</button>
-      </div>
+      <button onClick={() => window.location.href='/login'} className="px-10 py-4 bg-purple-600 text-white text-xs rounded-2xl hover:bg-purple-500 transition-all">INICIAR SESIÓN</button>
     </div>
   );
 
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
-      <button 
-        onClick={forceReconnect} 
-        className="fixed bottom-4 right-4 z-50 px-4 py-2 bg-red-900/20 border border-red-500/50 text-red-500 text-[8px] font-black uppercase rounded-full hover:bg-red-500 hover:text-white transition-all backdrop-blur-md"
-      >
-        Limpiar Red y Resetear
-      </button>
-
+      <button onClick={forceReconnect} className="fixed bottom-4 right-4 z-50 px-4 py-2 bg-red-900/20 border border-red-500/50 text-red-500 text-[8px] font-black uppercase rounded-full hover:bg-red-500 hover:text-white transition-all backdrop-blur-md">Limpiar Red</button>
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="p-8 rounded-[3rem] bg-gradient-to-r from-red-900/20 via-black to-purple-900/20 border border-white/10 flex justify-between items-center backdrop-blur-xl">
           <div className="flex items-center gap-6">
@@ -236,14 +194,8 @@ export default function AdminPage() {
                     <div className="flex items-center gap-2">
                       <Wifi size={12} className={peers > 0 ? 'animate-bounce' : ''}/> NODOS ACTIVOS: {peers}
                     </div>
-                    <div className="text-gray-500 opacity-50 uppercase tracking-tighter">
-                      Relay: {activePeer}
-                    </div>
-                    {netError && (
-                      <div className="text-red-500 text-[8px] animate-pulse uppercase">
-                        ⚠️ Error: {netError}
-                      </div>
-                    )}
+                    <div className="text-gray-500 opacity-50 uppercase tracking-tighter">Relay: {activePeer}</div>
+                    {netError && <div className="text-red-500 text-[8px] animate-pulse uppercase">⚠️ Error: {netError}</div>}
                 </div>
             </div>
           </div>
@@ -253,48 +205,23 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="space-y-8">
             <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-2xl">
-                <h2 className="text-lg font-black uppercase flex items-center gap-2 text-red-400"><Activity size={18}/> Registro Forense</h2>
-                <div className="space-y-4">
+                <h2 className="text-lg font-black uppercase flex items-center gap-2 text-red-400"><Activity size={18}/> Invasores</h2>
+                <div className="space-y-3">
                     {threats.map((t: any) => (
-                        <div key={t.id} className="p-5 bg-red-950/10 border border-red-900/20 rounded-[2rem] space-y-3">
-                            <div className="flex justify-between items-start">
-                              <p className="font-black text-red-500 text-[9px] uppercase">{new Date(t.time).toLocaleString()}</p>
-                              <span className="px-2 py-0.5 bg-red-500 text-white text-[7px] font-black rounded-full uppercase">Honeypot Hit</span>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-4 text-[8px]">
-                              <div>
-                                <p className="text-gray-500 uppercase font-bold">Ubicación</p>
-                                <p className="text-white">{t.ip?.city}, {t.ip?.country_name} ({t.ip?.ip})</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 uppercase font-bold">ISP / Org</p>
-                                <p className="text-white truncate">{t.ip?.org || t.ip?.asn}</p>
-                              </div>
-                            </div>
-
-                            <div className="pt-2 border-t border-white/5">
-                              <p className="text-gray-500 uppercase font-bold text-[7px]">Huella Digital</p>
-                              <p className="text-gray-400 text-[7px] leading-tight mt-1 line-clamp-2">{t.browser?.agent}</p>
-                              <div className="flex gap-2 mt-2">
-                                <span className="bg-white/5 px-2 py-0.5 rounded text-gray-500 font-mono text-[7px]">{t.browser?.platform}</span>
-                                <span className="bg-white/5 px-2 py-0.5 rounded text-gray-500 font-mono text-[7px]">{t.browser?.screen}</span>
-                                <span className="bg-white/5 px-2 py-0.5 rounded text-gray-500 font-mono text-[7px]">{t.browser?.lang}</span>
-                              </div>
-                            </div>
+                        <div key={t.id} className="p-4 bg-red-900/10 border border-red-900/20 rounded-2xl text-[9px]">
+                            <p className="font-black text-red-500 uppercase">{new Date(t.time).toLocaleTimeString()} - DETECTED</p>
+                            <p className="text-gray-500 truncate mt-1">{t.details}</p>
                         </div>
                     ))}
-                    {threats.length === 0 && <p className="text-center py-10 text-gray-700 text-xs italic">Vigilando red en tiempo real...</p>}
+                    {threats.length === 0 && <p className="text-center py-10 text-gray-700 text-xs italic">Vigilando red...</p>}
                 </div>
             </section>
-
             <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-4 shadow-2xl">
                 <h2 className="text-lg font-black uppercase flex items-center gap-2 text-blue-400"><Send size={18}/> Feed Maestro</h2>
                 <textarea value={socialPost} onChange={(e) => setSocialPost(e.target.value)} className="w-full h-24 bg-black border border-white/10 rounded-xl p-3 text-xs outline-none" placeholder="Noticia global..." />
                 <button onClick={postToFeed} className="w-full py-3 bg-blue-600 rounded-xl font-black text-xs hover:bg-blue-500 transition-all">Postear</button>
             </section>
           </div>
-
           <div className="lg:col-span-2 space-y-8">
             <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-2xl">
                 <h2 className="text-xl font-black uppercase flex items-center gap-2 text-purple-400"><Package size={20}/> Publicar Software</h2>
@@ -305,14 +232,16 @@ export default function AdminPage() {
                 <textarea placeholder="Descripción detallada..." value={newProject.desc} onChange={(e) => setNewProject({...newProject, desc: e.target.value})} className="w-full h-20 bg-black border border-white/10 rounded-xl p-4 text-xs outline-none focus:ring-2 focus:ring-purple-500" />
                 <button onClick={publishProject} className="w-full py-4 bg-purple-600 rounded-2xl font-black hover:bg-purple-500 shadow-lg shadow-purple-900/20 transition-all">EMITIR AL HUB</button>
             </section>
-
             <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-2xl">
                 <h2 className="text-xl font-black uppercase flex items-center gap-2 text-gray-400"><Terminal size={20}/> Catálogo P2P</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {p2pProjects.map(p => (
+                    {p2pProjects.map((p: any) => (
                         <div key={p.id} className="p-5 bg-black border border-white/5 rounded-3xl flex justify-between items-center group hover:border-purple-500/30 transition-all">
                             <div><p className="font-bold text-white text-sm uppercase">{p.title}</p><p className="text-[10px] text-gray-600">v{p.version}</p></div>
-                            <button onClick={() => gun.get('p2p_projects').get(p.id).put(null)} className="p-3 text-gray-700 hover:text-red-500 transition-all"><Trash2 size={18}/></button>
+                            <button onClick={() => {
+                              // @ts-expect-error gun method
+                              if(gun) gun.get('p2p_projects').get(p.id).put(null);
+                            }} className="p-3 text-gray-700 hover:text-red-500 transition-all"><Trash2 size={18}/></button>
                         </div>
                     ))}
                 </div>
