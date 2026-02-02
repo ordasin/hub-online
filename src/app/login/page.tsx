@@ -8,12 +8,13 @@ import { toast } from 'sonner'
 const PEERS = [
   'https://relay.gun.eco/gun',
   'https://gun-manhattan.herokuapp.com/gun',
-  'https://gunjs.herokuapp.com/gun'
+  'https://peer.wall.org/gun'
 ];
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [honeypot, setHoneypot] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState('')
   const [loading, setLoading] = useState(false)
@@ -56,6 +57,10 @@ export default function LoginPage() {
   }, [])
 
   const handleLogin = () => {
+    if (honeypot) {
+      window.location.href = '/trap';
+      return;
+    }
     if (!gunUser) return toast.error("Cargando sistema...");
     if (!username || !password) return toast.error("Completa los campos");
     setLoading(true);
@@ -69,6 +74,10 @@ export default function LoginPage() {
   }
 
   const handleRegister = () => {
+    if (honeypot) {
+      window.location.href = '/trap';
+      return;
+    }
     if (!gunUser) return;
     setLoading(true);
     gunUser.create(username, password, (ack: any) => {
@@ -109,6 +118,14 @@ export default function LoginPage() {
       <div className="max-w-md w-full p-10 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl shadow-2xl space-y-8 text-center">
         <h1 className="text-4xl font-black uppercase italic tracking-tighter">P2P Security</h1>
         <div className="space-y-4 text-left">
+          <div className="hidden" aria-hidden="true">
+            <input 
+              value={honeypot} 
+              onChange={e => setHoneypot(e.target.value)} 
+              tabIndex={-1} 
+              autoComplete="off"
+            />
+          </div>
           <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Usuario" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition-all" />
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-purple-500 transition-all" />
           <div className="pt-6 flex flex-col gap-4">

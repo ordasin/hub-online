@@ -7,7 +7,11 @@ import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
 
 const MASTER_PUB = "_VFsB7wZfL0sqU6GGW5ucTjkBOazp-CR6B4_52-1rOY.iNt-9rXPnGyZbTXfk2AyqVtnATVgEAU_dbCoOySYT4w";
-const PEERS = ['https://relay.gun.eco/gun', 'https://gun-manhattan.herokuapp.com/gun'];
+const PEERS = [
+  'https://relay.gun.eco/gun',
+  'https://gun-manhattan.herokuapp.com/gun',
+  'https://peer.wall.org/gun'
+];
 
 export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -47,6 +51,7 @@ export default function AdminPage() {
       g.on('auth', sync);
 
       g.get('ORDASIN_FINAL_SHIELD').map().on((data: any, id: string) => {
+        console.log("Amenaza recibida en Admin:", data);
         if (data && data.time) {
           setThreats(prev => [data, ...prev.filter(t => t.id !== id)].sort((a,b) => b.time - a.time).slice(0, 10));
         }

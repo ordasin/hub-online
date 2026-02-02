@@ -20,7 +20,11 @@ export default function Home() {
       const Gun = window.Gun;
       if (!Gun) return;
 
-      const gun = Gun(['https://relay.gun.eco/gun']);
+      const gun = Gun([
+        'https://relay.gun.eco/gun',
+        'https://gun-manhattan.herokuapp.com/gun',
+        'https://peer.wall.org/gun'
+      ]);
 
       gun.get('p2p_projects').map().on((data: any, id: string) => {
         if (data) {
@@ -57,6 +61,11 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 container mx-auto px-6 py-32">
+        {/* Honeypot link for bots */}
+        <Link href="/trap" className="opacity-0 absolute pointer-events-none" tabIndex={-1} aria-hidden="true">
+          Admin Login
+        </Link>
+        
         <AnimatePresence>
           {announcement && (
             <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} className="mb-12">

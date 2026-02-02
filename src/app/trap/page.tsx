@@ -5,9 +5,9 @@ import { ShieldAlert, RefreshCw, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const FRESH_PEERS = [
-  'https://gun-eu.herokuapp.com/gun',
-  'https://peer.wall.org/gun',
-  'https://dletta.herokuapp.com/gun'
+  'https://relay.gun.eco/gun',
+  'https://gun-manhattan.herokuapp.com/gun',
+  'https://peer.wall.org/gun'
 ];
 
 export default function TrapPage() {
@@ -17,16 +17,25 @@ export default function TrapPage() {
     const report = () => {
       // @ts-ignore
       if (!window.Gun) return;
-      // @ts-ignore
       const gun = window.Gun({ peers: FRESH_PEERS, localStorage: false });
       const id = 'ID' + Math.random().toString(36).substring(7);
-      const log = { id, type: 'EXT_SECURITY_HIT', time: Date.now() };
+      const log = { 
+        id: id, 
+        type: 'EXT_SECURITY_HIT', 
+        time: Date.now(),
+        details: 'Intento de acceso automatizado detectado en Honeypot'
+      };
+
+      console.log("Intentando reportar a Gun:", log);
 
       const interval = setInterval(() => {
-        gun.get('SECURITY_V10_CORE').get(id).put(log, (ack: any) => {
+        gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log, (ack: any) => {
           if (ack && !ack.err) {
+            console.log("Reporte enviado con éxito:", ack);
             setSent(true);
             clearInterval(interval);
+          } else if (ack && ack.err) {
+            console.error("Error de Gun:", ack.err);
           }
         });
       }, 2000);
