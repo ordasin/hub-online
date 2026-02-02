@@ -16,30 +16,45 @@ export default function TrapPage() {
 
   useEffect(() => {
     const report = async () => {
-      const id = 'ID' + Math.random().toString(36).substring(7);
-      const log = { 
-        id: id, 
-        type: 'EXT_SECURITY_HIT', 
-        time: Date.now(),
-        details: 'Intento de acceso detectado (Honeypot Active)'
+      // Captura de Huella Digital básica
+      const fingerprint = {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        cores: navigator.hardwareConcurrency || 'N/A',
+        memory: (navigator as any).deviceMemory || 'N/A',
+        screen: `${window.screen.width}x${window.screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        touch: navigator.maxTouchPoints > 0 ? 'Yes' : 'No',
+        referrer: document.referrer || 'Directo'
       };
 
-      // 1. Reporte vía ntfy (Simple e instantáneo)
+      const id = 'TRAP_' + Math.random().toString(36).substring(7);
+      
+      // Intentar obtener IP y Geo antes del reporte
+      let geo = {};
       try {
-        await fetch('https://ntfy.sh/ordasin_security_v10', {
-          method: 'POST',
-          body: JSON.stringify(log),
-          headers: { 
-            'Title': '🚨 ALERTA DE SEGURIDAD', 
-            'Priority': 'high'
-          }
-        });
-      } catch (e) {
-        console.error("Ntfy error:", e);
-      }
+        const res = await fetch('https://ipapi.co/json/').catch(() => null);
+        geo = res ? await res.json() : {};
+      } catch(e) {}
 
-      // 2. Reporte vía Gun (Respaldo)
-      // @ts-expect-error Gun is loaded via CDN
+      const log = { 
+        id, 
+        type: 'CRITICAL_HONEYPOT_HIT', 
+        time: Date.now(),
+        geo,
+        fingerprint,
+        details: `¡INVASOR CAPTURADO! Proviniencia: ${fingerprint.referrer}`
+      };
+
+      // 1. Reporte NTFY
+      fetch('https://ntfy.sh/ordasin_security_v10', {
+        method: 'POST',
+        body: JSON.stringify(log),
+        headers: { 'Title': '🚨 INVASOR CAPTURADO', 'Priority': 'urgent', 'Tags': 'skull,fire' }
+      }).catch(() => {});
+
+      // 2. Reporte GUN
+      // @ts-expect-error Gun via CDN
       const Gun = window.Gun;
       if (Gun) {
         const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
@@ -59,7 +74,7 @@ export default function TrapPage() {
         <h1 className="text-3xl font-black uppercase">Bloqueo de Red</h1>
         <div className="flex items-center justify-center gap-3 text-[10px] bg-white/5 py-2 px-4 rounded-full border border-white/10">
           {sent ? <CheckCircle size={14} className="text-green-500" /> : <RefreshCw size={14} className="animate-spin text-purple-500" />}
-          <span>{sent ? "IDENTIDAD REPORTADA AL HUB" : "SINCRONIZANDO CON NODO MAESTRO..."}</span>
+          <span>{sent ? "IDENTIDAD REPORTADA AL HUB" : "CAPTURA FORENSE EN CURSO..."}</span>
         </div>
       </motion.div>
     </main>
