@@ -147,22 +147,25 @@ export default function AdminPage() {
     <div className="min-h-screen bg-black text-red-500 flex flex-col items-center justify-center font-black p-10 text-center uppercase tracking-widest space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl">Acceso Denegado</h2>
-        <p className="text-[10px] text-red-900 font-mono">Identidad no Autorizada para este Sistema</p>
+        <p className="text-[10px] text-red-900 font-mono italic">
+          {!detectedPub ? "No se detecta ninguna sesión activa en este dispositivo" : "Firma criptográfica no autorizada"}
+        </p>
       </div>
 
       {detectedPub ? (
         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl max-w-2xl space-y-4">
           <p className="text-gray-500 text-[8px] uppercase tracking-widest">Firma Detectada:</p>
           <code className="text-[10px] text-purple-400 break-all block p-4 bg-black/50 rounded-xl border border-white/5">{detectedPub}</code>
-          <p className="text-gray-600 text-[8px] normal-case font-normal italic">Si esta es tu clave, cópiala y dásela al desarrollador para autorizarla.</p>
         </div>
       ) : (
-        <div className="text-[10px] text-gray-600 animate-pulse">Sincronizando con la red P2P...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-[10px] text-gray-600 animate-pulse">Debes identificarte en la red P2P primero</div>
+          <button onClick={() => window.location.href='/login'} className="px-10 py-4 bg-purple-600 text-white text-xs rounded-2xl hover:bg-purple-500 transition-all shadow-[0_0_30px_rgba(147,51,234,0.3)]">INICIAR SESIÓN MAESTRA</button>
+        </div>
       )}
       
-      <div className="flex gap-4">
-        <button onClick={() => window.location.href='/login'} className="px-6 py-2 bg-white text-black text-[10px] rounded-full hover:bg-purple-500 hover:text-white transition-all">Ir al Login</button>
-        <button onClick={forceReconnect} className="px-6 py-2 border border-white/10 text-gray-500 text-[10px] rounded-full hover:text-white transition-all">Resetear Red</button>
+      <div className="flex gap-4 pt-8">
+        <button onClick={forceReconnect} className="px-6 py-2 border border-white/10 text-gray-500 text-[10px] rounded-full hover:text-white transition-all">Limpiar y Reintentar</button>
       </div>
     </div>
   );
