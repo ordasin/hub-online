@@ -20,11 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <head>
         <Script 
-          src="https://cdn.jsdelivr.net/npm/gun/gun.js" 
+          src="https://unpkg.com/gun/gun.js" 
           strategy="beforeInteractive"
         />
         <Script 
-          src="https://cdn.jsdelivr.net/npm/gun/sea.js" 
+          src="https://unpkg.com/gun/sea.js" 
           strategy="beforeInteractive"
         />
       </head>

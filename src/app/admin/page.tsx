@@ -98,7 +98,18 @@ export default function AdminPage() {
     }
   }
 
-  if (isAdmin === null) return <div className="min-h-screen bg-black flex items-center justify-center font-mono text-purple-500 uppercase text-[10px] animate-pulse">Verificando Firma Criptográfica...</div>;
+  const forceReconnect = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
+
+  if (isAdmin === null) return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center font-mono space-y-4">
+      <div className="text-purple-500 uppercase text-[10px] animate-pulse">Verificando Firma Criptográfica...</div>
+      <button onClick={forceReconnect} className="text-[9px] text-gray-600 hover:text-white border border-white/5 px-4 py-1 rounded-full">¿No conecta? Forzar Reseteo</button>
+    </div>
+  );
   if (isAdmin === false) return <div className="min-h-screen bg-black text-red-500 flex items-center justify-center font-black p-10 text-center uppercase tracking-widest">Acceso Denegado: Identidad no Autorizada</div>;
 
   return (
