@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ShieldAlert, RefreshCw, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 
 const FRESH_PEERS = [
   'https://gun-manhattan.herokuapp.com/gun',
@@ -51,11 +52,19 @@ export default function TrapPage() {
       };
 
       // 1. Reporte NTFY
-      fetch('https://ntfy.sh/ordasin_security_v10', {
+      const promise = fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
         body: JSON.stringify(log),
         headers: { 'Title': '🚨 INVASOR CAPTURADO', 'Priority': 'urgent', 'Tags': 'skull,fire' }
-      }).catch(err => console.error("Error enviando alerta:", err));
+      });
+
+      toast.promise(promise, {
+        loading: 'Enviando reporte forense...',
+        success: 'Alerta enviada al Admin',
+        error: 'Error de conexión con el servidor de seguridad'
+      });
+
+      promise.catch(err => console.error("Error enviando alerta:", err));
 
       // 2. Reporte GUN
       // @ts-expect-error Gun via CDN

@@ -71,9 +71,14 @@ export default function AdminPage() {
 
       g.on('auth', sync);
 
-      // ESCUCHA NTFY (Historial 24h)
-      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse?since=1d');
+      // ESCUCHA NTFY (Historial 10m)
+      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse?since=10m');
       
+      eventSource.onopen = () => {
+        // setNetStatus("Sistema de Alerta: ACTIVO");
+        console.log("NTFY Conectado");
+      };
+
       eventSource.onmessage = (e) => {
         try {
           const ntfyData = JSON.parse(e.data);
