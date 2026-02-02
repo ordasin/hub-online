@@ -51,11 +51,16 @@ export default function TrapPage() {
         details: `¡INVASOR CAPTURADO! Proviniencia: ${fingerprint.referrer}`
       };
 
-      // 1. Reporte NTFY
-      const promise = fetch('https://ntfy.sh/ordasin_security_v10', {
+      // 1. Reporte NTFY (Usa URL params para evitar CORS Preflight)
+      const ntfyUrl = new URL('https://ntfy.sh/ordasin_security_v10');
+      ntfyUrl.searchParams.set('title', '🚨 INVASOR CAPTURADO');
+      ntfyUrl.searchParams.set('priority', 'urgent');
+      ntfyUrl.searchParams.set('tags', 'skull,fire');
+
+      const promise = fetch(ntfyUrl.toString(), {
         method: 'POST',
         body: JSON.stringify(log),
-        headers: { 'Title': '🚨 INVASOR CAPTURADO', 'Priority': 'urgent', 'Tags': 'skull,fire' }
+        keepalive: true
       });
 
       toast.promise(promise, {
