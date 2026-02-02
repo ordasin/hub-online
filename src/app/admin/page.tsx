@@ -180,8 +180,19 @@ export default function AdminPage() {
             <div className="space-y-3">
               {threats.map(t => (
                 <div key={t.id} className="p-4 bg-red-900/10 border border-red-900/20 rounded-2xl">
-                  <p className="text-[8px] font-black text-red-500 uppercase">{new Date(t.time).toLocaleTimeString()} - DETECTADO</p>
-                  <p className="text-[10px] text-gray-300 mt-1">{t.details}</p>
+                  <p className="text-[8px] font-black text-red-500 uppercase">{new Date(t.time).toLocaleTimeString()} - DETECTADO ({t.type})</p>
+                  <p className="text-[10px] text-gray-300 mt-1 font-bold">{t.details}</p>
+                  {t.fp && (
+                    <div className="mt-2 pt-2 border-t border-red-900/20 grid grid-cols-2 gap-2 text-[8px] text-gray-500 font-mono">
+                      <div>OS: {t.fp.platform}</div>
+                      <div>Cores: {t.fp.cores}</div>
+                      <div>Screen: {t.fp.screen}</div>
+                      <div>TZ: {t.fp.tz}</div>
+                      <div>Lang: {t.fp.lang}</div>
+                      <div className="col-span-2 truncate" title={t.fp.ua}>UA: {t.fp.ua}</div>
+                    </div>
+                  )}
+                  {t.url && <p className="text-[8px] text-gray-600 mt-1 truncate">Ruta: {t.url}</p>}
                 </div>
               ))}
               {threats.length === 0 && <p className="text-center py-10 text-gray-700 text-xs italic">Escaneando red...</p>}
