@@ -5,7 +5,7 @@ import { Shield, Activity, Terminal, Package, Trash2, Wifi, Send } from 'lucide-
 import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
 
-const MASTER_PUB = "9JYCRiw5sn2K5pkVI7nK9kslkyXHBSAWsyX6cKfFjAA.o576ix9BagmJ7z7XdozFoe-LIyavCmo-O7TrfRERzBs";
+const MASTER_PUB = "6mwMzGdVuCtE-sd_7_5RJ5AUeEbA-i3JwZ0UjiaxAtE.KH6lWH55LxsAE2D7ZBQQKlJgod5hqIHzwcoJ25gjqHo";
 // Refresco de despliegue forzado para GitHub Pages v1.2
 const PEERS = [
   'wss://gun.v6.rocks/gun',
