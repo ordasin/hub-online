@@ -20,9 +20,10 @@ export default function AdminPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [threats, setThreats] = useState<any[]>([])
   const [newProject, setNewProject] = useState({ title: '', version: '', desc: '' })
+  const [announcement, setAnnouncement] = useState('')
   const [peers, setPeers] = useState(0)
   const [activePeer, setActivePeer] = useState<string>("Buscando...")
-  // const [netStatus, setNetStatus] = useState<string>("Iniciando...")
+  const [latency, setLatency] = useState<number>(0)
 
   useEffect(() => {
     const init = () => {
@@ -35,6 +36,15 @@ export default function AdminPage() {
 
       // @ts-expect-error Gun types
       g.user().recall({ sessionStorage: true });
+
+      // Escuchar Anuncio Actual
+      g.get('hub_announcements').on((data: { text: string }) => {
+        if (data && data.text) setAnnouncement(data.text);
+      });
+
+      // Medir Latencia sutilmente
+      const start = Date.now();
+      g.get('ping').once(() => setLatency(Date.now() - start));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       g.on('hi', (peer: any) => {
@@ -208,6 +218,49 @@ export default function AdminPage() {
 
           {/* Resto de herramientas */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Control de Comunicados */}
+            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-2xl">
+                <h2 className="text-xl font-black uppercase flex items-center gap-2 text-blue-400"><Wifi size={20}/> Comunicado Global</h2>
+                <div className="space-y-4">
+                  <textarea 
+                    placeholder="Escribe el anuncio para la Home..." 
+                    value={announcement} 
+                    onChange={(e) => setAnnouncement(e.target.value)} 
+                    className="w-full h-20 bg-black border border-white/10 rounded-xl p-4 text-xs outline-none focus:ring-2 focus:ring-blue-500" 
+                  />
+                  <button 
+                    onClick={() => {
+                      if (gun) {
+                        gun.get('hub_announcements').put({ text: announcement });
+                        toast.success("Anuncio actualizado en la red P2P");
+                      }
+                    }} 
+                    className="w-full py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all uppercase text-[10px]"
+                  >
+                    Emitir a todos los nodos
+                  </button>
+                </div>
+            </section>
+
+            {/* Monitor de Salud */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase">Latencia Relay</p>
+                  <p className="text-2xl font-black italic">{latency}ms</p>
+                </div>
+                <div className={`w-3 h-3 rounded-full ${latency < 200 ? 'bg-green-500' : 'bg-yellow-500'} shadow-[0_0_10px_rgba(34,197,94,0.5)]`} />
+              </div>
+              <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase">Estado WAF</p>
+                  <p className="text-2xl font-black italic text-green-500">ACTIVO</p>
+                </div>
+                <Shield size={24} className="text-green-500" />
+              </div>
+            </section>
+
+            {/* Publicar Software */}
             <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-2xl">
                 <h2 className="text-xl font-black uppercase flex items-center gap-2 text-purple-400"><Package size={20}/> Publicar Software</h2>
                 <div className="grid grid-cols-2 gap-4">
@@ -217,6 +270,16 @@ export default function AdminPage() {
                 <textarea placeholder="Descripción detallada..." value={newProject.desc} onChange={(e) => setNewProject({...newProject, desc: e.target.value})} className="w-full h-20 bg-black border border-white/10 rounded-xl p-4 text-xs outline-none focus:ring-2 focus:ring-purple-500" />
                 <button onClick={() => gun && gun.get('p2p_projects').set({ ...newProject, time: Date.now() })} className="w-full py-4 bg-purple-600 rounded-2xl font-black hover:bg-purple-500 transition-all">EMITIR AL HUB</button>
             </section>
+
+            <button 
+              onClick={() => {
+                setThreats([]);
+                toast.info("Logs locales purgados");
+              }}
+              className="w-full py-4 border border-red-900/30 text-red-900/50 hover:text-red-500 hover:border-red-500 transition-all rounded-2xl text-[10px] font-black uppercase italic"
+            >
+              Purgar Historial de Seguridad
+            </button>
           </div>
         </div>
       </div>
