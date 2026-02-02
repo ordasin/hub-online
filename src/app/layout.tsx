@@ -27,6 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src="https://unpkg.com/gun/sea.js" 
           strategy="beforeInteractive"
         />
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/nostr-tools@1.17.0/lib/nostr.bundle.min.js" 
+          strategy="lazyOnload"
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#050505]`}>
         <Toaster position="bottom-right" theme="dark" richColors closeButton />

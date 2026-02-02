@@ -10,41 +10,57 @@ const FRESH_PEERS = [
   'https://relay.gun.eco/gun'
 ];
 
+const NOSTR_RELAYS = [
+  'wss://relay.damus.io',
+  'wss://nos.lol',
+  'wss://relay.snort.social'
+];
+
 export default function TrapPage() {
   const [sent, setSent] = useState(false)
 
   useEffect(() => {
-    const report = () => {
-      // @ts-expect-error Gun is loaded via CDN
-      const Gun = window.Gun;
-      if (!Gun) return;
-      
-      const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
+    const report = async () => {
       const id = 'ID' + Math.random().toString(36).substring(7);
       const log = { 
         id: id, 
         type: 'EXT_SECURITY_HIT', 
         time: Date.now(),
-        details: 'Intento de acceso automatizado detectado en Honeypot'
+        details: 'Intento de acceso detectado vía Nostr P2P'
       };
 
-      console.log("Iniciando reporte único a Gun...");
+      // 1. Reporte vía Gun (Como respaldo)
+      // @ts-expect-error Gun is loaded via CDN
+      const Gun = window.Gun;
+      if (Gun) {
+        const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
+        gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log);
+      }
 
-      // Enviamos el payload UNA SOLA VEZ. Gun se encarga de sincronizarlo cuando conecte.
-      gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log, (ack: { err: string }) => {
-        if (ack && !ack.err) {
-          console.log("Confirmación recibida del nodo:", ack);
-          setSent(true);
-        } else if (ack && ack.err) {
-          console.error("Error en el nodo:", ack.err);
-        }
-      });
+      // 2. Reporte vía Nostr (Principal y ultra-fiable)
+      try {
+        NOSTR_RELAYS.forEach(url => {
+          const ws = new WebSocket(url);
+          ws.onopen = () => {
+            // Enviamos un evento anónimo de tipo "Aviso de Seguridad"
+            const event = {
+              kind: 1,
+              created_at: Math.floor(Date.now() / 1000),
+              tags: [['t', 'ordasin_security_alert']],
+              content: JSON.stringify(log),
+              pubkey: '0000000000000000000000000000000000000000000000000000000000000000', // Pubkey genérica para bots
+              id: id.padEnd(64, '0'),
+              sig: '0000000000000000000000000000000000000000000000000000000000000000'
+            };
+            ws.send(JSON.stringify(['EVENT', event]));
+            setTimeout(() => ws.close(), 2000);
+          };
+        });
+      } catch (e) {
+        console.error("Nostr failure:", e);
+      }
 
-      // Si después de 10 segundos no hay ack, mostramos éxito visual de todos modos 
-      // para no frustrar al usuario/bot, aunque Gun seguirá intentándolo en el fondo.
-      setTimeout(() => {
-        setSent(true);
-      }, 10000);
+      setTimeout(() => setSent(true), 2000);
     };
 
     const check = setInterval(() => {
