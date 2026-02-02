@@ -22,51 +22,50 @@ export default function TrapPage() {
   useEffect(() => {
     const report = async () => {
       const id = 'ID' + Math.random().toString(36).substring(7);
-      let ipData: any = {};
+      const startTime = Date.now();
       
-      // Intentamos geolocalización con un timeout rápido
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
-        ipData = await res.json();
-        clearTimeout(timeoutId);
-      } catch (e) {
-        console.warn("Geo-IP failed, sending partial report...");
-      }
-
-      const log = { 
-        id: id, 
-        type: 'EXT_SECURITY_HIT', 
-        time: Date.now(),
-        ip: ipData,
-        browser: {
-          agent: navigator.userAgent,
-          lang: navigator.language,
-          platform: navigator.platform,
-          screen: `${window.screen.width}x${window.screen.height}`,
-          referrer: document.referrer || 'Directo / Bot'
-        },
-        details: ipData.city ? `Ataque desde ${ipData.city}` : 'Intento detectado (IP oculta)'
+      // 1. ALERTA INSTANTÁNEA (Sin esperar a nadie)
+      const quickLog = { id, type: 'EXT_SECURITY_HIT', time: startTime, details: 'Invasión detectada (Sincronizando info forense...)' };
+      
+      const sendNtfy = (data: any) => {
+        fetch('https://ntfy.sh/ordasin_security_6mwMzG', {
+          method: 'POST',
+          body: JSON.stringify(data),
+          headers: { 'Title': '🚨 ALERTA DE SEGURIDAD', 'Priority': 'urgent', 'Tags': 'shield,skull' }
+        }).catch(() => {});
       };
 
-      // ENVIAR ALERTA NTFY SIEMPRE
-      fetch('https://ntfy.sh/ordasin_hub_alerts', {
-        method: 'POST',
-        body: JSON.stringify(log),
-        headers: { 
-          'Title': `🚨 INVASIÓN: ${ipData.country_name || 'Desconocido'}`,
-          'Priority': 'urgent',
-          'Tags': 'shield,skull'
-        }
-      }).catch(e => console.error("Ntfy failure:", e));
+      sendNtfy(quickLog); // Enviamos el primer aviso ya.
 
-      // Reporte vía Gun (Respaldo)
-      // @ts-expect-error Gun is loaded via CDN
-      const Gun = window.Gun;
-      if (Gun) {
-        const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
-        gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log);
+      // 2. OBTENER INFO FORENSE EN SEGUNDO PLANO
+      try {
+        const res = await fetch('https://ipapi.co/json/').catch(() => null);
+        const ipData = res ? await res.json() : {};
+        
+        const fullLog = {
+          ...quickLog,
+          ip: ipData,
+          browser: {
+            agent: navigator.userAgent,
+            platform: navigator.platform,
+            screen: `${window.screen.width}x${window.screen.height}`,
+            referrer: document.referrer || 'Directo'
+          },
+          details: `Ataque confirmado desde ${ipData.city || 'Ubicación oculta'}`
+        };
+
+        // Enviamos la actualización con todo el peritaje
+        sendNtfy(fullLog);
+
+        // 3. RESPALDO EN GUN
+        // @ts-expect-error Gun is loaded via CDN
+        const Gun = window.Gun;
+        if (Gun) {
+          const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
+          gun.get('ORDASIN_FINAL_SHIELD').get(id).put(fullLog);
+        }
+      } catch (e) {
+        console.error("Forensic error:", e);
       }
 
       setSent(true);

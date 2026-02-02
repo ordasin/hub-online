@@ -111,23 +111,20 @@ export default function AdminPage() {
       });
 
       // 3. ESCUCHA VÍA NTFY (Alta disponibilidad)
-      console.log("Conectando al canal de alertas ntfy...");
-      const eventSource = new EventSource('https://ntfy.sh/ordasin_hub_alerts/sse');
-      
-      eventSource.onopen = () => console.log("✅ Canal de alertas activo");
+      console.log("Conectando al canal privado de alertas...");
+      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_6mwMzG/sse');
       
       eventSource.onmessage = (e) => {
         try {
           const ntfyData = JSON.parse(e.data);
-          console.log("Mensaje ntfy recibido:", ntfyData);
           if (ntfyData.event === 'message' && ntfyData.message) {
             const data = JSON.parse(ntfyData.message);
+            // Evitamos duplicados manteniendo el más reciente
             setThreats(prev => [data, ...prev.filter(t => t.id !== data.id)].sort((a,b) => b.time - a.time).slice(0, 10));
-            toast.warning("¡Invasor detectado!", { description: data.details });
+            if (data.ip) toast.warning("¡Invasor identificado!", { description: data.details });
+            else toast.error("¡Alerta de Invasión!", { description: "Sincronizando procedencia..." });
           }
-        } catch (err) { 
-          // Es normal que algunos mensajes no sean JSON (como el 'open')
-        }
+        } catch (err) { }
       };
 
       eventSource.onerror = (e) => {
