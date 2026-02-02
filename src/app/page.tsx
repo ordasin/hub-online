@@ -10,8 +10,8 @@ import DOMPurify from 'dompurify'
 
 export default function Home() {
   const [search, setSearch] = useState("")
-  const [p2pProjects, setP2pProjects] = useState<any[]>([])
-  const [feed, setFeed] = useState<any[]>([])
+  const [p2pProjects, setP2pProjects] = useState<Record<string, unknown>[]>([])
+  const [feed, setFeed] = useState<Record<string, unknown>[]>([])
   const [announcement, setAnnouncement] = useState("")
 
   useEffect(() => {

@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Send, User } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { toast } from 'sonner'
 
 const PEERS = ['wss://gun.v6.rocks/gun', 'https://peer.wall.org/gun', 'https://relay.gun.eco/gun'];
 
 export default function ChatPage() {
-  const [gun, setGun] = useState<any>(null)
-  const [user, setUser] = useState<any>(null)
+  const [gun, setGun] = useState<unknown>(null)
+  const [user, setUser] = useState<Record<string, unknown> | null>(null)
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<Record<string, unknown>[]>([])
   const [targetId, setTargetId] = useState('')
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function ChatPage() {
       setUser(u);
 
       if (u.is) {
-        g.get('direct_messages').get(u.is.pub).map().on((data: any, id: string) => {
+        g.get('direct_messages').get(u.is.pub).map().on((data: Record<string, unknown>, id: string) => {
           if (data) setMessages(prev => [...prev.filter(m => m.id !== id), { ...data, id }]);
         });
       }

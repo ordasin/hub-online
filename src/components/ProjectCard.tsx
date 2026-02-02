@@ -1,17 +1,15 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Download, Box, ArrowUpRight, Cpu } from "lucide-react"
+import { Download, ArrowUpRight, Cpu } from "lucide-react"
 
 interface ProjectCardProps {
   title: string
   description: string
   version: string
   downloadCount: number
-  fileUrl: string
 }
 
-export function ProjectCard({ title, description, version, downloadCount, fileUrl }: ProjectCardProps) {
+export function ProjectCard({ title, description, version, downloadCount }: ProjectCardProps) {
   return (
     <div className="relative group p-[1px] rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 transition-all duration-500 hover:border-purple-500/50 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)]">
       {/* Efecto de luz al pasar el ratón */}

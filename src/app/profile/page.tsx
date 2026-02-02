@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Shield, Save, RefreshCw, Sliders, Key, Globe, Activity } from 'lucide-react'
+import { Shield, Save, RefreshCw, Key, Globe, Activity } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
@@ -9,19 +9,19 @@ export default function ProfilePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [alias, setAlias] = useState('')
   const [pub, setPub] = useState('')
-  const [gunUser, setGunUser] = useState<any>(null)
+  const [gunUser, setGunUser] = useState<unknown>(null)
   
   const [config, setConfig] = useState({ optimizer: 'adam', lr: 0.001, weight_decay: 0.01 })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const init = () => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (!Gun || !Gun.SEA) return;
 
-      const gun = Gun({ peers: ['https://relay.gun.eco/gun'], localStorage: true });
-      // @ts-ignore
+      const gun = Gun({ peers: ['wss://gun.v6.rocks/gun', 'https://peer.wall.org/gun', 'https://relay.gun.eco/gun'], localStorage: true });
+      // @ts-expect-error Gun types not available
       const user = gun.user().recall({ sessionStorage: true });
       setGunUser(user);
 
@@ -30,8 +30,9 @@ export default function ProfilePage() {
         setAlias(user.is.alias);
         setPub(user.is.pub);
         
-        user.get('advanced_optimizer_config').once((data: any) => {
+        user.get('advanced_optimizer_config').once((data: Record<string, unknown>) => {
           if (data) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { _, ...cleanData } = data;
             setConfig(prev => ({ ...prev, ...cleanData }));
           }
@@ -43,16 +44,18 @@ export default function ProfilePage() {
     };
 
     const checker = setInterval(() => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       if (window.Gun && window.Gun.SEA) { init(); clearInterval(checker); }
     }, 1000);
     return () => clearInterval(checker);
   }, [])
 
   const saveConfig = () => {
-    if (!gunUser) return;
+    // @ts-expect-error user.get is internal gun method
+    if (!gunUser || !gunUser.get) return;
     setSaving(true);
-    gunUser.get('advanced_optimizer_config').put(config, (ack: any) => {
+    // @ts-expect-error put is internal gun method
+    gunUser.get('advanced_optimizer_config').put(config, (ack: { err: string }) => {
       setSaving(false);
       if (!ack.err) toast.success("Preferencias guardadas en la red P2P");
     });

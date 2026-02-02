@@ -15,8 +15,8 @@ const PEERS = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [gun, setGun] = useState<any>(null)
+  const [user, setUser] = useState<unknown>(null)
+  const [gun, setGun] = useState<unknown>(null)
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)

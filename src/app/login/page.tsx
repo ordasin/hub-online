@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState('')
   const [loading, setLoading] = useState(false)
-  const [gunUser, setGunUser] = useState<any>(null)
+  const [gunUser, setGunUser] = useState<unknown>(null)
 
   useEffect(() => {
     const initGun = () => {

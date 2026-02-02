@@ -1,7 +1,8 @@
 import { projects } from "@/data/projects"
 import { notFound } from "next/navigation"
-import { Download, Calendar, ShieldCheck, Zap, ArrowLeft, Image as ImageIcon, Sparkles, Globe, Cpu } from "lucide-react"
+import { Download, Calendar, ShieldCheck, Zap, ArrowLeft, Globe, Cpu } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { Feedback } from "@/components/Feedback"
 
 interface ProjectPageProps {
@@ -49,8 +50,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-500">Galería de Capturas</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {project.images?.map((img, i) => (
-                    <div key={i} className="aspect-video rounded-[2rem] overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all group">
-                      <img src={img} alt={`${project.title} screenshot ${i}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    <div key={i} className="aspect-video rounded-[2rem] overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all group relative">
+                      <Image 
+                        src={img} 
+                        alt={`${project.title} screenshot ${i}`} 
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                      />
                     </div>
                   ))}
                   {!project.images && (

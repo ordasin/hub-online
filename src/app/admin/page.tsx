@@ -16,9 +16,9 @@ const PEERS = [
 export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [detectedPub, setDetectedPub] = useState<string>("")
-  const [gun, setGun] = useState<any>(null)
-  const [threats, setThreats] = useState<any[]>([])
-  const [p2pProjects, setP2pProjects] = useState<any[]>([])
+  const [gun, setGun] = useState<unknown>(null)
+  const [threats, setThreats] = useState<Record<string, unknown>[]>([])
+  const [p2pProjects, setP2pProjects] = useState<Record<string, unknown>[]>([])
   const [newProject, setNewProject] = useState({ title: '', version: '', desc: '' })
   const [socialPost, setSocialPost] = useState('')
   const [peers, setPeers] = useState(0)

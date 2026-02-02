@@ -8,11 +8,11 @@ import { AlertCircle, ArrowLeft } from 'lucide-react'
 export default function NotFound() {
   useEffect(() => {
     const logScan = () => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (!Gun) return;
 
-      const gun = Gun(['https://relay.gun.eco/gun']);
+      const gun = Gun(['wss://gun.v6.rocks/gun', 'https://peer.wall.org/gun', 'https://relay.gun.eco/gun']);
       gun.get('HUB_HISTORY').set({
         type: '404_SCAN',
         path: window.location.pathname,
@@ -21,7 +21,7 @@ export default function NotFound() {
     };
 
     const checker = setInterval(() => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       if (window.Gun) {
         logScan();
         clearInterval(checker);
