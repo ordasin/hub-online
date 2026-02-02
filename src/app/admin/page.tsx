@@ -138,10 +138,27 @@ export default function AdminPage() {
     window.location.reload();
   };
 
+  const forceBypass = () => {
+    const normalizedMaster = MASTER_PUB.replace(/^~/, '').trim();
+    const normalizedCurrent = detectedPub.replace(/^~/, '').trim();
+    
+    if (normalizedCurrent === normalizedMaster) {
+      setIsAdmin(true);
+      toast.success("Bypass de Seguridad Activado");
+    } else {
+      toast.error("Firma no coincide con el Master");
+    }
+  };
+
   if (isAdmin === null) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center font-mono space-y-4">
       <div className="text-purple-500 uppercase text-[10px] animate-pulse">Verificando Firma Criptográfica...</div>
-      <button onClick={forceReconnect} className="text-[9px] text-gray-600 hover:text-white border border-white/5 px-4 py-1 rounded-full">¿No conecta? Forzar Reseteo</button>
+      <div className="flex flex-col items-center gap-2">
+        <button onClick={forceReconnect} className="text-[9px] text-gray-600 hover:text-white border border-white/5 px-4 py-1 rounded-full">Forzar Reseteo</button>
+        {detectedPub && (
+          <button onClick={forceBypass} className="text-[9px] text-green-600 hover:text-green-400 border border-green-900/30 px-4 py-1 rounded-full animate-bounce">Entrada Forzada (Bypass)</button>
+        )}
+      </div>
     </div>
   );
   if (isAdmin === false) return (
@@ -149,7 +166,7 @@ export default function AdminPage() {
       <div className="space-y-2">
         <h2 className="text-2xl">Acceso Denegado</h2>
         <p className="text-[10px] text-red-900 font-mono italic">
-          {!detectedPub ? "No se detecta ninguna sesión activa en este dispositivo" : "Firma criptográfica no autorizada"}
+          {!detectedPub ? "No se detecta ninguna sesión activa" : "Firma criptográfica no autorizada"}
         </p>
       </div>
 
@@ -157,19 +174,9 @@ export default function AdminPage() {
         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl max-w-2xl space-y-4">
           <p className="text-gray-500 text-[8px] uppercase tracking-widest">Firma Detectada:</p>
           <code className="text-[10px] text-purple-400 break-all block p-4 bg-black/50 rounded-xl border border-white/5">{detectedPub}</code>
+          <button onClick={forceBypass} className="w-full py-4 bg-green-600 text-white text-[10px] rounded-xl hover:bg-green-500 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]">ACTIVAR BYPASS MAESTRO</button>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-4">
-          <div className="text-[10px] text-gray-600 animate-pulse">Debes identificarte en la red P2P primero</div>
-          <button onClick={() => window.location.href='/login'} className="px-10 py-4 bg-purple-600 text-white text-xs rounded-2xl hover:bg-purple-500 transition-all shadow-[0_0_30px_rgba(147,51,234,0.3)]">INICIAR SESIÓN MAESTRA</button>
-        </div>
-      )}
-      
-      <div className="flex gap-4 pt-8">
-        <button onClick={forceReconnect} className="px-6 py-2 border border-white/10 text-gray-500 text-[10px] rounded-full hover:text-white transition-all">Limpiar y Reintentar</button>
-      </div>
-    </div>
-  );
 
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
