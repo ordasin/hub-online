@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Activity, Terminal, AlertTriangle, Home, Package, Plus, Trash2, Wifi, Megaphone, Send, ShieldAlert } from 'lucide-react'
+import { Shield, Activity, Terminal, Package, Trash2, Wifi, Megaphone, Send } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { toast } from 'sonner'

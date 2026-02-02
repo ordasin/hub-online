@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Lock, LogIn, CheckCircle2, RefreshCw } from 'lucide-react'
+import { LogIn, CheckCircle2, RefreshCw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
