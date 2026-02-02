@@ -53,6 +53,7 @@ export default function LoginPage() {
     return () => clearInterval(checker);
   }, [])
 
+  const handleLogin = () => {
     if (honeypot) {
       console.log("⚠️ TRAMPA LOGIN ACTIVADA");
       const id = 'WAF_LOGIN_' + Math.random().toString(36).substring(7);

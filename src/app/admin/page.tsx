@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Activity, Terminal, Package, Trash2, Wifi, Send, AlertTriangle } from 'lucide-react'
-import DOMPurify from 'dompurify'
+import { Shield, Activity, Package, Wifi, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 
 const MASTER_PUB = "6mwMzGdVuCtE-sd_7_5RJ5AUeEbA-i3JwZ0UjiaxAtE.KH6lWH55LxsAE2D7ZBQQKlJgod5hqIHzwcoJ25gjqHo";
@@ -16,14 +15,14 @@ const PEERS = [
 export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [detectedPub, setDetectedPub] = useState<string>("")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [gun, setGun] = useState<any>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [threats, setThreats] = useState<any[]>([])
-  const [p2pProjects, setP2pProjects] = useState<any[]>([])
   const [newProject, setNewProject] = useState({ title: '', version: '', desc: '' })
-  const [socialPost, setSocialPost] = useState('')
   const [peers, setPeers] = useState(0)
   const [activePeer, setActivePeer] = useState<string>("Buscando...")
-  const [netStatus, setNetStatus] = useState<string>("Iniciando...")
+  // const [netStatus, setNetStatus] = useState<string>("Iniciando...")
 
   useEffect(() => {
     const init = () => {
@@ -37,10 +36,11 @@ export default function AdminPage() {
       // @ts-expect-error Gun types
       g.user().recall({ sessionStorage: true });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       g.on('hi', (peer: any) => {
         setPeers(p => p + 1);
         setActivePeer(peer.url || "Nodo");
-        setNetStatus("Conectado");
+        // setNetStatus("Conectado");
       });
 
       const sync = () => {
@@ -64,7 +64,7 @@ export default function AdminPage() {
       setTimeout(() => {
         if (!g.user().is) {
           setIsAdmin(false);
-          setNetStatus("Sesión no detectada");
+          // setNetStatus("Sesión no detectada");
         }
         clearInterval(checker);
       }, 10000);
@@ -89,7 +89,7 @@ export default function AdminPage() {
       };
 
       eventSource.onerror = () => {
-        setNetStatus("Error en canal de alertas");
+        // setNetStatus("Error en canal de alertas");
       };
 
       return () => {

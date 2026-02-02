@@ -21,6 +21,7 @@ export default function TrapPage() {
         userAgent: navigator.userAgent,
         language: navigator.language,
         cores: navigator.hardwareConcurrency || 'N/A',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         memory: (navigator as any).deviceMemory || 'N/A',
         screen: `${window.screen.width}x${window.screen.height}`,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -35,7 +36,7 @@ export default function TrapPage() {
       try {
         const res = await fetch('https://ipapi.co/json/').catch(() => null);
         geo = res ? await res.json() : {};
-      } catch(e) {}
+      } catch {}
 
       const log = { 
         id, 
