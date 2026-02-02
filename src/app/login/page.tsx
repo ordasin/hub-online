@@ -39,6 +39,10 @@ export default function LoginPage() {
           setCurrentUser(user.is.alias);
           setLoading(false);
           toast.success(`Acceso Autorizado: ${user.is.alias}`);
+          // Redirigir automáticamente a la portada tras 1.5s para que vean el mensaje
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
         }
       });
     };
