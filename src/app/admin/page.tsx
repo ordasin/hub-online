@@ -59,9 +59,6 @@ export default function AdminPage() {
         console.warn("⚠️ Nodo desconectado:", peer.url);
       });
       
-      // @ts-expect-error Gun types not available
-      const user = g.user().recall({ sessionStorage: true });
-      
       const sync = () => {
         const currentUser = g.user();
         if (currentUser.is) {
@@ -161,6 +158,7 @@ export default function AdminPage() {
       </div>
     </div>
   );
+
   if (isAdmin === false) return (
     <div className="min-h-screen bg-black text-red-500 flex flex-col items-center justify-center font-black p-10 text-center uppercase tracking-widest space-y-6">
       <div className="space-y-2">
@@ -177,10 +175,20 @@ export default function AdminPage() {
           <button onClick={forceBypass} className="w-full py-4 bg-green-600 text-white text-[10px] rounded-xl hover:bg-green-500 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]">ACTIVAR BYPASS MAESTRO</button>
         </div>
       ) : (
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-[10px] text-gray-600 animate-pulse">Debes identificarte en la red P2P primero</div>
+          <button onClick={() => window.location.href='/login'} className="px-10 py-4 bg-purple-600 text-white text-xs rounded-2xl hover:bg-purple-500 transition-all shadow-[0_0_30px_rgba(147,51,234,0.3)]">INICIAR SESIÓN MAESTRA</button>
+        </div>
+      )}
+      
+      <div className="flex gap-4 pt-8">
+        <button onClick={forceReconnect} className="px-6 py-2 border border-white/10 text-gray-500 text-[10px] rounded-full hover:text-white transition-all">Limpiar y Reintentar</button>
+      </div>
+    </div>
+  );
 
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
-      {/* Botón de Emergencia Flotante */}
       <button 
         onClick={forceReconnect} 
         className="fixed bottom-4 right-4 z-50 px-4 py-2 bg-red-900/20 border border-red-500/50 text-red-500 text-[8px] font-black uppercase rounded-full hover:bg-red-500 hover:text-white transition-all backdrop-blur-md"
@@ -189,8 +197,6 @@ export default function AdminPage() {
       </button>
 
       <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* HEADER */}
         <div className="p-8 rounded-[3rem] bg-gradient-to-r from-red-900/20 via-black to-purple-900/20 border border-white/10 flex justify-between items-center backdrop-blur-xl">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg"><Shield size={32} /></div>
