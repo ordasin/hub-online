@@ -5,30 +5,53 @@ import Link from "next/link"
 import { Github, LayoutGrid, MessageCircle, Zap, User, ShieldAlert } from "lucide-react"
 import { motion } from "framer-motion"
 
-// TU NUEVA LLAVE MAESTRA SEGURA
 const MASTER_PUB = "IeQAyAqaP7rRcawgSuWVk-o_fyV6LFDP30TT1SUw2o0.RXvyZfsOjd13y-RoO_es4RwuzHYoxAzu9VQeeUmzPU8";
-const PEERS = ['https://relay.gun.eco/gun', 'https://gun-manhattan.herokuapp.com/gun'];
 
 export function Navbar() {
   const [session, setSession] = useState({ logged: false, name: "", isAdmin: false })
 
   useEffect(() => {
     const sync = () => {
+      if (typeof window === 'undefined') return;
+      
+      // 1. INTENTO DE RECUPERACIÓN LOCAL (Instantáneo)
+      const rawAuth = localStorage.getItem('gun/auth');
+      let localIsAdmin = false;
+      let localName = "";
+      
+      if (rawAuth) {
+        try {
+          const auth = JSON.parse(rawAuth);
+          const pub = auth.pub || auth.put?.pub;
+          const alias = auth.alias || auth.put?.alias || "Admin";
+          if (pub === MASTER_PUB) {
+            localIsAdmin = true;
+            localName = alias;
+          }
+        } catch(e) {}
+      }
+
+      // 2. SINCRONIZACIÓN P2P (De fondo)
       // @ts-ignore
       const Gun = window.Gun;
-      if (!Gun || !Gun.SEA) return;
+      if (Gun) {
+        const gun = Gun({ peers: ['https://relay.gun.eco/gun'], localStorage: true });
+        // @ts-ignore
+        const user = gun.user().recall({ sessionStorage: true });
+        
+        if (user.is) {
+          setSession({
+            logged: true,
+            name: user.is.alias,
+            isAdmin: user.is.pub === MASTER_PUB
+          });
+          return;
+        }
+      }
 
-      const gun = Gun({ peers: PEERS, localStorage: true });
-      // @ts-ignore
-      const user = gun.user().recall({ sessionStorage: true });
-
-      if (user.is) {
-        setSession({
-          logged: true,
-          name: user.is.alias,
-          // VALIDACIÓN CRIPTOGRÁFICA REAL
-          isAdmin: user.is.pub === MASTER_PUB
-        });
+      // Si no hay Gun pero detectamos la firma local, damos acceso
+      if (localIsAdmin) {
+        setSession({ logged: true, name: localName, isAdmin: true });
       } else {
         setSession({ logged: false, name: "", isAdmin: false });
       }
@@ -46,7 +69,7 @@ export function Navbar() {
         className="max-w-7xl mx-auto backdrop-blur-xl bg-black/60 border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl"
       >
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center font-black text-white">O</div>
+          <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg group-hover:rotate-12 transition-transform">O</div>
           <span className="font-black text-white uppercase hidden sm:block tracking-tighter">Ordasin Hub</span>
         </Link>
         
@@ -56,11 +79,11 @@ export function Navbar() {
           
           {session.isAdmin && (
             <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black text-red-400 border border-red-500/30 px-4 py-2 rounded-full bg-red-500/10 animate-pulse">
-              <ShieldAlert size={14} /> ADMIN_ZONE
+              <ShieldAlert size={14} /> MASTER_NODE
             </Link>
           )}
 
-          <div className="w-[1px] h-4 bg-white/10 mx-2" />
+          <div className="w-[1px] h-4 bg-white/10 mx-2 hidden sm:block" />
           
           <Link href={session.logged ? "/profile" : "/login"} className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-white text-xs font-black hover:bg-white hover:text-black transition-all">
             <User size={14} /> <span>{session.logged ? session.name : 'Entrar'}</span>

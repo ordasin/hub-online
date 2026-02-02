@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Activity, Terminal, AlertTriangle, Home, Package, Plus, Trash2, Wifi, Megaphone, Send, ShieldAlert, Key } from 'lucide-react'
+import { Shield, Activity, Terminal, AlertTriangle, Home, Package, Plus, Trash2, Wifi, Megaphone, Send, ShieldAlert, Key, UserCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
@@ -34,26 +34,40 @@ export default function AdminPage() {
       const user = g.user().recall({ sessionStorage: true });
       
       const sync = () => {
+        // Verificación 1: Sesión P2P Activa
         if (user.is && user.is.pub === MASTER_PUB) {
           setIsAdmin(true);
-        } else if (user.is) {
-          setIsAdmin(false);
-        } else {
-          setTimeout(() => { if (!user.is) setIsAdmin(false); }, 3000);
+          return;
         }
+
+        // Verificación 2: Firma Local (Rescate)
+        const rawAuth = localStorage.getItem('gun/auth');
+        if (rawAuth) {
+          try {
+            const auth = JSON.parse(rawAuth);
+            const pub = auth.pub || auth.put?.pub;
+            if (pub === MASTER_PUB) {
+              setIsAdmin(true);
+              return;
+            }
+          } catch(e) {}
+        }
+
+        // Si después de 3s no hay nada, denegamos
+        setTimeout(() => {
+          if (isAdmin === null) setIsAdmin(false);
+        }, 3000);
       };
 
       sync();
       g.on('auth', sync);
 
-      // Escuchar Alertas
       g.get('ORDASIN_FINAL_SHIELD').map().on((data: any, id: string) => {
         if (data && data.time) {
-          setThreats(prev => [data, ...prev.filter(t => t.id !== id)].sort((a,b) => b.time - a.time).slice(0, 10));
+          setThreats(prev => [data, ...prev.filter(t => t.id !== id)].sort((a,b) => b.time - a.time).slice(0, 15));
         }
       });
 
-      // Escuchar Proyectos
       g.get('p2p_projects').map().on((data: any, id: string) => {
         if (data) setP2pProjects(prev => [...prev.filter(p => p.id !== id), { ...data, id }]);
         else setP2pProjects(prev => prev.filter(p => p.id !== id));
@@ -83,7 +97,7 @@ export default function AdminPage() {
     }
   }
 
-  if (isAdmin === null) return <div className="min-h-screen bg-black flex items-center justify-center font-mono text-purple-500 uppercase text-[10px] animate-pulse">Autenticando Nodo Maestro...</div>;
+  if (isAdmin === null) return <div className="min-h-screen bg-black flex items-center justify-center font-mono text-purple-500 uppercase text-[10px] animate-pulse">Sincronizando Identidad Maestra...</div>;
   if (isAdmin === false) return <div className="min-h-screen bg-black text-red-500 flex items-center justify-center font-black p-10 text-center uppercase">Acceso Denegado: Identidad no Autorizada</div>;
 
   return (
@@ -91,23 +105,23 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* HEADER */}
-        <div className="p-8 rounded-[3rem] bg-gradient-to-r from-red-900/20 via-black to-purple-900/20 border border-white/10 flex justify-between items-center backdrop-blur-xl">
+        <div className="p-10 rounded-[3rem] bg-gradient-to-r from-red-900/20 via-black to-purple-900/20 border border-white/10 flex justify-between items-center backdrop-blur-xl shadow-2xl">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/40"><Shield size={32} /></div>
+            <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg"><Shield size={32} /></div>
             <div>
-                <h1 className="text-3xl font-black uppercase tracking-widest italic text-white">Hub Master Core</h1>
+                <h1 className="text-3xl font-black uppercase tracking-widest italic text-white">Hub Master System</h1>
                 <div className="flex items-center gap-2 text-[10px] text-green-500 font-black mt-1">
-                    <Wifi size={12} className={peers > 0 ? 'animate-bounce' : ''}/> NODOS: {peers}
+                    <Wifi size={12} className={peers > 0 ? 'animate-bounce' : ''}/> RED P2P: {peers > 0 ? 'ACTIVA' : 'MODO LOCAL'}
                 </div>
             </div>
           </div>
-          <button onClick={() => window.location.href='/'} className="px-8 py-3 bg-white text-black rounded-xl font-black text-xs hover:bg-purple-500 hover:text-white transition-all">TERMINAR</button>
+          <button onClick={() => window.location.href='/'} className="px-8 py-3 bg-white text-black rounded-xl font-black text-xs hover:bg-purple-500 hover:text-white transition-all">SALIR</button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* SEGURIDAD Y FEED */}
           <div className="space-y-8">
-            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6">
+            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-xl">
                 <h2 className="text-lg font-black uppercase flex items-center gap-2 text-red-400"><Activity size={18}/> Invasores</h2>
                 <div className="space-y-3">
                     {threats.map(t => (
@@ -116,20 +130,20 @@ export default function AdminPage() {
                             <p className="text-gray-500 truncate mt-1">{t.details}</p>
                         </div>
                     ))}
-                    {threats.length === 0 && <p className="text-center py-10 text-gray-700 text-xs italic">Escaneando red mundial...</p>}
+                    {threats.length === 0 && <p className="text-center py-10 text-gray-700 text-xs italic">Silencio en la red...</p>}
                 </div>
             </section>
 
-            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-4">
+            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-4 shadow-xl">
                 <h2 className="text-lg font-black uppercase flex items-center gap-2 text-blue-400"><Send size={18}/> Feed Social</h2>
-                <textarea value={socialPost} onChange={(e) => setSocialPost(e.target.value)} className="w-full h-24 bg-black border border-white/10 rounded-xl p-3 text-xs outline-none" placeholder="¿Qué hay de nuevo?" />
+                <textarea value={socialPost} onChange={(e) => setSocialPost(e.target.value)} className="w-full h-24 bg-black border border-white/10 rounded-xl p-3 text-xs outline-none focus:ring-2 focus:ring-blue-500" placeholder="¿Qué hay de nuevo?" />
                 <button onClick={postToFeed} className="w-full py-3 bg-blue-600 rounded-xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Postear</button>
             </section>
           </div>
 
           {/* GESTIÓN DE PROYECTOS */}
           <div className="lg:col-span-2 space-y-8">
-            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6">
+            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-xl">
                 <h2 className="text-xl font-black uppercase flex items-center gap-2 text-purple-400"><Package size={20}/> Publicar Software</h2>
                 <div className="grid grid-cols-2 gap-4">
                     <input placeholder="Nombre" value={newProject.title} onChange={(e) => setNewProject({...newProject, title: e.target.value})} className="bg-black border border-white/10 rounded-xl p-4 text-xs outline-none focus:ring-2 focus:ring-purple-500" />
@@ -139,7 +153,7 @@ export default function AdminPage() {
                 <button onClick={publishProject} className="w-full py-4 bg-purple-600 rounded-2xl font-black hover:bg-purple-500 shadow-lg shadow-purple-900/20 transition-all uppercase">Emitir al Hub</button>
             </section>
 
-            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6">
+            <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-xl">
                 <h2 className="text-xl font-black uppercase flex items-center gap-2 text-gray-400"><Terminal size={20}/> Software en la Malla</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {p2pProjects.map(p => (
