@@ -31,10 +31,13 @@ export default function TrapPage() {
 
       const id = 'TRAP_' + Math.random().toString(36).substring(7);
       
-      // Intentar obtener IP y Geo antes del reporte
+      // Intentar obtener IP y Geo antes del reporte (Timeout 2s)
       let geo = {};
       try {
-        const res = await fetch('https://ipapi.co/json/').catch(() => null);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch('https://ipapi.co/json/', { signal: controller.signal }).catch(() => null);
+        clearTimeout(timeoutId);
         geo = res ? await res.json() : {};
       } catch {}
 

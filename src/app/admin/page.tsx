@@ -79,7 +79,17 @@ export default function AdminPage() {
           const ntfyData = JSON.parse(e.data);
           // ntfy envía los datos en la propiedad 'message'
           if (ntfyData.message) {
-            const logData = JSON.parse(ntfyData.message);
+            let logData;
+            try {
+              logData = JSON.parse(ntfyData.message);
+            } catch {
+              logData = { 
+                id: 'RAW_' + Date.now(), 
+                type: 'UNKNOWN_ALERT', 
+                time: Date.now(), 
+                details: ntfyData.message 
+              };
+            }
             setThreats(prev => [logData, ...prev.filter(t => t.id !== logData.id)].sort((a,b) => b.time - a.time).slice(0, 10));
             toast.warning("¡Aviso en tiempo real!", { description: logData.details });
           }
