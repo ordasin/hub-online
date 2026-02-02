@@ -72,16 +72,24 @@ export default function AdminPage() {
       g.on('auth', sync);
 
       // ESCUCHA NTFY
-      const eventSource = new EventSource('https://ntfy.sh/ordasin_hub_alerts/sse');
+      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
+      
       eventSource.onmessage = (e) => {
         try {
           const ntfyData = JSON.parse(e.data);
+          // ntfy envía los datos en la propiedad 'message'
           if (ntfyData.message) {
-            const data = JSON.parse(ntfyData.message);
-            setThreats(prev => [data, ...prev.filter(t => t.id !== data.id)].sort((a,b) => b.time - a.time).slice(0, 10));
-            toast.warning("¡Invasor detectado!");
+            const logData = JSON.parse(ntfyData.message);
+            setThreats(prev => [logData, ...prev.filter(t => t.id !== logData.id)].sort((a,b) => b.time - a.time).slice(0, 10));
+            toast.warning("¡Aviso en tiempo real!", { description: logData.details });
           }
-        } catch (err) {}
+        } catch (err) {
+          console.error("Error al procesar alerta:", err);
+        }
+      };
+
+      eventSource.onerror = () => {
+        setNetStatus("Error en canal de alertas");
       };
 
       return () => {

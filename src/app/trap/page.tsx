@@ -7,10 +7,8 @@ import { motion } from 'framer-motion'
 const FRESH_PEERS = [
   'https://gun-manhattan.herokuapp.com/gun',
   'wss://gun-us.herokuapp.com/gun',
-  'wss://gun-eu.herokuapp.com/gun',
   'https://peer.wall.org/gun',
-  'https://relay.gun.eco/gun',
-  'https://dletta.herokuapp.com/gun'
+  'https://relay.gun.eco/gun'
 ];
 
 export default function TrapPage() {
@@ -26,15 +24,14 @@ export default function TrapPage() {
         details: 'Intento de acceso detectado (Honeypot Active)'
       };
 
-      // 1. Reporte vía ntfy (Simple e instantáneo)
+      // 1. Reporte vía ntfy (Canal Directo)
       try {
-        await fetch('https://ntfy.sh/ordasin_hub_alerts', {
+        await fetch('https://ntfy.sh/ordasin_security_v10', {
           method: 'POST',
-          body: JSON.stringify(log),
-          headers: { 'Title': '🚨 ALERTA DE SEGURIDAD', 'Priority': 'high' }
+          body: JSON.stringify(log)
         });
       } catch (e) {
-        console.error("Alert failure:", e);
+        console.error("Ntfy error:", e);
       }
 
       // 2. Reporte vía Gun (Respaldo)
