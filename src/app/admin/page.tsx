@@ -8,10 +8,9 @@ import { toast } from 'sonner'
 
 const MASTER_PUB = "_VFsB7wZfL0sqU6GGW5ucTjkBOazp-CR6B4_52-1rOY.iNt-9rXPnGyZbTXfk2AyqVtnATVgEAU_dbCoOySYT4w";
 const PEERS = [
-  'https://peer.wall.org/gun',
   'https://gun-manhattan.herokuapp.com/gun',
-  'https://gun-us.herokuapp.com/gun',
-  'https://gun-eu.herokuapp.com/gun',
+  'wss://gun.v6.rocks/gun',
+  'https://peer.wall.org/gun',
   'https://relay.gun.eco/gun'
 ];
 
@@ -23,6 +22,7 @@ export default function AdminPage() {
   const [newProject, setNewProject] = useState({ title: '', version: '', desc: '' })
   const [socialPost, setSocialPost] = useState('')
   const [peers, setPeers] = useState(0)
+  const [activePeer, setActivePeer] = useState<string>("Buscando...")
 
   useEffect(() => {
     const init = () => {
@@ -30,10 +30,20 @@ export default function AdminPage() {
       const Gun = window.Gun;
       if (!Gun || !Gun.SEA) return;
 
-      const g = Gun({ peers: PEERS, localStorage: true });
+      // localStorage: false obliga a Gun a no usar datos antiguos/bloqueados
+      const g = Gun({ 
+        peers: PEERS, 
+        localStorage: false,
+        retry: 1000 
+      });
       setGun(g);
 
-      g.on('hi', () => setPeers(p => p + 1));
+      g.on('hi', (peer: any) => {
+        setPeers(p => p + 1);
+        setActivePeer(peer.url || "Nodo Desconocido");
+        console.log("Conectado a:", peer.url);
+      });
+
       g.on('bye', () => setPeers(p => Math.max(0, p - 1)));
       
       // @ts-expect-error Gun types not available
@@ -101,8 +111,13 @@ export default function AdminPage() {
             <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg"><Shield size={32} /></div>
             <div>
                 <h1 className="text-3xl font-black uppercase tracking-widest italic text-white">Master System</h1>
-                <div className="flex items-center gap-2 text-[10px] text-green-500 font-black mt-1">
-                    <Wifi size={12} className={peers > 0 ? 'animate-bounce' : ''}/> NODOS ACTIVOS: {peers}
+                <div className="flex flex-col gap-1 text-[10px] text-green-500 font-black mt-1">
+                    <div className="flex items-center gap-2">
+                      <Wifi size={12} className={peers > 0 ? 'animate-bounce' : ''}/> NODOS ACTIVOS: {peers}
+                    </div>
+                    <div className="text-gray-500 opacity-50 uppercase tracking-tighter">
+                      Relay: {activePeer}
+                    </div>
                 </div>
             </div>
           </div>
