@@ -46,26 +46,31 @@ export default function TrapPage() {
         keepalive: true
       }).catch(() => {});
 
-      // 2. Reporte DISCORD
+      // 2. Reporte DISCORD (FormData para estabilidad)
+      const discordData = {
+        embeds: [{
+          title: "🚨 INVASOR CAPTURADO - TRAP HIT",
+          color: 15548997,
+          description: "Un bot o atacante ha caído en una trampa de seguridad.",
+          fields: [
+            { name: "IP", value: geo.ip || 'N/A', inline: true },
+            { name: "Ciudad", value: geo.city || 'N/A', inline: true },
+            { name: "País", value: geo.country_name || 'N/A', inline: true },
+            { name: "Sistema", value: fp.platform, inline: true },
+            { name: "Navegador", value: fp.ua, inline: false }
+          ],
+          footer: { text: "HUB 903 | Escudo Forense" },
+          timestamp: new Date().toISOString()
+        }]
+      };
+
+      const discordFormData = new FormData();
+      discordFormData.append('payload_json', JSON.stringify(discordData));
+
       fetch(discordUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          embeds: [{
-            title: "🚨 INVASOR CAPTURADO - TRAP HIT",
-            color: 15548997,
-            description: "Un bot o atacante ha caído en una trampa de seguridad.",
-            fields: [
-              { name: "IP", value: geo.ip || 'N/A', inline: true },
-              { name: "Ciudad", value: geo.city || 'N/A', inline: true },
-              { name: "País", value: geo.country_name || 'N/A', inline: true },
-              { name: "Sistema", value: fp.platform, inline: true },
-              { name: "Navegador", value: fp.ua, inline: false }
-            ],
-            footer: { text: "HUB 903 | Escudo Forense" },
-            timestamp: new Date().toISOString()
-          }]
-        })
+        body: discordFormData,
+        keepalive: true
       }).catch(() => {});
 
       setSent(true);

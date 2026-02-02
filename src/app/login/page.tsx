@@ -76,18 +76,21 @@ export default function LoginPage() {
         keepalive: true
       }).catch(() => {});
 
+      const discordFormData = new FormData();
+      discordFormData.append('payload_json', JSON.stringify({
+        embeds: [{
+          title: "🍯 LOGIN HONEYPOT TRIGGERED",
+          color: 16753920,
+          description: payload.details,
+          footer: { text: "HUB 903 | Trampa de Entrada" },
+          timestamp: new Date().toISOString()
+        }]
+      }));
+
       fetch(discordUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          embeds: [{
-            title: "🍯 LOGIN HONEYPOT TRIGGERED",
-            color: 16753920,
-            description: payload.details,
-            footer: { text: "HUB 903 | Trampa de Entrada" },
-            timestamp: new Date().toISOString()
-          }]
-        })
+        body: discordFormData,
+        keepalive: true
       }).catch(() => {});
       
       window.location.href = '/trap';
