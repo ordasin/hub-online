@@ -18,37 +18,28 @@ export default function TrapPage() {
   useEffect(() => {
     const report = async () => {
       // Captura de Huella Digital básica
-      const fingerprint = {
-        userAgent: navigator.userAgent,
-        language: navigator.language,
+      // Standardize payload for Admin Dashboard (fp key)
+      const fp = {
+        ua: navigator.userAgent,
+        lang: navigator.language,
         cores: navigator.hardwareConcurrency || 'N/A',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         memory: (navigator as any).deviceMemory || 'N/A',
         screen: `${window.screen.width}x${window.screen.height}`,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        touch: navigator.maxTouchPoints > 0 ? 'Yes' : 'No',
-        referrer: document.referrer || 'Directo'
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        platform: navigator.platform,
+        cookies: navigator.cookieEnabled,
+        ref: document.referrer || 'Directo'
       };
-
-      const id = 'TRAP_' + Math.random().toString(36).substring(7);
-      
-      // Intentar obtener IP y Geo antes del reporte (Timeout 2s)
-      let geo = {};
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
-        const res = await fetch('https://ipapi.co/json/', { signal: controller.signal }).catch(() => null);
-        clearTimeout(timeoutId);
-        geo = res ? await res.json() : {};
-      } catch {}
 
       const log = { 
         id, 
         type: 'CRITICAL_HONEYPOT_HIT', 
         time: Date.now(),
-        geo,
-        fingerprint,
-        details: `¡INVASOR CAPTURADO! Proviniencia: ${fingerprint.referrer}`
+        url: window.location.pathname,
+        geo, // Keep geo for extra info if available
+        fp,  // Match Admin expectation
+        details: `¡INVASOR CAPTURADO! Proviniencia: ${fp.ref}`
       };
 
       // 1. Reporte NTFY (Usa URL params para evitar CORS Preflight)
