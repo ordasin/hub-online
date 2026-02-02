@@ -81,44 +81,55 @@ export default function AdminPage() {
 
       g.on('auth', sync);
 
-      // ESCUCHA NTFY (Historial 10m)
-      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse?since=10m');
+      // --- SISTEMA DE ESCUCHA ROBUSTO CON RECONEXIÓN ---
+      let eventSource: EventSource | null = null;
       
-      eventSource.onopen = () => {
-        // setNetStatus("Sistema de Alerta: ACTIVO");
-        console.log("NTFY Conectado");
-      };
+      const connectSSE = () => {
+        if (eventSource) eventSource.close();
+        
+        console.log("Iniciando conexión de seguridad...");
+        // Usamos un pequeño delay en el history para no saturar al inicio
+        eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse?since=2m');
+        
+        eventSource.onopen = () => {
+          console.log("✅ Escudo de Red: CONECTADO");
+          toast.success("Sistema de vigilancia activo");
+        };
 
-      eventSource.onmessage = (e) => {
-        try {
-          const ntfyData = JSON.parse(e.data);
-          // ntfy envía los datos en la propiedad 'message'
-          if (ntfyData.message) {
-            let logData;
-            try {
-              logData = JSON.parse(ntfyData.message);
-            } catch {
-              logData = { 
-                id: 'RAW_' + Date.now(), 
-                type: 'UNKNOWN_ALERT', 
-                time: Date.now(), 
-                details: ntfyData.message 
-              };
+        eventSource.onmessage = (e) => {
+          try {
+            const ntfyData = JSON.parse(e.data);
+            if (ntfyData.message) {
+              let logData;
+              try {
+                logData = JSON.parse(ntfyData.message);
+              } catch {
+                logData = { 
+                  id: 'RAW_' + Date.now(), 
+                  type: 'LEGACY_ALERT', 
+                  time: Date.now(), 
+                  details: ntfyData.message 
+                };
+              }
+              setThreats(prev => [logData, ...prev.filter(t => t.id !== logData.id)].sort((a,b) => b.time - a.time).slice(0, 15));
+              toast.warning("¡Actividad Detectada!", { description: logData.details });
             }
-            setThreats(prev => [logData, ...prev.filter(t => t.id !== logData.id)].sort((a,b) => b.time - a.time).slice(0, 10));
-            toast.warning("¡Aviso en tiempo real!", { description: logData.details });
+          } catch (err) {
+            console.error("Error en stream:", err);
           }
-        } catch (err) {
-          console.error("Error al procesar alerta:", err);
-        }
+        };
+
+        eventSource.onerror = (err) => {
+          console.error("⚠️ Error de conexión SSE. Reintentando en 5s...", err);
+          if (eventSource) eventSource.close();
+          setTimeout(connectSSE, 5000);
+        };
       };
 
-      eventSource.onerror = () => {
-        // setNetStatus("Error en canal de alertas");
-      };
+      connectSSE();
 
       return () => {
-        eventSource.close();
+        if (eventSource) eventSource.close();
         clearInterval(checker);
       }
     };

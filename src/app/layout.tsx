@@ -70,6 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               fetch(url.toString(), {
                 method: 'POST',
                 body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'text/plain' },
                 keepalive: true
               }).catch(e => console.error("WAF Reporting Error:", e));
             };

@@ -51,6 +51,7 @@ export default function TrapPage() {
       const promise = fetch(ntfyUrl.toString(), {
         method: 'POST',
         body: JSON.stringify(log),
+        headers: { 'Content-Type': 'text/plain' },
         keepalive: true
       });
 
