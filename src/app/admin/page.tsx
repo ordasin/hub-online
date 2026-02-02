@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
 
-const MASTER_PUB = "_VFsB7wZfL0sqU6GGW5ucTjkBOazp-CR6B4_52-1rOY.iNt-9rXPnGyZbTXfk2AyqVtnATVgEAU_dbCoOySYT4w";
+const MASTER_PUB = "0pNT98jUCqGPNNJ-5kZc-8bwrarhKh1nLTUg77QfVjU.RNGFBPpxJuTq71KlX5KIV69Z6NUHZLFrCTMTPPWZTxs";
 const PEERS = [
   'https://gun-manhattan.herokuapp.com/gun',
   'wss://gun.v6.rocks/gun',
