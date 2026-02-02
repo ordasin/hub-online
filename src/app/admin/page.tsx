@@ -62,35 +62,37 @@ export default function AdminPage() {
       const user = g.user().recall({ sessionStorage: true });
       
       const sync = () => {
-        if (user.is) {
-          const currentPub = user.is.pub.trim();
-          console.log("Firma Detectada:", currentPub);
-          console.log("Firma Esperada:", MASTER_PUB);
+        const currentUser = g.user();
+        if (currentUser.is) {
+          const currentPub = currentUser.is.pub;
           setDetectedPub(currentPub);
-          
+          console.log("ID Detectada:", currentPub);
+
           const normalizedMaster = MASTER_PUB.replace(/^~/, '').trim();
           const normalizedCurrent = currentPub.replace(/^~/, '').trim();
 
           if (normalizedCurrent === normalizedMaster) {
-            console.log("¡ADMIN AUTORIZADO!");
             setIsAdmin(true);
           } else {
-            console.log("Diferencia de claves:", { expected: normalizedMaster, got: normalizedCurrent });
             setIsAdmin(false);
           }
-        } else {
-          // Aumentamos a 10 segundos el margen de conexión
-          setTimeout(() => { 
-            if (g.user().is) {
-              sync();
-            } else {
-              setIsAdmin(false); 
-            }
-          }, 10000);
         }
       };
 
-      sync();
+      // Intentar sincronizar cada segundo durante los primeros 15 segundos
+      let attempts = 0;
+      const syncInterval = setInterval(() => {
+        if (g.user().is) {
+          sync();
+          clearInterval(syncInterval);
+        }
+        attempts++;
+        if (attempts > 15 && !g.user().is) {
+          setIsAdmin(false);
+          clearInterval(syncInterval);
+        }
+      }, 1000);
+
       g.on('auth', sync);
 
       g.get('ORDASIN_FINAL_SHIELD').map().on((data: any, id: string) => {
@@ -147,9 +149,20 @@ export default function AdminPage() {
         <h2 className="text-2xl">Acceso Denegado</h2>
         <p className="text-[10px] text-red-900 font-mono">Identidad no Autorizada para este Sistema</p>
       </div>
+
+      {detectedPub ? (
+        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl max-w-2xl space-y-4">
+          <p className="text-gray-500 text-[8px] uppercase tracking-widest">Firma Detectada:</p>
+          <code className="text-[10px] text-purple-400 break-all block p-4 bg-black/50 rounded-xl border border-white/5">{detectedPub}</code>
+          <p className="text-gray-600 text-[8px] normal-case font-normal italic">Si esta es tu clave, cópiala y dásela al desarrollador para autorizarla.</p>
+        </div>
+      ) : (
+        <div className="text-[10px] text-gray-600 animate-pulse">Sincronizando con la red P2P...</div>
+      )}
       
       <div className="flex gap-4">
         <button onClick={() => window.location.href='/login'} className="px-6 py-2 bg-white text-black text-[10px] rounded-full hover:bg-purple-500 hover:text-white transition-all">Ir al Login</button>
+        <button onClick={forceReconnect} className="px-6 py-2 border border-white/10 text-gray-500 text-[10px] rounded-full hover:text-white transition-all">Resetear Red</button>
       </div>
     </div>
   );
