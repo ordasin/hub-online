@@ -41,9 +41,23 @@ export default function AdminPage() {
       g.on('hi', (peer: any) => {
         setPeers(p => p + 1);
         setActivePeer(peer.url || "Nodo Desconocido");
+        console.log("✅ Conectado a:", peer.url);
       });
 
-      g.on('bye', () => setPeers(p => Math.max(0, p - 1)));
+      // Capturamos errores de conexión para saber si hay bloqueo
+      // @ts-expect-error Gun internal events
+      g.on('out', (msg) => {
+        if (msg.err) {
+          console.error("❌ Error de salida/bloqueo:", msg.err);
+          if (msg.err === 'Unsupported record type') return; // Ignorar errores comunes
+          toast.error("Error de Red: Posible bloqueo de IP");
+        }
+      });
+
+      g.on('bye', (peer: any) => {
+        setPeers(p => Math.max(0, p - 1));
+        console.warn("⚠️ Nodo desconectado:", peer.url);
+      });
       
       // @ts-expect-error Gun types not available
       const user = g.user().recall({ sessionStorage: true });
