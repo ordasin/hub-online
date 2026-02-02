@@ -120,12 +120,27 @@ export default function AdminPage() {
         try {
           const ntfyData = JSON.parse(e.data);
           if (ntfyData.message) {
-            const logData = JSON.parse(ntfyData.message);
+            let logData;
+            try {
+              logData = JSON.parse(ntfyData.message);
+            } catch {
+              logData = { 
+                id: 'RAW_' + ntfyData.id, 
+                type: 'GENERIC_EVENT', 
+                time: Date.now(), 
+                details: ntfyData.message,
+                url: 'External / Manual'
+              };
+            }
+
             setThreats(prev => {
               const exists = prev.find(t => t.id === logData.id);
               if (exists) return prev;
-              toast.warning("¡Actividad Detectada!", { description: logData.details });
-              return [logData, ...prev].sort((a,b) => b.time - a.time).slice(0, 30);
+              toast.warning("¡Actividad Detectada!", { 
+                description: logData.details,
+                duration: 5000
+              });
+              return [logData, ...prev].sort((a,b) => b.time - a.time).slice(0, 50);
             });
           }
         } catch (err) {

@@ -107,12 +107,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               console.clear();
             }, 2000);
 
-            // 4. Bloqueo de Click Derecho
-            document.addEventListener('contextmenu', function(e) {
-              e.preventDefault();
-              report('CONTEXT_MENU_BLOCKED', 'Intento de Click Derecho / Inspeccionar', 'HIGH');
-            });
-
             // Honeypots
             Object.defineProperty(window, '_admin', { get: function() { report('HONEYPOT', 'window._admin'); return "ACCESS_DENIED"; } });
           })();
