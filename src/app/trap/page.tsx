@@ -31,7 +31,7 @@ export default function TrapPage() {
       console.log("Iniciando reporte único a Gun...");
 
       // Enviamos el payload UNA SOLA VEZ. Gun se encarga de sincronizarlo cuando conecte.
-      gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log, (ack: { err: any }) => {
+      gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log, (ack: { err: string }) => {
         if (ack && !ack.err) {
           console.log("Confirmación recibida del nodo:", ack);
           setSent(true);

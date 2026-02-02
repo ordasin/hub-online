@@ -5,11 +5,7 @@ import { LogIn, CheckCircle2, RefreshCw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
-const PEERS = [
-  'wss://gun.v6.rocks/gun',
-  'https://peer.wall.org/gun',
-  'https://relay.gun.eco/gun'
-];
+const PEERS = ['wss://gun.v6.rocks/gun', 'https://peer.wall.org/gun', 'https://relay.gun.eco/gun'];
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -22,12 +18,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     const initGun = () => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (!Gun || !Gun.SEA) return;
 
       const gun = Gun({ peers: PEERS, localStorage: true, retry: 1000 });
-      // @ts-ignore
+      // @ts-expect-error Gun types not available
       const user = gun.user().recall({ sessionStorage: true });
       setGunUser(user);
 
@@ -47,7 +43,7 @@ export default function LoginPage() {
     };
 
     const checker = setInterval(() => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       if (window.Gun && window.Gun.SEA) {
         initGun();
         clearInterval(checker);
@@ -65,7 +61,7 @@ export default function LoginPage() {
     if (!username || !password) return toast.error("Completa los campos");
     setLoading(true);
     
-    gunUser.auth(username, password, (ack: any) => {
+    gunUser.auth(username, password, (ack: { err: string }) => {
       if (ack.err) {
         toast.error("Fallo de identidad: " + ack.err);
         setLoading(false);
@@ -80,7 +76,7 @@ export default function LoginPage() {
     }
     if (!gunUser) return;
     setLoading(true);
-    gunUser.create(username, password, (ack: any) => {
+    gunUser.create(username, password, (ack: { err: string }) => {
       if (ack.err) {
         toast.error(ack.err);
         setLoading(false);

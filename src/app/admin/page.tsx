@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Shield, Activity, Terminal, Package, Trash2, Wifi, Send } from 'lucide-react'
-import { motion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
 
@@ -38,7 +37,7 @@ export default function AdminPage() {
       });
       setGun(g);
 
-      g.on('hi', (peer: any) => {
+      g.on('hi', (peer: { url: string }) => {
         setPeers(p => p + 1);
         setActivePeer(peer.url || "Nodo Desconocido");
         console.log("✅ Conectado a:", peer.url);
@@ -46,15 +45,15 @@ export default function AdminPage() {
 
       // Capturamos errores de conexión para saber si hay bloqueo
       // @ts-expect-error Gun internal events
-      g.on('out', (msg) => {
+      g.on('out', (msg: { err: string }) => {
         if (msg.err) {
           console.error("❌ Error de salida/bloqueo:", msg.err);
-          if (msg.err === 'Unsupported record type') return; // Ignorar errores comunes
+          if (msg.err === 'Unsupported record type') return; 
           toast.error("Error de Red: Posible bloqueo de IP");
         }
       });
 
-      g.on('bye', (peer: any) => {
+      g.on('bye', (peer: { url: string }) => {
         setPeers(p => Math.max(0, p - 1));
         console.warn("⚠️ Nodo desconectado:", peer.url);
       });
@@ -77,7 +76,6 @@ export default function AdminPage() {
         }
       };
 
-      // Intentar sincronizar cada segundo durante los primeros 15 segundos
       let attempts = 0;
       const syncInterval = setInterval(() => {
         if (g.user().is) {
@@ -93,14 +91,14 @@ export default function AdminPage() {
 
       g.on('auth', sync);
 
-      g.get('ORDASIN_FINAL_SHIELD').map().on((data: any, id: string) => {
+      g.get('ORDASIN_FINAL_SHIELD').map().on((data: { id: string, time: number, details: string }, id: string) => {
         console.log("Amenaza recibida en Admin:", data);
         if (data && data.time) {
           setThreats(prev => [data, ...prev.filter(t => t.id !== id)].sort((a,b) => b.time - a.time).slice(0, 10));
         }
       });
 
-      g.get('p2p_projects').map().on((data: any, id: string) => {
+      g.get('p2p_projects').map().on((data: { title: string, version: string, id: string }, id: string) => {
         if (data) setP2pProjects(prev => [...prev.filter(p => p.id !== id), { ...data, id }]);
         else setP2pProjects(prev => prev.filter(p => p.id !== id));
       });

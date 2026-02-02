@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Github, LayoutGrid, MessageCircle, Zap, User, ShieldAlert, Users, Globe, Menu, X, Wifi } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Shield, User, LogOut, Menu, X, LayoutDashboard } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
 
-// NUEVA LISTA DE RELÉS DE ÉLITE (Más estables)
 const PEERS = [
   'wss://gun.v6.rocks/gun',
   'https://peer.wall.org/gun',
@@ -13,110 +13,106 @@ const PEERS = [
 ];
 
 export function Navbar() {
-  const [session, setSession] = useState({ logged: false, name: "", isAdmin: false })
-  const [peers, setPeers] = useState(0)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [gun, setGun] = useState<any>(null)
 
   useEffect(() => {
-    const sync = () => {
-      if (typeof window === 'undefined') return;
-      // @ts-ignore
+    const handleScroll = () => setIsScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+
+    const initGun = () => {
+      // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (!Gun || !Gun.SEA) return;
 
-      const gun = Gun({ peers: PEERS, localStorage: true, retry: 1000 });
-      // @ts-ignore
-      const user = gun.user().recall({ sessionStorage: true });
+      const g = Gun({ peers: PEERS, localStorage: true });
+      setGun(g);
+      // @ts-expect-error Gun types not available
+      const u = g.user().recall({ sessionStorage: true });
+      setUser(u);
 
-      gun.on('hi', () => setPeers(p => p + 1));
-      gun.on('bye', () => setPeers(p => Math.max(0, p - 1)));
-
-      if (user.is) {
-        setSession({
-          logged: true,
-          name: user.is.alias,
-          isAdmin: user.is.pub === "_VFsB7wZfL0sqU6GGW5ucTjkBOazp-CR6B4_52-1rOY.iNt-9rXPnGyZbTXfk2AyqVtnATVgEAU_dbCoOySYT4w"
-        });
-      }
+      g.on('auth', () => {
+        setUser(g.user());
+      });
     };
 
-    const interval = setInterval(sync, 2000);
-    return () => clearInterval(interval);
+    const checker = setInterval(() => {
+      // @ts-expect-error Gun is loaded via CDN
+      if (window.Gun && window.Gun.SEA) {
+        initGun();
+        clearInterval(checker);
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearInterval(checker);
+    }
   }, [])
 
-  return (
-    <div className="fixed top-6 left-0 right-0 z-50 px-6 font-mono">
-      <motion.nav 
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="max-w-7xl mx-auto backdrop-blur-xl bg-black/60 border border-white/10 rounded-[2rem] px-6 py-3 flex justify-between items-center shadow-2xl shadow-purple-500/10"
-      >
-        <Link href="/" className="flex items-center space-x-3 group">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg group-hover:rotate-12 transition-transform">O</div>
-          <div className="hidden sm:block">
-            <span className="font-black text-white uppercase tracking-tighter text-lg leading-none block">Ordasin</span>
-            <div className="flex items-center gap-1 mt-0.5">
-                <Wifi size={8} className={peers > 0 ? 'text-green-500 animate-pulse' : 'text-red-500'} />
-                <span className="text-[7px] text-gray-500 font-black uppercase tracking-[0.2em]">{peers > 0 ? 'Linked' : 'Syncing'}</span>
-            </div>
-          </div>
-        </Link>
-        
-        <div className="hidden md:flex items-center gap-2">
-          <NavLink href="/" icon={<LayoutGrid size={16}/>} label="Proyectos" />
-          <NavLink href="/chat" icon={<Zap size={16} className="text-yellow-500"/>} label="Chat P2P" />
-          <NavLink href="/community" icon={<Users size={16}/>} label="Comunidad" />
-          
-          {session.isAdmin && (
-            <Link href="/admin" className="flex items-center gap-2 text-[10px] font-black text-red-400 border border-red-500/30 px-4 py-2 rounded-full bg-red-500/10 animate-pulse">
-              <ShieldAlert size={14} /> MASTER_NODE
-            </Link>
-          )}
-        </div>
+  const handleLogout = () => {
+    if (gun) {
+      gun.user().leave();
+      setUser(null);
+      toast.info("Sesión cerrada");
+      window.location.href = '/';
+    }
+  }
 
-        <div className="flex items-center gap-3">
-          <Link 
-            href={session.logged ? "/profile" : "/login"} 
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full border transition-all text-[10px] font-black uppercase tracking-widest ${
-                session.logged ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-white text-black hover:bg-purple-500 hover:text-white shadow-lg'
-            }`}
-          >
-            <User size={14} className={session.logged ? 'text-purple-400' : ''} />
-            <span>{session.logged ? session.name : 'Entrar'}</span>
+  return (
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'py-4' : 'py-8'}`}>
+      <div className="container mx-auto px-6">
+        <div className={`relative flex items-center justify-between p-2 rounded-3xl border transition-all duration-500 ${isScrolled ? 'bg-black/80 border-white/10 backdrop-blur-xl shadow-2xl' : 'bg-transparent border-transparent'}`}>
+          <Link href="/" className="flex items-center gap-3 px-4 group">
+            <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-900/20 group-hover:scale-110 transition-transform">
+              <Shield size={20} className="text-white" />
+            </div>
+            <span className="font-black text-xl uppercase tracking-tighter italic text-white">HUB <span className="text-purple-500">903</span></span>
           </Link>
 
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 text-gray-400">
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          <div className="hidden md:flex items-center gap-2 pr-2">
+            <Link href="/projects" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Herramientas</Link>
+            <Link href="/community" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Comunidad</Link>
+            
+            <div className="w-[1px] h-4 bg-white/10 mx-2" />
+
+            {user?.is ? (
+              <div className="flex items-center gap-2">
+                <Link href="/admin" className="p-2.5 text-gray-400 hover:text-purple-400 transition-colors"><LayoutDashboard size={18}/></Link>
+                <Link href="/profile" className="p-2.5 text-gray-400 hover:text-white transition-colors"><User size={18}/></Link>
+                <button onClick={handleLogout} className="p-2.5 text-gray-400 hover:text-red-400 transition-colors"><LogOut size={18}/></button>
+              </div>
+            ) : (
+              <Link href="/login" className="px-8 py-2.5 bg-white text-black rounded-xl font-black text-[10px] uppercase hover:bg-purple-500 hover:text-white transition-all shadow-lg tracking-widest">Entrar</Link>
+            )}
+          </div>
+
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-3 text-white">
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
-      </motion.nav>
+      </div>
 
       <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="md:hidden absolute top-24 left-6 right-6 p-6 rounded-[2rem] bg-black/90 border border-white/10 backdrop-blur-2xl shadow-3xl space-y-4">
-            <MobileNavLink href="/" label="Proyectos" onClick={() => setIsMobileMenuOpen(false)} />
-            <MobileNavLink href="/chat" label="Chat P2P" onClick={() => setIsMobileMenuOpen(false)} />
-            <MobileNavLink href="/community" label="Comunidad" onClick={() => setIsMobileMenuOpen(false)} />
-            {session.isAdmin && <MobileNavLink href="/admin" label="ADMIN_PANEL" color="text-red-400" onClick={() => setIsMobileMenuOpen(false)} />}
+        {isOpen && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-full left-0 right-0 bg-black/95 border-b border-white/10 p-8 flex flex-col gap-6 md:hidden backdrop-blur-2xl">
+            <Link href="/projects" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Herramientas</Link>
+            <Link href="/community" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Comunidad</Link>
+            <div className="h-[1px] bg-white/10" />
+            {user?.is ? (
+              <>
+                <Link href="/admin" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic text-purple-500">Admin</Link>
+                <Link href="/profile" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic">Perfil</Link>
+                <button onClick={handleLogout} className="text-2xl font-black uppercase italic text-red-500 text-left">Salir</button>
+              </>
+            ) : (
+              <Link href="/login" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic text-purple-500">Entrar</Link>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  )
-}
-
-function NavLink({ href, icon, label }: { href: string, icon: any, label: string }) {
-  return (
-    <Link href={href} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white px-4 py-2 rounded-xl hover:bg-white/5 transition-all">
-      {icon} <span>{label}</span>
-    </Link>
-  )
-}
-
-function MobileNavLink({ href, label, color = "text-white", onClick }: { href: string, label: string, color?: string, onClick: () => void }) {
-  return (
-    <Link href={href} onClick={onClick} className={`block w-full py-4 px-6 rounded-2xl bg-white/5 border border-white/5 font-black uppercase text-xs tracking-[0.2em] ${color}`}>
-      {label}
-    </Link>
+    </nav>
   )
 }

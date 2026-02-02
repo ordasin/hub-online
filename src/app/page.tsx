@@ -16,7 +16,7 @@ export default function Home() {
 
   useEffect(() => {
     const initGun = () => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (!Gun) return;
 
@@ -26,26 +26,26 @@ export default function Home() {
         'https://relay.gun.eco/gun'
       ]);
 
-      gun.get('p2p_projects').map().on((data: any, id: string) => {
+      gun.get('p2p_projects').map().on((data: { title: string, desc: string, description: string, version: string }, id: string) => {
         if (data) {
           const cleanData = { title: DOMPurify.sanitize(data.title || ""), description: DOMPurify.sanitize(data.desc || data.description || ""), version: DOMPurify.sanitize(data.version || "") };
           setP2pProjects(prev => [...prev.filter(p => p.id !== id), { ...cleanData, id, isP2P: true }]);
         }
       });
 
-      gun.get('global_social_feed').map().on((data: any, id: string) => {
+      gun.get('global_social_feed').map().on((data: { text: string, author: string, time: number }, id: string) => {
         if (data && data.text) {
           setFeed(prev => [...prev.filter(p => p.id !== id), { id, text: DOMPurify.sanitize(data.text), author: DOMPurify.sanitize(data.author || "Anon"), time: data.time }].sort((a,b) => b.time - a.time).slice(0, 5));
         }
       });
 
-      gun.get('hub_announcements').on((data: any) => {
+      gun.get('hub_announcements').on((data: { text: string }) => {
         if (data && data.text) setAnnouncement(DOMPurify.sanitize(data.text));
       });
     };
 
     const checker = setInterval(() => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       if (window.Gun) { initGun(); clearInterval(checker); }
     }, 1000);
     return () => clearInterval(checker);

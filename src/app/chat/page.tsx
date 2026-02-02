@@ -1,113 +1,87 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Send, Copy, Link as LinkIcon, MessageSquare, Paperclip, FileText, Download } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import DOMPurify from 'dompurify'
+import { useState, useEffect } from 'react'
+import { Send, User } from 'lucide-react'
 import { toast } from 'sonner'
 
+const PEERS = ['wss://gun.v6.rocks/gun', 'https://peer.wall.org/gun', 'https://relay.gun.eco/gun'];
+
 export default function ChatPage() {
-  const [peer, setPeer] = useState<any>(null)
-  const [myId, setMyId] = useState('')
-  const [targetId, setTargetId] = useState('')
-  const [conn, setConn] = useState<any>(null)
-  const [messages, setMessages] = useState<any[]>([])
+  const [gun, setGun] = useState<any>(null)
+  const [user, setUser] = useState<any>(null)
   const [input, setInput] = useState('')
-  const [status, setStatus] = useState('Iniciando...')
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [messages, setMessages] = useState<any[]>([])
+  const [targetId, setTargetId] = useState('')
 
   useEffect(() => {
     const init = () => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
-      // @ts-ignore
-      const Peer = window.Peer;
-      if (!Gun || !Peer) return;
+      if (!Gun || !Gun.SEA) return;
 
-      const g = Gun({ peers: ['https://relay.gun.eco/gun'] });
-      const newPeer = new Peer();
+      const g = Gun({ peers: PEERS, localStorage: true });
+      setGun(g);
+      
+      const u = g.user().recall({ sessionStorage: true });
+      setUser(u);
 
-      newPeer.on('open', (id: string) => {
-        setPeer(newPeer);
-        setMyId(id);
-        setStatus('Listo');
-        g.get('online_users').get(id).put(Date.now());
-      });
-
-      newPeer.on('connection', (connection: any) => {
-        setupConnection(connection);
-      });
-    };
-
-    const setupConnection = (connection: any) => {
-      connection.on('open', () => {
-        setConn(connection);
-        setStatus('Conectado');
-        toast.success("Vínculo P2P establecido");
-      });
-
-      connection.on('data', (data: any) => {
-        if (data.isFile) {
-          setMessages(prev => [...prev, { sender: 'Peer', time: new Date().toLocaleTimeString(), isFile: true, fileName: data.fileName, fileData: data.fileData }]);
-        } else {
-          setMessages(prev => [...prev, { sender: 'Peer', text: DOMPurify.sanitize(data.text || ""), time: new Date().toLocaleTimeString() }]);
-        }
-      });
-    };
-
-    const checker = setInterval(() => {
-      // @ts-ignore
-      if (window.Gun && window.Peer) {
-        init();
-        clearInterval(checker);
+      if (u.is) {
+        g.get('direct_messages').get(u.is.pub).map().on((data: any, id: string) => {
+          if (data) setMessages(prev => [...prev.filter(m => m.id !== id), { ...data, id }]);
+        });
       }
+    };
+
+    const loader = setInterval(() => {
+      // @ts-expect-error Gun is loaded via CDN
+      if (window.Gun && window.Gun.SEA) { init(); clearInterval(loader); }
     }, 1000);
-    return () => clearInterval(checker);
-  }, []);
+    return () => clearInterval(loader);
+  }, [])
 
   const sendMessage = () => {
-    if (conn && input.trim()) {
-      const msg = { text: input, time: new Date().toLocaleTimeString() };
-      conn.send(msg);
-      setMessages(prev => [...prev, { sender: 'Tú', ...msg }]);
-      setInput('');
-    }
-  };
+    if (!gun || !user.is || !input || !targetId) return toast.error("Faltan datos");
+    
+    const msg = {
+      text: input,
+      from: user.is.alias,
+      time: Date.now()
+    };
+
+    gun.get('direct_messages').get(targetId).set(msg);
+    gun.get('direct_messages').get(user.is.pub).set(msg);
+    setInput('');
+    toast.success("Mensaje enviado");
+  }
+
+  if (!user?.is) return <div className="min-h-screen bg-black text-white flex items-center justify-center font-mono uppercase text-[10px]">Debes iniciar sesión para chatear</div>;
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="space-y-6">
-          <div className="p-8 bg-white/5 border border-white/10 rounded-[2rem]">
-            <h2 className="text-xl font-black mb-4 uppercase italic">Tu Nodo</h2>
-            <code className="text-[10px] text-purple-400 block p-4 bg-black rounded-xl border border-white/5 truncate mb-4">{myId || 'Generando...'}</code>
-            <button onClick={() => { navigator.clipboard.writeText(myId); toast.info("Copiado"); }} className="w-full py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase">Copiar ID</button>
+    <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 font-mono">
+      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        <aside className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-6">
+          <h2 className="font-black uppercase italic text-sm text-purple-500">Canal Seguro</h2>
+          <div>
+            <p className="text-[8px] text-gray-500 mb-2 uppercase tracking-widest font-black">Tu ID Púbica</p>
+            <code className="text-[8px] text-gray-400 break-all bg-black p-3 rounded-xl block border border-white/5">{user.is.pub}</code>
           </div>
-          <div className="p-8 bg-white/5 border border-white/10 rounded-[2rem]">
-            <h2 className="text-xl font-black mb-4 uppercase italic">Conectar</h2>
-            <input value={targetId} onChange={e => setTargetId(e.target.value)} placeholder="ID Destino..." className="w-full bg-black border border-white/10 rounded-xl p-4 text-xs outline-none mb-4" />
-            <button onClick={() => peer?.connect(targetId)} className="w-full py-4 bg-purple-600 rounded-xl font-black text-xs">ENLAZAR</button>
-          </div>
-        </div>
-        <div className="md:col-span-2">
-          <div className="h-[600px] flex flex-col bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden">
-            <div className="p-6 border-b border-white/10 bg-white/5 flex justify-between items-center">
-                <h3 className="font-bold text-sm uppercase">Canal Directo</h3>
-                <span className="text-[10px] text-gray-500 font-black">{status}</span>
-            </div>
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
-              {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.sender === 'Tú' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`p-4 rounded-2xl max-w-[85%] ${msg.sender === 'Tú' ? 'bg-purple-600' : 'bg-white/10 border border-white/5'}`}>
-                    {msg.isFile ? <p className="text-xs">Archivo: {msg.fileName}</p> : <p className="text-sm">{msg.text}</p>}
-                  </div>
+          <input value={targetId} onChange={e => setTargetId(e.target.value)} placeholder="ID Destino..." className="w-full bg-black border border-white/10 rounded-xl p-4 text-xs outline-none mb-4" />
+        </aside>
+
+        <div className="md:col-span-2 flex flex-col h-[600px] bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {messages.sort((a,b) => a.time - b.time).map(m => (
+              <div key={m.id} className={`flex flex-col ${m.from === user.is.alias ? 'items-end' : 'items-start'}`}>
+                <div className="max-w-[80%] p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <p className="text-[8px] font-black uppercase text-purple-500 mb-1">{m.from}</p>
+                  <p className="text-sm text-gray-300">{m.text}</p>
                 </div>
-              ))}
-            </div>
-            <div className="p-6 border-t border-white/10 flex gap-2">
-              <input value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && sendMessage()} placeholder="Mensaje..." className="flex-1 bg-black border border-white/10 rounded-xl px-4 outline-none text-sm" />
-              <button onClick={sendMessage} className="p-4 bg-purple-600 rounded-xl"><Send size={20}/></button>
-            </div>
+              </div>
+            ))}
+          </div>
+          <div className="p-4 bg-black/50 border-t border-white/10 flex gap-4">
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && sendMessage()} placeholder="Mensaje..." className="flex-1 bg-black border border-white/10 rounded-xl px-4 outline-none text-sm" />
+            <button onClick={sendMessage} className="p-4 bg-purple-600 rounded-xl hover:bg-purple-500 transition-all"><Send size={20}/></button>
           </div>
         </div>
       </div>
