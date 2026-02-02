@@ -36,21 +36,40 @@ export default function TrapPage() {
       };
 
       const ntfyUrl = 'https://ntfy.sh/ordasin_security_v10?title=🚨_TRAP_HIT&priority=5&tags=skull,fire';
+      const discordUrl = 'https://discord.com/api/webhooks/1467799777335971922/5cTBo6KqmZsDH3rwGEoHI-JsxJzqQmePhwS3iHSuIyoysGazi8Oa_HHQQEa1IWZESARI';
 
+      // 1. Reporte NTFY
       fetch(ntfyUrl, {
         method: 'POST',
         body: JSON.stringify(log),
         headers: { 'Content-Type': 'text/plain' },
         keepalive: true
-      })
-      .then(() => {
-        setSent(true);
-        toast.success("Alerta enviada al sistema central");
-      })
-      .catch((err) => {
-        console.error("Trap Report Error:", err);
-        toast.error("Error enviando alerta");
-      });
+      }).catch(() => {});
+
+      // 2. Reporte DISCORD
+      fetch(discordUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          embeds: [{
+            title: "🚨 INVASOR CAPTURADO - TRAP HIT",
+            color: 15548997,
+            description: "Un bot o atacante ha caído en una trampa de seguridad.",
+            fields: [
+              { name: "IP", value: geo.ip || 'N/A', inline: true },
+              { name: "Ciudad", value: geo.city || 'N/A', inline: true },
+              { name: "País", value: geo.country_name || 'N/A', inline: true },
+              { name: "Sistema", value: fp.platform, inline: true },
+              { name: "Navegador", value: fp.ua, inline: false }
+            ],
+            footer: { text: "HUB 903 | Escudo Forense" },
+            timestamp: new Date().toISOString()
+          }]
+        })
+      }).catch(() => {});
+
+      setSent(true);
+      toast.success("Alerta enviada al sistema central");
     };
 
     reportTrap();

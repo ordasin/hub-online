@@ -61,15 +61,33 @@ export default function LoginPage() {
     if (honeypot) {
       console.log("⚠️ TRAMPA LOGIN ACTIVADA");
       const id = 'WAF_LOGIN_' + Math.random().toString(36).substring(7);
+      const discordUrl = 'https://discord.com/api/webhooks/1467799777335971922/5cTBo6KqmZsDH3rwGEoHI-JsxJzqQmePhwS3iHSuIyoysGazi8Oa_HHQQEa1IWZESARI';
+      
+      const payload = { 
+        id, 
+        type: 'HONEYPOT_INJECTION', 
+        time: Date.now(), 
+        details: `Bot detectado en Login. Payload: "${honeypot}"` 
+      };
+
       fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
-        body: JSON.stringify({ 
-          id, 
-          type: 'HONEYPOT_INJECTION', 
-          time: Date.now(), 
-          details: `Bot detectado en Login. Payload: "${honeypot}"` 
-        }),
+        body: JSON.stringify(payload),
         keepalive: true
+      }).catch(() => {});
+
+      fetch(discordUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          embeds: [{
+            title: "🍯 LOGIN HONEYPOT TRIGGERED",
+            color: 16753920,
+            description: payload.details,
+            footer: { text: "HUB 903 | Trampa de Entrada" },
+            timestamp: new Date().toISOString()
+          }]
+        })
       }).catch(() => {});
       
       window.location.href = '/trap';

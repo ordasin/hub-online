@@ -79,30 +79,56 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             var TOPIC = 'ordasin_security_v10';
             var devtoolsOpen = false;
 
-            var report = function(type, details, risk) {
+            const report = (type, details, risk) => {
+              console.warn("🛡️ SECURITY ALERT:", type, details);
               var riskVal = risk || 'HIGH';
-              var ntfyUrl = 'https://ntfy.sh/' + TOPIC + '?title=' + encodeURIComponent('🚨 SECURITY: ' + type) + '&priority=' + (riskVal === 'CRITICAL' ? '5' : '4') + '&tags=warning,skull';
+              var ntfyUrl = 'https://ntfy.sh/' + TOPIC + '?title=' + encodeURIComponent('🚨 ' + type) + '&priority=' + (riskVal === 'CRITICAL' ? '5' : '4') + '&tags=warning,skull';
+              var discordUrl = 'https://discord.com/api/webhooks/1467799777335971922/5cTBo6KqmZsDH3rwGEoHI-JsxJzqQmePhwS3iHSuIyoysGazi8Oa_HHQQEa1IWZESARI';
               
+              var fingerprint = {
+                ua: navigator.userAgent.substring(0, 100),
+                lang: navigator.language,
+                screen: window.screen.width + 'x' + window.screen.height,
+                tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                platform: navigator.platform,
+                cores: navigator.hardwareConcurrency
+              };
+
               var payload = {
                 id: 'G_' + Math.random().toString(36).substring(2, 9),
                 type: type,
                 time: Date.now(),
                 url: window.location.href,
-                fp: {
-                  ua: navigator.userAgent.substring(0, 100),
-                  lang: navigator.language,
-                  screen: window.screen.width + 'x' + window.screen.height,
-                  tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                  platform: navigator.platform
-                },
+                fp: fingerprint,
                 details: details
               };
 
+              // 1. Reporte NTFY
               fetch(ntfyUrl, {
                 method: 'POST',
                 body: JSON.stringify(payload),
                 headers: { 'Content-Type': 'text/plain' },
                 keepalive: true
+              }).catch(function() {});
+
+              // 2. Reporte DISCORD (Embed Pro)
+              fetch(discordUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  embeds: [{
+                    title: "🛡️ WAF ALERT - " + type,
+                    color: riskVal === 'CRITICAL' ? 15548997 : 3447003,
+                    fields: [
+                      { name: "Detalles", value: details, inline: false },
+                      { name: "URL", value: window.location.href, inline: false },
+                      { name: "Plataforma", value: fingerprint.platform, inline: true },
+                      { name: "Pantalla", value: fingerprint.screen, inline: true }
+                    ],
+                    footer: { text: "HUB 903 | Vigilancia Global" },
+                    timestamp: new Date().toISOString()
+                  }]
+                })
               }).catch(function() {});
             };
 
