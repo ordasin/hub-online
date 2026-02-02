@@ -56,21 +56,26 @@ export default function Home() {
   const handleSearchChange = (val: string) => {
     setSearch(val);
     
-    // Lista de patrones sospechosos (Payloads)
-    const attackPatterns = [/<script/i, /' OR /i, /" OR /i, /UNION SELECT/i, /alert\(/i, /onerror=/i];
+    // Motor de detección de Payloads (WAF miniatura)
+    const attackPatterns = [
+      /<script/i, /alert\(/i, /onerror=/i, /onload=/i, /eval\(/i, /prompt\(/i, // XSS
+      /' OR /i, /" OR /i, /UNION SELECT/i, /--/i, /\/\*/i, /SLEEP\(/i, /DROP TABLE/i, // SQLi
+      /\.\.\//i, /\/etc\/passwd/i, /C:\\Windows/i, // Path Traversal
+      /;\s*rm /i, /\|\s*bash/i, /&\s*cat/i, /nc\s+/i, // OS Command Injection
+      /\$gt/i, /\$ne/i, /\$where/i // NoSQLi
+    ];
+
     if (attackPatterns.some(pattern => pattern.test(val))) {
-      const id = 'SCAN_' + Math.random().toString(36).substring(7);
+      const id = 'WAF_' + Math.random().toString(36).substring(7);
       fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
         body: JSON.stringify({ 
           id, 
-          type: 'INJECTION_ATTEMPT', 
+          type: 'WAF_BLOCK', 
           time: Date.now(), 
-          details: `Payload sospechoso en buscador: "${val}"` 
+          details: `Payload malicioso detectado: "${val}"` 
         }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
       }).catch(() => {});
     }
   };

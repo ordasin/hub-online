@@ -55,19 +55,16 @@ export default function LoginPage() {
 
   const handleLogin = () => {
     if (honeypot) {
-      // Emitir alerta con el payload capturado
-      const id = 'PAYLOAD_' + Math.random().toString(36).substring(7);
+      const id = 'WAF_LOGIN_' + Math.random().toString(36).substring(7);
       fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
         body: JSON.stringify({ 
           id, 
-          type: 'FORM_INJECTION', 
+          type: 'HONEYPOT_INJECTION', 
           time: Date.now(), 
-          details: `Payload detectado en Login: "${honeypot}"` 
+          details: `Payload capturado en trampa: "${honeypot}"` 
         }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
       }).catch(() => {});
       
       window.location.href = '/trap';
