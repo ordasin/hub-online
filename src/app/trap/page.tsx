@@ -37,27 +37,15 @@ export default function TrapPage() {
         gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log);
       }
 
-      // 2. Reporte vía Nostr (Principal y ultra-fiable)
+      // 2. Reporte vía ntfy (Ultra-fiable y anónimo)
       try {
-        NOSTR_RELAYS.forEach(url => {
-          const ws = new WebSocket(url);
-          ws.onopen = () => {
-            // Enviamos un evento anónimo de tipo "Aviso de Seguridad"
-            const event = {
-              kind: 1,
-              created_at: Math.floor(Date.now() / 1000),
-              tags: [['t', 'ordasin_security_alert']],
-              content: JSON.stringify(log),
-              pubkey: '0000000000000000000000000000000000000000000000000000000000000000', // Pubkey genérica para bots
-              id: id.padEnd(64, '0'),
-              sig: '0000000000000000000000000000000000000000000000000000000000000000'
-            };
-            ws.send(JSON.stringify(['EVENT', event]));
-            setTimeout(() => ws.close(), 2000);
-          };
+        await fetch('https://ntfy.sh/ordasin_hub_alerts', {
+          method: 'POST',
+          body: JSON.stringify(log),
+          headers: { 'Title': 'ALERTA DE SEGURIDAD', 'Priority': 'high' }
         });
       } catch (e) {
-        console.error("Nostr failure:", e);
+        console.error("Alert failure:", e);
       }
 
       setTimeout(() => setSent(true), 2000);

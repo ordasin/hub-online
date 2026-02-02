@@ -110,26 +110,22 @@ export default function AdminPage() {
         else setP2pProjects(prev => prev.filter(p => p.id !== id));
       });
 
-      // 3. ESCUCHA VÍA NOSTR (Ultra-resiliente)
-      const NOSTR_RELAYS = ['wss://relay.damus.io', 'wss://nos.lol'];
-      NOSTR_RELAYS.forEach(url => {
-        const ws = new WebSocket(url);
-        ws.onopen = () => {
-          // Suscribirse a alertas de seguridad de Ordasin
-          const subId = 'sub_' + Math.random().toString(36).substring(7);
-          ws.send(JSON.stringify(['REQ', subId, { kinds: [1], '#t': ['ordasin_security_alert'], limit: 10 }]));
-        };
-        ws.onmessage = (e) => {
-          const msg = JSON.parse(e.data);
-          if (msg[0] === 'EVENT') {
-            const event = msg[2];
-            try {
-              const data = JSON.parse(event.content);
-              setThreats(prev => [data, ...prev.filter(t => t.id !== data.id)].sort((a,b) => b.time - a.time).slice(0, 10));
-            } catch (err) { console.error("Error parsing Nostr event", err); }
+      // 3. ESCUCHA VÍA NTFY (Alta disponibilidad)
+      const eventSource = new EventSource('https://ntfy.sh/ordasin_hub_alerts/sse');
+      eventSource.onmessage = (e) => {
+        try {
+          const ntfyData = JSON.parse(e.data);
+          if (ntfyData.message) {
+            const data = JSON.parse(ntfyData.message);
+            setThreats(prev => [data, ...prev.filter(t => t.id !== data.id)].sort((a,b) => b.time - a.time).slice(0, 10));
+            toast.warning("¡Invasor detectado!");
           }
-        };
-      });
+        } catch (err) { console.error("Error receiving alert", err); }
+      };
+
+      return () => {
+        eventSource.close();
+      };
     };
 
     const loader = setInterval(() => {
