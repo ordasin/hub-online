@@ -15,7 +15,7 @@ export default function TrapPage() {
 
   useEffect(() => {
     const report = () => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (!Gun) return;
       
@@ -31,7 +31,7 @@ export default function TrapPage() {
       console.log("Intentando reportar a Gun:", log);
 
       const interval = setInterval(() => {
-        gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log, (ack: any) => {
+        gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log, (ack: { err: any }) => {
           if (ack && !ack.err) {
             console.log("Reporte enviado con éxito:", ack);
             setSent(true);
@@ -46,7 +46,7 @@ export default function TrapPage() {
     };
 
     const check = setInterval(() => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       if (window.Gun) {
         report();
         clearInterval(check);

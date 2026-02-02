@@ -1,4 +1,4 @@
-import { MessageSquare, Github, Star, Sparkles, Send, MessageCircle } from "lucide-react"
+import { Github, Star, Send, MessageCircle } from "lucide-react"
 
 interface FeedbackProps {
   projectTitle?: string
@@ -36,7 +36,7 @@ export function Feedback({ projectTitle }: FeedbackProps) {
         <a 
           href={discordUrl}
           target="_blank"
-          className="relative group overflow-hidden p-8 rounded-[2rem] bg-[#5865F2]/5 border border-[#5865F2]/10 hover:border-[#5865F2]/50 transition-all"
+          className="relative group overflow-hidden p-8 rounded-[2rem] bg-[#5865F2]/5 border border-white/10 hover:border-[#5865F2]/50 transition-all"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity text-[#5865F2]">
             <MessageCircle size={120} />
@@ -63,8 +63,8 @@ export function Feedback({ projectTitle }: FeedbackProps) {
         <div className="grid grid-cols-1 gap-6">
           <div className="relative p-6 rounded-2xl bg-white/5 border-l-4 border-purple-500">
             <p className="text-gray-300 italic text-lg leading-relaxed">
-              "El optimizador de Ordasin ha cambiado por completo el rendimiento de mis aplicaciones. 
-              La interfaz es intuitiva y extremadamente rápida."
+              &quot;El optimizador de Ordasin ha cambiado por completo el rendimiento de mis aplicaciones. 
+              La interfaz es intuitiva y extremadamente rápida.&quot;
             </p>
             <div className="mt-4 flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500" />

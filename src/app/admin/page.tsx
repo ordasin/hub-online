@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Activity, Terminal, Package, Trash2, Wifi, Megaphone, Send } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Shield, Activity, Terminal, Package, Trash2, Wifi, Send } from 'lucide-react'
+import { motion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
 
@@ -24,7 +24,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const init = () => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
       if (!Gun || !Gun.SEA) return;
 
@@ -34,7 +34,7 @@ export default function AdminPage() {
       g.on('hi', () => setPeers(p => p + 1));
       g.on('bye', () => setPeers(p => Math.max(0, p - 1)));
       
-      // @ts-ignore
+      // @ts-expect-error Gun types not available
       const user = g.user().recall({ sessionStorage: true });
       
       const sync = () => {
@@ -64,7 +64,7 @@ export default function AdminPage() {
     };
 
     const loader = setInterval(() => {
-      // @ts-ignore
+      // @ts-expect-error Gun is loaded via CDN
       if (window.Gun && window.Gun.SEA) { init(); clearInterval(loader); }
     }, 1000);
     return () => clearInterval(loader);
