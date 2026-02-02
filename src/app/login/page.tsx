@@ -34,6 +34,7 @@ export default function LoginPage() {
         if (user.is) {
           setIsLoggedIn(true);
           setCurrentUser(user.is.alias);
+          localStorage.setItem('last_logged_user', user.is.alias);
           setLoading(false);
           toast.success(`Acceso Autorizado: ${user.is.alias}`);
         }
