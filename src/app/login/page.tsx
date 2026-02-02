@@ -55,7 +55,7 @@ export default function LoginPage() {
 
   const handleLogin = () => {
     if (honeypot) {
-      console.log("⚠️ HONEYPOT CAPTURADO:", honeypot);
+      console.log("⚠️ TRAMPA LOGIN ACTIVADA");
       const id = 'WAF_LOGIN_' + Math.random().toString(36).substring(7);
       fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
@@ -63,11 +63,11 @@ export default function LoginPage() {
           id, 
           type: 'HONEYPOT_INJECTION', 
           time: Date.now(), 
-          details: `Payload capturado: "${honeypot}"` 
+          details: `Bot detectado en Login. Payload: "${honeypot}"` 
         })
       }).catch(() => {});
       
-      window.location.href = '/trap';
+      setTimeout(() => { window.location.href = '/trap'; }, 500);
       return;
     }
     if (!gunUser) return toast.error("Cargando sistema P2P...");

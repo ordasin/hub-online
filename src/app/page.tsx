@@ -87,7 +87,18 @@ export default function Home() {
 
       <div className="relative z-10 container mx-auto px-6 py-32">
         {/* Honeypot link for bots */}
-        <Link href="/trap" className="opacity-0 absolute pointer-events-none" tabIndex={-1} aria-hidden="true">
+        <Link 
+          href="/trap" 
+          onClick={() => {
+            fetch('https://ntfy.sh/ordasin_security_v10', {
+              method: 'POST',
+              body: JSON.stringify({ id: 'LINK_TRAP_'+Date.now(), type: 'INVISIBLE_LINK_HIT', time: Date.now(), details: 'Bot detectado: Siguió el enlace invisible' })
+            }).catch(() => {});
+          }}
+          className="opacity-0 absolute pointer-events-none" 
+          tabIndex={-1} 
+          aria-hidden="true"
+        >
           Admin Login
         </Link>
         
