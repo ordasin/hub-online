@@ -2,6 +2,52 @@
 
 import { useEffect, useRef } from 'react'
 
+class Particle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  size: number
+  canvasWidth: number
+  canvasHeight: number
+
+  constructor(width: number, height: number) {
+    this.canvasWidth = width
+    this.canvasHeight = height
+    this.x = Math.random() * width
+    this.y = Math.random() * height
+    this.vx = (Math.random() - 0.5) * 0.5
+    this.vy = (Math.random() - 0.5) * 0.5
+    this.size = Math.random() * 2 + 1
+  }
+
+  update(mouse: { x: number, y: number, active: boolean }) {
+    this.x += this.vx
+    this.y += this.vy
+
+    if (this.x < 0 || this.x > this.canvasWidth) this.vx *= -1
+    if (this.y < 0 || this.y > this.canvasHeight) this.vy *= -1
+
+    // Mouse interaction
+    if (mouse.active) {
+      const dx = mouse.x - this.x
+      const dy = mouse.y - this.y
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist < 100) {
+        this.x -= dx * 0.02
+        this.y -= dy * 0.02
+      }
+    }
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(147, 51, 234, 0.5)' // Purple-500
+    ctx.fill()
+  }
+}
+
 export function HeroScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -18,55 +64,12 @@ export function HeroScene() {
     const connectionDistance = 150
     const mouse = { x: 0, y: 0, active: false }
 
-    class Particle {
-      x: number
-      y: number
-      vx: number
-      vy: number
-      size: number
-
-      constructor() {
-        this.x = Math.random() * (canvas?.width || 0)
-        this.y = Math.random() * (canvas?.height || 0)
-        this.vx = (Math.random() - 0.5) * 0.5
-        this.vy = (Math.random() - 0.5) * 0.5
-        this.size = Math.random() * 2 + 1
-      }
-
-      update() {
-        this.x += this.vx
-        this.y += this.vy
-
-        if (this.x < 0 || this.x > (canvas?.width || 0)) this.vx *= -1
-        if (this.y < 0 || this.y > (canvas?.height || 0)) this.vy *= -1
-
-        // Mouse interaction
-        if (mouse.active) {
-          const dx = mouse.x - this.x
-          const dy = mouse.y - this.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < 100) {
-            this.x -= dx * 0.02
-            this.y -= dy * 0.02
-          }
-        }
-      }
-
-      draw() {
-        if (!ctx) return
-        ctx.beginPath()
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(147, 51, 234, 0.5)' // Purple-500
-        ctx.fill()
-      }
-    }
-
     const init = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
       particles = []
       for (let i = 0; i < particleCount; i++) {
-        particles.push(new Particle())
+        particles.push(new Particle(canvas.width, canvas.height))
       }
     }
 
@@ -74,8 +77,8 @@ export function HeroScene() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       
       particles.forEach((p, i) => {
-        p.update()
-        p.draw()
+        p.update(mouse)
+        p.draw(ctx)
 
         for (let j = i + 1; j < particles.length; j++) {
           const dx = p.x - particles[j].x

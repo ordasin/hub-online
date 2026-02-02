@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { HelpCircle, ShieldCheck, Zap, Globe, Lock, Code } from 'lucide-react'
+import { HelpCircle, ShieldCheck, Globe, Lock } from 'lucide-react'
 
 const faqs = [
   {

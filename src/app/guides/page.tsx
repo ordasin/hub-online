@@ -1,8 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { BookOpen, Terminal, Download, Monitor, Shield, Zap, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import { Terminal, Shield, Zap, ArrowRight } from 'lucide-react'
 
 const guides = [
   {

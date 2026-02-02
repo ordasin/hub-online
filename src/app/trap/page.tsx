@@ -14,7 +14,7 @@ export default function TrapPage() {
       try {
         const res = await fetch('https://ipapi.co/json/').then(r => r.json()).catch(() => ({}));
         geo = res;
-      } catch(e) {}
+      } catch {}
 
       const fp = {
         ua: navigator.userAgent.substring(0, 100),

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { projects as staticProjects } from "@/data/projects"
 import { ProjectCard } from "@/components/ProjectCard"
-import { Search, Megaphone } from "lucide-react"
+import { Search, Megaphone, Globe, Shield } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { HeroScene } from "@/components/HeroScene"

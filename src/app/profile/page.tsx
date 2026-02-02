@@ -1,20 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Save, RefreshCw, Key, Globe, Activity } from 'lucide-react'
+import { Shield, Key, Globe, Activity } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { toast } from 'sonner'
 
 export default function ProfilePage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [alias, setAlias] = useState('')
   const [pub, setPub] = useState('')
   const [joined, setJoined] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [gunUser, setGunUser] = useState<any>(null)
-  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [config, setConfig] = useState({ optimizer: 'adam', lr: 0.001, weight_decay: 0.01 })
-  const [saving, setSaving] = useState(false)
-
+  
   const MASTER_PUB = "6mwMzGdVuCtE-sd_7_5RJ5AUeEbA-i3JwZ0UjiaxAtE.KH6lWH55LxsAE2D7ZBQQKlJgod5hqIHzwcoJ25gjqHo";
 
   useEffect(() => {
@@ -64,6 +63,12 @@ export default function ProfilePage() {
 
   const isMaster = pub === MASTER_PUB;
 
+  if (!isLoggedIn && typeof window !== 'undefined') return (
+    <div className="min-h-screen bg-black flex items-center justify-center font-mono text-white animate-pulse">
+        AUTENTICANDO IDENTIDAD...
+    </div>
+  );
+
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 px-6 pb-20 font-mono">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -97,7 +102,7 @@ export default function ProfilePage() {
                     <Globe size={12} className="text-blue-500"/> Nodo: Global-Relay-01
                   </span>
                   <span className="flex items-center gap-2 text-[9px] font-black uppercase text-gray-400 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                    <Save size={12} className="text-green-500"/> Registro: {joined}
+                    <Activity size={12} className="text-green-500"/> Registro: {joined}
                   </span>
                 </div>
               </div>

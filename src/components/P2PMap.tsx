@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Globe, Users } from 'lucide-react'
+import { Globe } from 'lucide-react'
 
 interface Node {
   id: string
@@ -42,7 +42,7 @@ export function P2PMap() {
             gun.get('hub_active_nodes').get(myId).put(null);
           });
         }
-      } catch (e) {}
+      } catch {}
 
       // 2. Escuchar otros nodos
       gun.get('hub_active_nodes').map().on((data: Node, id: string) => {

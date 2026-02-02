@@ -113,7 +113,7 @@ export default function AdminPage() {
       g.on('auth', sync);
 
       // --- 2. ESCUCHA REAL-TIME (SSE) ---
-      let eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
+      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
       
       eventSource.onmessage = (e) => {
         setLastPulse(new Date().toLocaleTimeString());
