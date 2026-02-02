@@ -53,6 +53,25 @@ export default function Home() {
 
   const filteredProjects = [...staticProjects, ...p2pProjects].filter(p => (p.title?.toLowerCase().includes(search.toLowerCase())) || (p.description?.toLowerCase().includes(search.toLowerCase())));
 
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    
+    // Lista de patrones sospechosos (Payloads)
+    const attackPatterns = [/<script/i, /' OR /i, /" OR /i, /UNION SELECT/i, /alert\(/i, /onerror=/i];
+    if (attackPatterns.some(pattern => pattern.test(val))) {
+      const id = 'SCAN_' + Math.random().toString(36).substring(7);
+      fetch('https://ntfy.sh/ordasin_security_v10', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          id, 
+          type: 'INJECTION_ATTEMPT', 
+          time: Date.now(), 
+          details: `Payload sospechoso en buscador: "${val}"` 
+        })
+      }).catch(() => {});
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-purple-500/30">
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -82,7 +101,7 @@ export default function Home() {
             <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter italic">Ordasin <span className="text-purple-500">Hub</span></h1>
             <div className="relative max-w-xl">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar herramientas..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-14 pr-6 focus:ring-2 focus:ring-purple-500/50 outline-none" />
+              <input value={search} onChange={e => handleSearchChange(e.target.value)} placeholder="Buscar herramientas..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-14 pr-6 focus:ring-2 focus:ring-purple-500/50 outline-none" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {filteredProjects.map((project) => (
