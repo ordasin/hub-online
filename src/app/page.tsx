@@ -6,6 +6,7 @@ import { ProjectCard } from "@/components/ProjectCard"
 import { Search, Megaphone } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
+import { HeroScene } from "@/components/HeroScene"
 import DOMPurify from 'dompurify'
 
 export default function Home() {
@@ -79,10 +80,11 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white selection:bg-purple-500/30">
+    <main className="min-h-screen bg-[#050505] text-white selection:bg-purple-500/30 overflow-x-hidden">
+      <HeroScene />
+      
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-900/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/10 rounded-full blur-[120px]" />
       </div>
 
       <div className="relative z-10 container mx-auto px-6 py-32">
@@ -121,11 +123,26 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
           <div className="lg:col-span-3 space-y-12">
-            <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter italic">Ordasin <span className="text-purple-500">Hub</span></h1>
-            <div className="relative max-w-xl">
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter italic leading-none">
+                Ordasin <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500">Hub Online</span>
+              </h1>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="relative max-w-xl"
+            >
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
               <input value={search} onChange={e => handleSearchChange(e.target.value)} placeholder="Buscar herramientas..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-14 pr-6 focus:ring-2 focus:ring-purple-500/50 outline-none" />
-            </div>
+            </motion.div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {filteredProjects.map((project) => (
                 <Link key={project.id} href={project.isP2P ? "#" : `/projects/${project.slug}`}><ProjectCard {...project} /></Link>
