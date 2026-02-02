@@ -15,16 +15,16 @@ export const projects = [
   },
   {
     id: 2,
-    title: 'Ordasin Conquest',
-    slug: 'ordasin-conquest',
-    description: 'Un juego de estrategia y conquista. Domina el mapa, gestiona recursos y lidera tu imperio hacia la victoria absoluta.',
-    version: '0.5.0-beta',
-    downloadCount: 300,
+    title: 'CyberGodfather',
+    slug: 'cybergodfather',
+    description: 'Framework integral de ciberseguridad para Linux. Integra herramientas de OSINT (theHarvester, Sherlock), Hacking Web (SQLMap, Gobuster), Auditoría de Redes y anonimato vía Tor en una interfaz profesional.',
+    version: '2.1.0',
+    downloadCount: 2450,
     fileUrl: '#',
-    createdAt: '15 Ene 2026',
+    createdAt: '28 Ene 2026',
     images: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=1200',
-      'https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&q=80&w=1200'
+      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=1200',
+      'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=1200'
     ]
   }
 ]
