@@ -21,24 +21,44 @@ export default function TrapPage() {
 
   useEffect(() => {
     const report = async () => {
+      let ipData = {};
+      try {
+        // Obtenemos datos de geolocalización e IP
+        const res = await fetch('https://ipapi.co/json/');
+        ipData = await res.json();
+      } catch (e) {
+        console.error("Geo-IP failure:", e);
+      }
+
       const id = 'ID' + Math.random().toString(36).substring(7);
       const log = { 
         id: id, 
         type: 'EXT_SECURITY_HIT', 
         time: Date.now(),
-        details: 'Intento de acceso detectado (Honeypot Active)'
+        ip: ipData,
+        browser: {
+          agent: navigator.userAgent,
+          lang: navigator.language,
+          platform: navigator.platform,
+          screen: `${window.screen.width}x${window.screen.height}`,
+          referrer: document.referrer || 'Directo / Bot'
+        },
+        details: `Ataque detectado desde ${ipData && (ipData as any).city ? (ipData as any).city : 'Ubicación Desconocida'}`
       };
 
-      console.log("Emitiendo alerta de seguridad...");
+      console.log("Emitiendo reporte forense completo...");
 
-      // 1. Reporte vía ntfy (Principal - Instantáneo)
+      // 1. Reporte vía ntfy (Principal)
       try {
         await fetch('https://ntfy.sh/ordasin_hub_alerts', {
           method: 'POST',
           body: JSON.stringify(log),
-          headers: { 'Title': 'ALERTA DE SEGURIDAD', 'Priority': 'high' }
+          headers: { 
+            'Title': `🚨 INVASIÓN: ${ipData && (ipData as any).country_name ? (ipData as any).country_name : 'Desconocido'}`,
+            'Priority': 'urgent',
+            'Tags': 'shield,skull'
+          }
         });
-        console.log("Alerta ntfy enviada");
       } catch (e) {
         console.error("Alert failure:", e);
       }

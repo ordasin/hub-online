@@ -256,15 +256,38 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="space-y-8">
             <section className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 space-y-6 shadow-2xl">
-                <h2 className="text-lg font-black uppercase flex items-center gap-2 text-red-400"><Activity size={18}/> Invasores</h2>
-                <div className="space-y-3">
-                    {threats.map(t => (
-                        <div key={t.id} className="p-4 bg-red-900/10 border border-red-900/20 rounded-2xl text-[9px]">
-                            <p className="font-black text-red-500 uppercase">{new Date(t.time).toLocaleTimeString()} - DETECTED</p>
-                            <p className="text-gray-500 truncate mt-1">{t.details}</p>
+                <h2 className="text-lg font-black uppercase flex items-center gap-2 text-red-400"><Activity size={18}/> Registro Forense</h2>
+                <div className="space-y-4">
+                    {threats.map((t: any) => (
+                        <div key={t.id} className="p-5 bg-red-950/10 border border-red-900/20 rounded-[2rem] space-y-3">
+                            <div className="flex justify-between items-start">
+                              <p className="font-black text-red-500 text-[9px] uppercase">{new Date(t.time).toLocaleString()}</p>
+                              <span className="px-2 py-0.5 bg-red-500 text-white text-[7px] font-black rounded-full uppercase">Honeypot Hit</span>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4 text-[8px]">
+                              <div>
+                                <p className="text-gray-500 uppercase font-bold">Ubicación</p>
+                                <p className="text-white">{t.ip?.city}, {t.ip?.country_name} ({t.ip?.ip})</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 uppercase font-bold">ISP / Org</p>
+                                <p className="text-white truncate">{t.ip?.org || t.ip?.asn}</p>
+                              </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-white/5">
+                              <p className="text-gray-500 uppercase font-bold text-[7px]">Huella Digital</p>
+                              <p className="text-gray-400 text-[7px] leading-tight mt-1 line-clamp-2">{t.browser?.agent}</p>
+                              <div className="flex gap-2 mt-2">
+                                <span className="bg-white/5 px-2 py-0.5 rounded text-gray-500 font-mono text-[7px]">{t.browser?.platform}</span>
+                                <span className="bg-white/5 px-2 py-0.5 rounded text-gray-500 font-mono text-[7px]">{t.browser?.screen}</span>
+                                <span className="bg-white/5 px-2 py-0.5 rounded text-gray-500 font-mono text-[7px]">{t.browser?.lang}</span>
+                              </div>
+                            </div>
                         </div>
                     ))}
-                    {threats.length === 0 && <p className="text-center py-10 text-gray-700 text-xs italic">Vigilando red...</p>}
+                    {threats.length === 0 && <p className="text-center py-10 text-gray-700 text-xs italic">Vigilando red en tiempo real...</p>}
                 </div>
             </section>
 
