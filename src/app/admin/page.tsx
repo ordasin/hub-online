@@ -24,8 +24,41 @@ export default function AdminPage() {
   const [peers, setPeers] = useState(0)
   const [activePeer, setActivePeer] = useState<string>("Buscando...")
   const [latency, setLatency] = useState<number>(0)
+  const [wafStatus, setWafStatus] = useState<"connecting" | "active" | "error">("connecting")
 
   useEffect(() => {
+    // --- 1. CARGAR HISTORIAL INICIAL (JSON POLL) ---
+    const loadHistory = async () => {
+      try {
+        const res = await fetch('https://ntfy.sh/ordasin_security_v10/json?poll=1&since=30m');
+        const text = await res.text();
+        const lines = text.trim().split('\n');
+        const history: any[] = [];
+        
+        lines.forEach(line => {
+          try {
+            const ntfyData = JSON.parse(line);
+            if (ntfyData.message) {
+              const logData = JSON.parse(ntfyData.message);
+              history.push(logData);
+            }
+          } catch {}
+        });
+        
+        setThreats(prev => {
+          const combined = [...history, ...prev];
+          const unique = Array.from(new Map(combined.map(item => [item.id, item])).values());
+          return unique.sort((a,b) => b.time - a.time).slice(0, 20);
+        });
+        setWafStatus("active");
+      } catch (e) {
+        console.error("Error cargando historial:", e);
+        setWafStatus("error");
+      }
+    };
+
+    loadHistory();
+
     const init = () => {
       // @ts-expect-error Gun is loaded via CDN
       const Gun = window.Gun;
@@ -42,7 +75,7 @@ export default function AdminPage() {
         if (data && data.text) setAnnouncement(data.text);
       });
 
-      // Medir Latencia sutilmente
+      // Medir Latencia
       const start = Date.now();
       g.get('ping').once(() => setLatency(Date.now() - start));
 
@@ -50,7 +83,6 @@ export default function AdminPage() {
       g.on('hi', (peer: any) => {
         setPeers(p => p + 1);
         setActivePeer(peer.url || "Nodo");
-        // setNetStatus("Conectado");
       });
 
       const sync = () => {
@@ -65,75 +97,55 @@ export default function AdminPage() {
       };
 
       const checker = setInterval(() => {
-        if (g.user().is) {
-          sync();
-          clearInterval(checker);
-        }
+        if (g.user().is) { sync(); clearInterval(checker); }
       }, 1000);
 
       setTimeout(() => {
-        if (!g.user().is) {
-          setIsAdmin(false);
-          // setNetStatus("Sesión no detectada");
-        }
+        if (!g.user().is) setIsAdmin(false);
         clearInterval(checker);
       }, 10000);
 
       g.on('auth', sync);
 
-      // --- SISTEMA DE ESCUCHA ROBUSTO CON RECONEXIÓN ---
-      let eventSource: EventSource | null = null;
+      // --- 2. ESCUCHA REAL-TIME (SSE) ---
+      let eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
       
-      const connectSSE = () => {
-        if (eventSource) eventSource.close();
-        
-        console.log("Iniciando conexión de seguridad...");
-        // Historial de 15 minutos para asegurar capturas
-        eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse?since=15m');
-        
-        eventSource.onopen = () => {
-          console.log("✅ Escudo de Red: CONECTADO");
-          toast.success("Sistema de vigilancia activo");
-        };
-
-        eventSource.onmessage = (e) => {
-          try {
-            const ntfyData = JSON.parse(e.data);
-            if (ntfyData.message) {
-              let logData;
-              try {
-                logData = JSON.parse(ntfyData.message);
-              } catch {
-                logData = { 
-                  id: 'RAW_' + Date.now(), 
-                  type: 'LEGACY_ALERT', 
-                  time: Date.now(), 
-                  details: ntfyData.message 
-                };
-              }
-              setThreats(prev => [logData, ...prev.filter(t => t.id !== logData.id)].sort((a,b) => b.time - a.time).slice(0, 15));
+      eventSource.onmessage = (e) => {
+        try {
+          const ntfyData = JSON.parse(e.data);
+          if (ntfyData.message) {
+            const logData = JSON.parse(ntfyData.message);
+            setThreats(prev => {
+              const exists = prev.find(t => t.id === logData.id);
+              if (exists) return prev;
+              const newThreats = [logData, ...prev].sort((a,b) => b.time - a.time).slice(0, 20);
               toast.warning("¡Actividad Detectada!", { description: logData.details });
-            }
-          } catch (err) {
-            console.error("Error en stream:", err);
+              return newThreats;
+            });
           }
-        };
-
-        eventSource.onerror = (err) => {
-          console.error("⚠️ Error de conexión SSE. Reintentando en 5s...", err);
-          if (eventSource) eventSource.close();
-          setTimeout(connectSSE, 5000);
-        };
+        } catch {}
       };
 
-      connectSSE();
+      eventSource.onerror = () => {
+        setWafStatus("error");
+        eventSource.close();
+        setTimeout(() => {
+          eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
+        }, 5000);
+      };
 
       return () => {
-        if (eventSource) eventSource.close();
+        eventSource.close();
         clearInterval(checker);
       }
     };
 
+    const loader = setInterval(() => {
+      // @ts-expect-error Gun via CDN
+      if (window.Gun && window.Gun.SEA) { init(); clearInterval(loader); }
+    }, 1000);
+    return () => clearInterval(loader);
+  }, []);
     const loader = setInterval(() => {
       // @ts-expect-error Gun via CDN
       if (window.Gun && window.Gun.SEA) { init(); clearInterval(loader); }
@@ -268,10 +280,12 @@ export default function AdminPage() {
               </div>
               <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase">Estado WAF</p>
-                  <p className="text-2xl font-black italic text-green-500">ACTIVO</p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase">Estado Vigilancia</p>
+                  <p className={`text-2xl font-black italic ${wafStatus === 'active' ? 'text-green-500' : wafStatus === 'error' ? 'text-red-500' : 'text-yellow-500'}`}>
+                    {wafStatus === 'active' ? 'ACTIVO' : wafStatus === 'error' ? 'OFFLINE' : 'SYNC...'}
+                  </p>
                 </div>
-                <Shield size={24} className="text-green-500" />
+                <Shield size={24} className={wafStatus === 'active' ? 'text-green-500' : wafStatus === 'error' ? 'text-red-500' : 'text-yellow-500'} />
               </div>
             </section>
 
