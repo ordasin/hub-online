@@ -115,8 +115,7 @@ export default function AdminPage() {
     const testLog = { id: 'TEST'+Date.now(), type: 'TEST', time: Date.now(), details: 'ALERTA DE PRUEBA MANUAL' };
     await fetch('https://ntfy.sh/ordasin_security_v10', { 
       method: 'POST', 
-      body: JSON.stringify(testLog),
-      headers: { 'Content-Type': 'application/json' }
+      body: JSON.stringify(testLog)
     });
     toast.info("Simulación enviada");
   };

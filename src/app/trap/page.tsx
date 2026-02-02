@@ -31,8 +31,7 @@ export default function TrapPage() {
           body: JSON.stringify(log),
           headers: { 
             'Title': '🚨 ALERTA DE SEGURIDAD', 
-            'Priority': 'high',
-            'Content-Type': 'application/json'
+            'Priority': 'high'
           }
         });
       } catch (e) {

@@ -67,6 +67,7 @@ export default function Home() {
 
     if (attackPatterns.some(pattern => pattern.test(val))) {
       const id = 'WAF_' + Math.random().toString(36).substring(7);
+      // Enviamos el objeto como string en el body (texto plano)
       fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
         body: JSON.stringify({ 
@@ -74,8 +75,7 @@ export default function Home() {
           type: 'WAF_BLOCK', 
           time: Date.now(), 
           details: `Payload malicioso detectado: "${val}"` 
-        }),
-        headers: { 'Content-Type': 'application/json' }
+        })
       }).catch(() => {});
     }
   };

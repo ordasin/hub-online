@@ -63,8 +63,7 @@ export default function LoginPage() {
           type: 'HONEYPOT_INJECTION', 
           time: Date.now(), 
           details: `Payload capturado en trampa: "${honeypot}"` 
-        }),
-        headers: { 'Content-Type': 'application/json' }
+        })
       }).catch(() => {});
       
       window.location.href = '/trap';
