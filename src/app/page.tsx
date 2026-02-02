@@ -56,27 +56,21 @@ export default function Home() {
   const handleSearchChange = (val: string) => {
     setSearch(val);
     
-    // Motor de detección de Payloads (WAF miniatura)
-    const attackPatterns = [
-      /<script/i, /alert\(/i, /onerror=/i, /onload=/i, /eval\(/i, /prompt\(/i, // XSS
-      /' OR /i, /" OR /i, /UNION SELECT/i, /--/i, /\/\*/i, /SLEEP\(/i, /DROP TABLE/i, // SQLi
-      /\.\.\//i, /\/etc\/passwd/i, /C:\\Windows/i, // Path Traversal
-      /;\s*rm /i, /\|\s*bash/i, /&\s*cat/i, /nc\s+/i, // OS Command Injection
-      /\$gt/i, /\$ne/i, /\$where/i // NoSQLi
-    ];
+    // Motor básico de detección
+    const attackPatterns = [/<script/i, /alert\(/i, /' OR /i, /--/i, /\.\.\//i];
 
     if (attackPatterns.some(pattern => pattern.test(val))) {
+      console.log("⚠️ PAYLOAD DETECTADO:", val);
       const id = 'WAF_' + Math.random().toString(36).substring(7);
-      // Enviamos el objeto como string en el body (texto plano)
       fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
         body: JSON.stringify({ 
           id, 
           type: 'WAF_BLOCK', 
           time: Date.now(), 
-          details: `Payload malicioso detectado: "${val}"` 
+          details: `Payload malicioso: "${val}"` 
         })
-      }).catch(() => {});
+      }).catch(err => console.error("Error enviando alerta:", err));
     }
   };
 

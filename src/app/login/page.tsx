@@ -55,6 +55,7 @@ export default function LoginPage() {
 
   const handleLogin = () => {
     if (honeypot) {
+      console.log("⚠️ HONEYPOT CAPTURADO:", honeypot);
       const id = 'WAF_LOGIN_' + Math.random().toString(36).substring(7);
       fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
@@ -62,7 +63,7 @@ export default function LoginPage() {
           id, 
           type: 'HONEYPOT_INJECTION', 
           time: Date.now(), 
-          details: `Payload capturado en trampa: "${honeypot}"` 
+          details: `Payload capturado: "${honeypot}"` 
         })
       }).catch(() => {});
       
