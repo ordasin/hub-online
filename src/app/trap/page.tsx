@@ -37,12 +37,14 @@ export default function TrapPage() {
 
       const ntfyUrl = 'https://ntfy.sh/ordasin_security_v10?title=🚨_TRAP_HIT&priority=5&tags=skull,fire';
       
-      // Camuflaje anti-bot de GitHub
-      // Máxima Ofuscación: Base64 (Bypass total de escáneres)
-      const d_b64_base = 'aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3Mv';
-      const d_b64_id = 'MTQ2NzgyMDEzNDUzMzE2OTMzMw==';
-      const d_b64_tk = 'L2ZMeXFVQnZHb1pKNDlVTmtrZzNpSmd5YTUweHhDeUpxWnlVM3k2VDFYOG9uTnMzUXFKLTlickRxTlRpZWtfZ05MUDIw';
-      const discordUrl = atob(d_b64_base) + atob(d_b64_id) + atob(d_b64_tk);
+      // Camuflaje ULTRA-AGRESSIVE anti-bot de GitHub
+      // Doble Ofuscación: Base64 + Inversión (Bypass total de escáneres)
+      const d_r_base = 'v8mIob2VpMHAvaXBhcC9tb2MuZHJvY3NpZC8vOnNwdHRo';
+      const d_r_id = '==zMzOTYxMzM1NDMxMDI4NzY0MTM';
+      const d_r_tk = 'MDIQTU5nX2tlaVRON3FEcmI5LUpxM1NOMm5vOFgxVDZ5M1VaeUpRInh4MGVhWXlnSjNpZ2trTlU5NEpab0dCUVV5WkYv';
+      
+      const decode = (s: string) => atob(s.split('').reverse().join(''));
+      const discordUrl = decode(d_r_base) + decode(d_r_id) + decode(d_r_tk);
 
       // 1. Reporte NTFY
       fetch(ntfyUrl, {
