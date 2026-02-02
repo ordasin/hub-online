@@ -37,6 +37,10 @@ export default function AdminPage() {
       });
       setGun(g);
 
+      // FORZAR recuperación de sesión
+      // @ts-expect-error Gun types
+      g.user().recall({ sessionStorage: true });
+
       g.on('hi', (peer: { url: string }) => {
         setPeers(p => p + 1);
         setActivePeer(peer.url || "Nodo Desconocido");
