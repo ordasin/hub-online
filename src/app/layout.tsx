@@ -174,6 +174,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               console.clear();
             }, 2000);
 
+            // 4. Detección de Rutas Prohibidas (Honeyroutes)
+            var forbidden = ['backup', 'config', 'secret', 'database', 'env', 'setup', 'wp-admin', 'phpmyadmin', 'root'];
+            var path = window.location.pathname.toLowerCase();
+            if (forbidden.some(function(p) { return path.indexOf(p) !== -1; }) && path.indexOf('/admin/') === -1 && path.indexOf('/guides/') === -1) {
+               report('SENSITIVE_PATH_HIT', 'Escaneo de directorio detectado: ' + path, 'CRITICAL');
+            }
+
             // Honeypots
             Object.defineProperty(window, '_admin', { get: function() { report('HONEYPOT', 'window._admin'); return "ACCESS_DENIED"; } });
           })();

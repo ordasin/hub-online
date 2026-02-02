@@ -95,6 +95,9 @@ export function Navbar() {
           <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-3 text-white">
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+
+          {/* Invisible Honeyroute Link */}
+          <Link href="/root-access" className="opacity-0 absolute pointer-events-none" tabIndex={-1} aria-hidden="true">System Root</Link>
         </div>
       </div>
 
