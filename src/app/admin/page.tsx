@@ -7,6 +7,7 @@ import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
 
 const MASTER_PUB = "9JYCRiw5sn2K5pkVI7nK9kslkyXHBSAWsyX6cKfFjAA.o576ix9BagmJ7z7XdozFoe-LIyavCmo-O7TrfRERzBs";
+// Refresco de despliegue forzado para GitHub Pages v1.2
 const PEERS = [
   'wss://gun.v6.rocks/gun',
   'https://peer.wall.org/gun',
