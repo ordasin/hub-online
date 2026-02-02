@@ -50,10 +50,17 @@ export default function AdminPage() {
       
       const sync = () => {
         if (user.is) {
-          setDetectedPub(user.is.pub);
-          if (user.is.pub === MASTER_PUB) {
+          const currentPub = user.is.pub.trim();
+          setDetectedPub(currentPub);
+          
+          // Comparamos permitiendo que falte o sobre el prefijo ~
+          const normalizedMaster = MASTER_PUB.replace(/^~/, '').trim();
+          const normalizedCurrent = currentPub.replace(/^~/, '').trim();
+
+          if (normalizedCurrent === normalizedMaster) {
             setIsAdmin(true);
           } else {
+            console.log("Diferencia de claves:", { expected: normalizedMaster, got: normalizedCurrent });
             setIsAdmin(false);
           }
         } else {
@@ -121,9 +128,15 @@ export default function AdminPage() {
       </div>
       
       {detectedPub && (
-        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl max-w-lg">
-          <p className="text-gray-600 text-[8px] mb-2 italic">Tu Clave Pública Detectada:</p>
-          <code className="text-[8px] text-purple-400 break-all">{detectedPub}</code>
+        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl max-w-2xl space-y-4">
+          <div>
+            <p className="text-gray-600 text-[8px] mb-1 italic">Clave Detectada:</p>
+            <code className="text-[8px] text-red-400 break-all">{detectedPub}</code>
+          </div>
+          <div className="pt-2 border-t border-white/5">
+            <p className="text-gray-600 text-[8px] mb-1 italic">Clave Autorizada (Master):</p>
+            <code className="text-[8px] text-green-400 break-all">{MASTER_PUB}</code>
+          </div>
         </div>
       )}
 
