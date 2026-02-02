@@ -8,9 +8,11 @@ import { toast } from 'sonner'
 
 const MASTER_PUB = "_VFsB7wZfL0sqU6GGW5ucTjkBOazp-CR6B4_52-1rOY.iNt-9rXPnGyZbTXfk2AyqVtnATVgEAU_dbCoOySYT4w";
 const PEERS = [
-  'https://relay.gun.eco/gun',
+  'https://peer.wall.org/gun',
   'https://gun-manhattan.herokuapp.com/gun',
-  'https://peer.wall.org/gun'
+  'https://gun-us.herokuapp.com/gun',
+  'https://gun-eu.herokuapp.com/gun',
+  'https://relay.gun.eco/gun'
 ];
 
 export default function AdminPage() {

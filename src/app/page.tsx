@@ -21,9 +21,11 @@ export default function Home() {
       if (!Gun) return;
 
       const gun = Gun([
-        'https://relay.gun.eco/gun',
+        'https://peer.wall.org/gun',
         'https://gun-manhattan.herokuapp.com/gun',
-        'https://peer.wall.org/gun'
+        'https://gun-us.herokuapp.com/gun',
+        'https://gun-eu.herokuapp.com/gun',
+        'https://relay.gun.eco/gun'
       ]);
 
       gun.get('p2p_projects').map().on((data: any, id: string) => {
