@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
 
-const MASTER_PUB = "0pNT98jUCqGPNNJ-5kZc-8bwrarhKh1nLTUg77QfVjU.RNGFBPpxJuTq71KlX5KIV69Z6NUHZLFrCTMTPPWZTxs";
+const MASTER_PUB = "9JYCRiw5sn2K5pkVI7nK9kslkyXHBSAWsyX6cKfFjAA.o576ix9BagmJ7z7XdozFoe-LIyavCmo-O7TrfRERzBs";
 const PEERS = [
   'wss://gun.v6.rocks/gun',
   'https://peer.wall.org/gun',
