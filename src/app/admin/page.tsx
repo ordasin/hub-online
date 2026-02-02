@@ -71,8 +71,8 @@ export default function AdminPage() {
 
       g.on('auth', sync);
 
-      // ESCUCHA NTFY
-      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
+      // ESCUCHA NTFY (Historial 24h)
+      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse?since=1d');
       
       eventSource.onmessage = (e) => {
         try {

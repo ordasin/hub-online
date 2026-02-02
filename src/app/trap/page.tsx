@@ -55,7 +55,7 @@ export default function TrapPage() {
         method: 'POST',
         body: JSON.stringify(log),
         headers: { 'Title': '🚨 INVASOR CAPTURADO', 'Priority': 'urgent', 'Tags': 'skull,fire' }
-      }).catch(() => {});
+      }).catch(err => console.error("Error enviando alerta:", err));
 
       // 2. Reporte GUN
       // @ts-expect-error Gun via CDN
