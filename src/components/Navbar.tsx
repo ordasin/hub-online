@@ -9,39 +9,40 @@ export function Navbar() {
   const [session, setSession] = useState({ logged: false, name: "", isAdmin: false })
 
   useEffect(() => {
-    const sync = () => {
+    const checkStatus = () => {
       if (typeof window === 'undefined') return;
-      
-      // 1. Verificación local rápida
+
+      // 1. VERIFICACIÓN INSTANTÁNEA POR DISCO (No depende de internet)
       const localUser = localStorage.getItem('last_logged_user');
-      
+      const isMaster = localUser === 'ordasin';
+
+      if (isMaster) {
+        setSession({ logged: true, name: 'ordasin', isAdmin: true });
+        return; // Prioridad absoluta al admin local
+      }
+
+      // 2. VERIFICACIÓN POR RED (Para usuarios normales)
       // @ts-ignore
       const Gun = window.Gun;
       if (Gun) {
-        const gun = Gun(['https://relay.gun.eco/gun'], { localStorage: true });
+        const gun = Gun({ peers: ['https://relay.gun.eco/gun'], localStorage: true });
         // @ts-ignore
         const user = gun.user().recall({ sessionStorage: true });
-
+        
         if (user.is) {
           setSession({
             logged: true,
             name: user.is.alias,
             isAdmin: user.is.alias === 'ordasin'
           });
-          localStorage.setItem('last_logged_user', user.is.alias);
-          return;
+        } else {
+          setSession({ logged: false, name: "", isAdmin: false });
         }
-      }
-
-      // Si no hay Gun pero detectamos el nombre local
-      if (localUser === 'ordasin') {
-        setSession({ logged: true, name: 'ordasin', isAdmin: true });
-      } else {
-        setSession({ logged: false, name: "", isAdmin: false });
       }
     };
 
-    const interval = setInterval(sync, 1500);
+    // Revisar sesión cada segundo
+    const interval = setInterval(checkStatus, 1000);
     return () => clearInterval(interval);
   }, [])
 
