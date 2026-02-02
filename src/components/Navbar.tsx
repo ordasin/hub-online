@@ -75,6 +75,8 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-2 pr-2">
             <Link href="/" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Herramientas</Link>
             <Link href="/games" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Juegos</Link>
+            <Link href="/guides" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Guías</Link>
+            <Link href="/faq" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">FAQ</Link>
             <Link href="https://discord.gg/dehYH7AQ" target="_blank" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Comunidad</Link>
             
             <div className="w-[1px] h-4 bg-white/10 mx-2" />
@@ -101,6 +103,8 @@ export function Navbar() {
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-full left-0 right-0 bg-black/95 border-b border-white/10 p-8 flex flex-col gap-6 md:hidden backdrop-blur-2xl">
             <Link href="/" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Herramientas</Link>
             <Link href="/games" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Juegos</Link>
+            <Link href="/guides" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Guías</Link>
+            <Link href="/faq" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">FAQ</Link>
             <Link href="https://discord.gg/dehYH7AQ" target="_blank" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Comunidad</Link>
             <div className="h-[1px] bg-white/10" />
             {user?.is ? (
