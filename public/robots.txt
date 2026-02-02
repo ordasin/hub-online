@@ -1,8 +1,3 @@
 User-agent: *
-Disallow: /trap
-Disallow: /wp-admin
-Disallow: /phpmyadmin
-Disallow: /admin-panel
-
-# Honeypot Link
-Sitemap: /trap
+Allow: /
+Sitemap: https://developer903.com/sitemap.xml

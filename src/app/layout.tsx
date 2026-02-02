@@ -13,6 +13,23 @@ export const viewport: Viewport = { themeColor: "#050505", width: "device-width"
 export const metadata: Metadata = {
   title: "HUB 903 | Descargar Software de Alto Impacto y Herramientas P2P",
   description: "Explora HUB 903, el ecosistema líder en software descentralizado. Descarga herramientas de alto impacto, scripts Python avanzados y experimenta la red P2P en tiempo real.",
+  keywords: ["descargar software", "alto impacto", "herramientas P2P", "scripts python", "software descentralizado", "developer 903", "ordasin hub"],
+  authors: [{ name: "Ordasin Hub" }],
+  metadataBase: new URL('https://developer903.com'),
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: "HUB 903 | Software de Alto Impacto",
+    description: "Ecosistema de herramientas avanzadas y red descentralizada.",
+    url: 'https://developer903.com',
+    siteName: 'HUB 903',
+    locale: 'es_ES',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'HUB 903 | Software de Alto Impacto',
+    description: 'Descarga herramientas avanzadas y scripts Python.',
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,6 +47,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script 
           src="https://cdn.jsdelivr.net/npm/nostr-tools@1.17.0/lib/nostr.bundle.min.js" 
           strategy="lazyOnload"
+        />
+        {/* JSON-LD para Google */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "HUB 903",
+              "operatingSystem": "Windows, Linux, Python",
+              "applicationCategory": "DeveloperApplication",
+              "description": "Ecosistema de software de alto impacto y herramientas descentralizadas.",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "EUR"
+              }
+            })
+          }}
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#050505]`}>
