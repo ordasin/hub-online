@@ -28,21 +28,23 @@ export default function TrapPage() {
         details: 'Intento de acceso automatizado detectado en Honeypot'
       };
 
-      console.log("Intentando reportar a Gun:", log);
+      console.log("Iniciando reporte único a Gun...");
 
-      const interval = setInterval(() => {
-        gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log, (ack: { err: any }) => {
-          if (ack && !ack.err) {
-            console.log("Reporte enviado con éxito:", ack);
-            setSent(true);
-            clearInterval(interval);
-          } else if (ack && ack.err) {
-            console.error("Error de Gun:", ack.err);
-          }
-        });
-      }, 2000);
+      // Enviamos el payload UNA SOLA VEZ. Gun se encarga de sincronizarlo cuando conecte.
+      gun.get('ORDASIN_FINAL_SHIELD').get(id).put(log, (ack: { err: any }) => {
+        if (ack && !ack.err) {
+          console.log("Confirmación recibida del nodo:", ack);
+          setSent(true);
+        } else if (ack && ack.err) {
+          console.error("Error en el nodo:", ack.err);
+        }
+      });
 
-      setTimeout(() => clearInterval(interval), 15000);
+      // Si después de 10 segundos no hay ack, mostramos éxito visual de todos modos 
+      // para no frustrar al usuario/bot, aunque Gun seguirá intentándolo en el fondo.
+      setTimeout(() => {
+        setSent(true);
+      }, 10000);
     };
 
     const check = setInterval(() => {
