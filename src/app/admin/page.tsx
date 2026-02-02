@@ -141,22 +141,8 @@ export default function AdminPage() {
         <p className="text-[10px] text-red-900 font-mono">Identidad no Autorizada para este Sistema</p>
       </div>
       
-      {detectedPub && (
-        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl max-w-2xl space-y-4">
-          <div>
-            <p className="text-gray-600 text-[8px] mb-1 italic">Clave Detectada:</p>
-            <code className="text-[8px] text-red-400 break-all">{detectedPub}</code>
-          </div>
-          <div className="pt-2 border-t border-white/5">
-            <p className="text-gray-600 text-[8px] mb-1 italic">Clave Autorizada (Master):</p>
-            <code className="text-[8px] text-green-400 break-all">{MASTER_PUB}</code>
-          </div>
-        </div>
-      )}
-
       <div className="flex gap-4">
         <button onClick={() => window.location.href='/login'} className="px-6 py-2 bg-white text-black text-[10px] rounded-full hover:bg-purple-500 hover:text-white transition-all">Ir al Login</button>
-        <button onClick={forceReconnect} className="px-6 py-2 border border-white/10 text-gray-500 text-[10px] rounded-full hover:text-white transition-all">Resetear Red</button>
       </div>
     </div>
   );
