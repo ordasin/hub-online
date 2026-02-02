@@ -192,6 +192,13 @@ export default function AdminPage() {
                       <div className="col-span-2 truncate" title={t.fp.ua}>UA: {t.fp.ua}</div>
                     </div>
                   )}
+                  {t.geo && t.geo.ip && (
+                    <div className="mt-2 pt-2 border-t border-red-900/20 text-[8px] text-yellow-500 font-mono grid grid-cols-2 gap-1">
+                       <div className="font-bold">IP: {t.geo.ip}</div>
+                       <div>ISP: {t.geo.org}</div>
+                       <div className="col-span-2">Loc: {t.geo.city}, {t.geo.region}, {t.geo.country_name}</div>
+                    </div>
+                  )}
                   {t.url && <p className="text-[8px] text-gray-600 mt-1 truncate">Ruta: {t.url}</p>}
                 </div>
               ))}
