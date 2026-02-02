@@ -16,8 +16,10 @@ export default function TrapPage() {
   useEffect(() => {
     const report = () => {
       // @ts-ignore
-      if (!window.Gun) return;
-      const gun = window.Gun({ peers: FRESH_PEERS, localStorage: false });
+      const Gun = window.Gun;
+      if (!Gun) return;
+      
+      const gun = Gun({ peers: FRESH_PEERS, localStorage: false });
       const id = 'ID' + Math.random().toString(36).substring(7);
       const log = { 
         id: id, 
