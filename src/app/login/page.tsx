@@ -64,7 +64,10 @@ export default function LoginPage() {
           type: 'FORM_INJECTION', 
           time: Date.now(), 
           details: `Payload detectado en Login: "${honeypot}"` 
-        })
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }).catch(() => {});
       
       window.location.href = '/trap';

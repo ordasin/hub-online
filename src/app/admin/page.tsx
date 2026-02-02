@@ -113,7 +113,11 @@ export default function AdminPage() {
 
   const simulateAttack = async () => {
     const testLog = { id: 'TEST'+Date.now(), type: 'TEST', time: Date.now(), details: 'ALERTA DE PRUEBA MANUAL' };
-    await fetch('https://ntfy.sh/ordasin_hub_alerts', { method: 'POST', body: JSON.stringify(testLog) });
+    await fetch('https://ntfy.sh/ordasin_security_v10', { 
+      method: 'POST', 
+      body: JSON.stringify(testLog),
+      headers: { 'Content-Type': 'application/json' }
+    });
     toast.info("Simulación enviada");
   };
 

@@ -24,11 +24,16 @@ export default function TrapPage() {
         details: 'Intento de acceso detectado (Honeypot Active)'
       };
 
-      // 1. Reporte vía ntfy (Canal Directo)
+      // 1. Reporte vía ntfy (Simple e instantáneo)
       try {
         await fetch('https://ntfy.sh/ordasin_security_v10', {
           method: 'POST',
-          body: JSON.stringify(log)
+          body: JSON.stringify(log),
+          headers: { 
+            'Title': '🚨 ALERTA DE SEGURIDAD', 
+            'Priority': 'high',
+            'Content-Type': 'application/json'
+          }
         });
       } catch (e) {
         console.error("Ntfy error:", e);

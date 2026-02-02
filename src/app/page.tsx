@@ -67,7 +67,10 @@ export default function Home() {
           type: 'INJECTION_ATTEMPT', 
           time: Date.now(), 
           details: `Payload sospechoso en buscador: "${val}"` 
-        })
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }).catch(() => {});
     }
   };
