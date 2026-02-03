@@ -76,6 +76,10 @@ export function Navbar() {
             <Link href="/" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Herramientas</Link>
             <Link href="/games" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Juegos</Link>
             <Link href="/guides" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Guías</Link>
+            <Link href="/nexus-ai" className="px-6 py-2.5 text-[10px] font-black uppercase bg-purple-600/10 text-purple-400 hover:bg-purple-600 hover:text-white rounded-lg transition-all tracking-widest border border-purple-500/20 flex items-center gap-2 group/ai">
+              <Sparkles size={12} className="animate-pulse" />
+              Nexus AI
+            </Link>
             <Link href="https://ordasinoptimizerfps.developer903.com" target="_blank" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest text-purple-400">Optimizer</Link>
             <Link href="/faq" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">FAQ</Link>
             <Link href="https://discord.gg/dehYH7AQ" target="_blank" className="px-6 py-2.5 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors tracking-widest">Comunidad</Link>
@@ -108,6 +112,7 @@ export function Navbar() {
             <Link href="/" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Herramientas</Link>
             <Link href="/games" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Juegos</Link>
             <Link href="/guides" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Guías</Link>
+            <Link href="/nexus-ai" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter text-purple-400">Nexus AI</Link>
             <Link href="https://ordasinoptimizerfps.developer903.com" target="_blank" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter text-purple-400">Optimizer</Link>
             <Link href="/faq" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">FAQ</Link>
             <Link href="https://discord.gg/dehYH7AQ" target="_blank" onClick={() => setIsOpen(false)} className="text-2xl font-black uppercase italic tracking-tighter">Comunidad</Link>
