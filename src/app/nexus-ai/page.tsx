@@ -36,14 +36,14 @@ export default function NexusAIPage() {
       
       if (!pipeline) throw new Error("Motor no detectado.");
 
-      // Configuración de Máxima Estabilidad
+      // Configuración de Red Neuronal Optimizada
       env.allowLocalModels = false;
       env.useBrowserCache = true;
-
-      setStatus('Desplegando Inteligencia Base (GPT-2)...');
       
-      // Usamos el modelo más probado y abierto para evitar errores de acceso
-      const generator = await pipeline('text-generation', 'Xenova/gpt2', {
+      setStatus('Descargando Cerebro Qwen (Élite)...');
+      
+      // Usamos Qwen 1.5, que es mucho más inteligente y compatible que SmolLM
+      const generator = await pipeline('text-generation', 'Xenova/Qwen1.5-0.5B-Chat', {
         progress_callback: (data: any) => {
           if (data.status === 'progress') setProgress(Math.round(data.progress));
         }
@@ -55,7 +55,7 @@ export default function NexusAIPage() {
       setMessages([{
         id: 'welcome',
         role: 'ai',
-        text: 'Conexión Neuronal V6 Establecida. Soy una inteligencia real procesada íntegramente en tu navegador. ¿Qué conocimiento deseas extraer hoy?',
+        text: 'Protocolo de Inteligencia Qwen activado. Mi núcleo neuronal está listo para razonar sobre cualquier tema. ¿Qué órdenes tienes hoy?',
         time: new Date().toLocaleTimeString()
       }]);
     } catch (err: any) {
