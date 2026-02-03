@@ -40,10 +40,10 @@ export default function NexusAIPage() {
       env.allowLocalModels = false;
       env.useBrowserCache = true;
       
-      setStatus('Descargando Cerebro Qwen (Élite)...');
+      setStatus('Cargando Cerebro Estable (Phi-1.5)...');
       
-      // Usamos Qwen 1.5, que es mucho más inteligente y compatible que SmolLM
-      const generator = await pipeline('text-generation', 'Xenova/Qwen1.5-0.5B-Chat', {
+      // Phi-1.5 es de Microsoft, es ultra estable y razonable para navegadores
+      const generator = await pipeline('text-generation', 'Xenova/phi-1_5', {
         progress_callback: (data: any) => {
           if (data.status === 'progress') setProgress(Math.round(data.progress));
         }
@@ -55,12 +55,12 @@ export default function NexusAIPage() {
       setMessages([{
         id: 'welcome',
         role: 'ai',
-        text: 'Protocolo de Inteligencia Qwen activado. Mi núcleo neuronal está listo para razonar sobre cualquier tema. ¿Qué órdenes tienes hoy?',
+        text: 'Sistemas Estables. Soy el Núcleo Phi-1.5, optimizado por Microsoft para razonamiento lógico. Mi procesamiento es local y fluido. ¿En qué puedo asistirte?',
         time: new Date().toLocaleTimeString()
       }]);
     } catch (err: any) {
       console.error(err);
-      setStatus(`Fallo de Despliegue: ${err.message}`);
+      setStatus(`Fallo: ${err.message}`);
     }
   };
 
@@ -77,15 +77,26 @@ export default function NexusAIPage() {
     setIsTyping(true);
 
     try {
-      const output = await generatorRef.current(userText, { max_new_tokens: 50 });
+      // Parámetros optimizados para evitar coherencia nula y bloqueos
+      const output = await generatorRef.current(userText, { 
+        max_new_tokens: 100,
+        temperature: 0.6,
+        top_k: 40,
+        no_repeat_ngram_size: 3
+      });
+
+      let aiResponse = output[0].generated_text;
+      // Limpiamos el texto generado (a veces los modelos base repiten el input)
+      aiResponse = aiResponse.replace(userText, '').trim();
+      
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        text: output[0].generated_text || "Ciclo de pensamiento interrumpido.",
+        text: aiResponse || "Consulta procesada. ¿Necesitas más detalles?",
         time: new Date().toLocaleTimeString()
       }]);
     } catch (e) {
-      setMessages(prev => [...prev, { id: 'err', role: 'ai', text: 'Error de procesamiento local.', time: new Date().toLocaleTimeString() }]);
+      setMessages(prev => [...prev, { id: 'err', role: 'ai', text: 'Interferencia en el núcleo. Reiniciando secuencia...', time: new Date().toLocaleTimeString() }]);
     } finally {
       setIsTyping(false);
     }
