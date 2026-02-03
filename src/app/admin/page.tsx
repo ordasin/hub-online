@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Shield, Activity, Package, Wifi, AlertTriangle } from 'lucide-react'
+import { Shield, Activity, Package, Wifi, AlertTriangle, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
 const MASTER_PUB = "6mwMzGdVuCtE-sd_7_5RJ5AUeEbA-i3JwZ0UjiaxAtE.KH6lWH55LxsAE2D7ZBQQKlJgod5hqIHzwcoJ25gjqHo";
