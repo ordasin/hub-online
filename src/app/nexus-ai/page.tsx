@@ -36,17 +36,18 @@ export default function NexusAIPage() {
       
       if (!pipeline) throw new Error("Motor no detectado.");
 
-      // Configuración Maestra de Entorno
+      // RESET TOTAL: Dejamos que la librería use su infraestructura nativa
       env.allowLocalModels = false;
       env.useBrowserCache = true;
-      env.remoteHost = 'https://huggingface.co';
-      env.remotePathTemplate = '{model}/resolve/{revision}/';
-
-      setStatus('Descargando Inteligencia (SmolLM-135M)...');
       
-      // Intentamos cargar el pipeline con una configuración de reintento
-      const generator = await pipeline('text-generation', 'Xenova/SmolLM-135M-Instruct', {
-        revision: 'main',
+      // Limpieza de parámetros que causan el error 401/403
+      if (env.remoteHost) delete (env as any).remoteHost;
+      if (env.remotePathTemplate) delete (env as any).remotePathTemplate;
+
+      setStatus('Cargando Inteligencia (SmolLM-135M)...');
+      
+      // Usamos el modelo de la comunidad ONNX, diseñado para Transformers.js
+      const generator = await pipeline('text-generation', 'onnx-community/SmolLM-135M-Instruct', {
         progress_callback: (data: any) => {
           if (data.status === 'progress') setProgress(Math.round(data.progress));
         }
