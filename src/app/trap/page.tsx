@@ -47,15 +47,15 @@ export default function TrapPage() {
       const discordUrl = decode(d_r_base) + decode(d_r_id) + decode(d_r_tk);
 
       // 1. Reporte NTFY (Prioritario y Seguro)
-      // Usamos el body para el JSON completo para evitar problemas de tamaño en headers
+      // Usamos texto plano en el body para evitar cualquier problema de parseo
       fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
         method: 'POST',
-        body: JSON.stringify(log),
+        body: `🚨 TRAP_HIT: Invasor en zona prohibida. IP: ${(geo as any).ip || 'N/A'} - OS: ${fp.platform} - URL: ${window.location.href}`,
         headers: {
           'Title': 'CRITICAL TRAP HIT',
           'Priority': '5',
           'Tags': 'skull,fire',
-          'Content-Type': 'application/json'
+          'X-Type': 'TRAP_HIT'
         },
         keepalive: true
       }).catch(() => {});

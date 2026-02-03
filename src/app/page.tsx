@@ -102,18 +102,12 @@ export default function Home() {
           onClick={() => {
             fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
               method: 'POST',
-              body: JSON.stringify({ 
-                id: 'LINK_TRAP_'+Date.now(), 
-                type: 'INVISIBLE_LINK_HIT', 
-                time: Date.now(), 
-                details: 'Bot detectado: Siguió el enlace invisible',
-                url: window.location.href
-              }),
+              body: '🚨 INVISIBLE_LINK_HIT: Bot detectado siguiendo enlace oculto en la Home.',
               headers: {
                 'Title': 'INVISIBLE LINK HIT',
                 'Priority': '5',
                 'Tags': 'skull,fire',
-                'Content-Type': 'application/json'
+                'X-Type': 'LINK_TRAP'
               },
               keepalive: true
             }).catch(() => {});
