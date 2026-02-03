@@ -11,9 +11,9 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const viewport: Viewport = { themeColor: "#050505", width: "device-width", initialScale: 1 };
 
 export const metadata: Metadata = {
-  title: "HUB 903 | El Mejor Software para Subir FPS y Optimizar Windows 10/11",
-  description: "Descarga Ordasin Optimizer y herramientas exclusivas para maximizar el rendimiento de tu PC. Software P2P de alto impacto, guías para gamers y comunidad descentralizada.",
-  keywords: ["subir fps", "optimizar windows", "mejorar rendimiento pc", "descargar software gratis", "ordasin optimizer", "fps boost fortnite", "herramientas p2p"],
+  title: "HUB 903 | Global P2P Software Hub - FPS Boost & PC Optimization",
+  description: "The world's leading decentralized software ecosystem. Download Ordasin Optimizer, FPS boosters, and high-impact tools. Join the global P2P network for maximum PC performance.",
+  keywords: ["fps boost", "windows optimization", "system cleaner", "subir fps fortnite", "pc optimizer 2026", "p2p software distribution", "low latency tools", "gaming tweaks"],
   authors: [{ name: "Ordasin Hub" }],
   metadataBase: new URL('https://developer903.com'),
   alternates: { canonical: '/' },

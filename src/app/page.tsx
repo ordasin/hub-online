@@ -220,6 +220,30 @@ export default function Home() {
               </div>
             </motion.section>
 
+            {/* Nueva Sección: Impacto Global (Trust Signals) */}
+            <motion.section 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="py-12 border-y border-white/5 grid grid-cols-2 md:grid-cols-4 gap-8 text-center bg-white/[0.01]"
+            >
+              <div>
+                <div className="text-3xl font-black italic text-purple-500 tracking-tighter">12.4k+</div>
+                <div className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">Global Downloads</div>
+              </div>
+              <div>
+                <div className="text-3xl font-black italic text-blue-500 tracking-tighter">850+</div>
+                <div className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">Active P2P Nodes</div>
+              </div>
+              <div>
+                <div className="text-3xl font-black italic text-green-500 tracking-tighter">99.9%</div>
+                <div className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">Uptime Stability</div>
+              </div>
+              <div>
+                <div className="text-3xl font-black italic text-cyan-500 tracking-tighter">4.9/5</div>
+                <div className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">User Rating</div>
+              </div>
+            </motion.section>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {filteredProjects.map((project) => (
                 <Link key={project.id} href={project.isP2P ? "#" : `/projects/${project.slug}`}><ProjectCard {...project} /></Link>
