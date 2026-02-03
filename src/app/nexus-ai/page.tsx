@@ -31,7 +31,7 @@ export default function NexusAIPage() {
       setMessages([{
         id: 'welcome',
         role: 'ai',
-        text: '[Neural Core V12 Online] Bienvenido a la terminal de inteligencia absoluta. He sincronizado mi base de datos global. Puedo ayudarte con optimización, seguridad, dudas técnicas o cualquier consulta general. ¿Por dónde empezamos?',
+        text: '[OpenAI 903 Core Online] Bienvenido a la terminal de inteligencia absoluta. He sincronizado mi base de datos global con capacidad GPT-4o. Puedo ayudarte con optimización, seguridad, dudas técnicas o cualquier consulta general. ¿Por dónde empezamos?',
         time: new Date().toLocaleTimeString()
       }]);
     }, 1500);
@@ -51,7 +51,7 @@ export default function NexusAIPage() {
     setMessages(prev => [...prev, newMessage]);
     setInput('');
     setIsTyping(true);
-    setThinkingProcess('Analizando intención...');
+    setThinkingProcess('Analizando intención con OpenAI 903...');
 
     try {
       const response = await fetch('/api/nexus-ai/chat', {
@@ -74,7 +74,7 @@ export default function NexusAIPage() {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        text: 'Error en la conexión con el núcleo. Por favor, reintenta la secuencia.',
+        text: 'Error en la conexión con OpenAI 903. Por favor, reintenta la secuencia.',
         time: new Date().toLocaleTimeString()
       }]);
     } finally {
@@ -89,28 +89,28 @@ export default function NexusAIPage() {
         
         {!isLoaded && (
           <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-10 text-center">
-            <div className="w-24 h-24 bg-purple-600 rounded-3xl flex items-center justify-center animate-pulse mb-8 shadow-[0_0_60px_rgba(147,51,234,0.5)]">
+            <div className="w-24 h-24 bg-blue-600 rounded-3xl flex items-center justify-center animate-pulse mb-8 shadow-[0_0_60px_rgba(37,99,235,0.5)]">
               <Brain size={48} />
             </div>
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2">Desplegando Inteligencia Real</h2>
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2">Desplegando OpenAI 903</h2>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-8">{status}</p>
             <div className="w-64 h-1 bg-white/5 rounded-full overflow-hidden border border-white/10">
-              <motion.div className="h-full bg-gradient-to-r from-purple-600 to-blue-500" initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5 }} />
+              <motion.div className="h-full bg-gradient-to-r from-blue-600 to-cyan-500" initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5 }} />
             </div>
           </div>
         )}
 
         <header className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
           <div className="flex items-center gap-6">
-            <div className="w-14 h-14 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg relative group">
+            <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg relative group">
               <Bot size={28} className="text-white group-hover:scale-110 transition-transform" />
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-4 border-black animate-pulse"></div>
             </div>
             <div>
-              <h1 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Nexus <span className="text-purple-500">AI</span></h1>
+              <h1 className="text-2xl font-black uppercase italic tracking-tighter leading-none">OpenAI <span className="text-blue-500">903</span></h1>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                  <Activity size={10} className="text-purple-500" /> Neural Engine: Global Cloud V15
+                  <Activity size={10} className="text-blue-500" /> Neural Engine: OpenAI 903 Turbo
                 </span>
               </div>
             </div>
@@ -127,14 +127,14 @@ export default function NexusAIPage() {
             {messages.map((m) => (
               <motion.div key={m.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] flex gap-5 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${m.role === 'user' ? 'bg-white text-black border-white' : 'bg-black border-white/10 text-purple-500 shadow-[0_0_20px_rgba(147,51,234,0.1)]'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${m.role === 'user' ? 'bg-white text-black border-white' : 'bg-black border-white/10 text-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.1)]'}`}>
                     {m.role === 'user' ? <User size={18} /> : <Bot size={18} />}
                   </div>
                   <div className={`space-y-2 ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`p-6 rounded-[2rem] text-[14px] leading-relaxed shadow-xl whitespace-pre-line ${m.role === 'user' ? 'bg-purple-600 text-white rounded-tr-none shadow-purple-900/20' : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none shadow-black/50'}`}>
+                    <div className={`p-6 rounded-[2rem] text-[14px] leading-relaxed shadow-xl whitespace-pre-line ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-900/20' : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none shadow-black/50'}`}>
                       {m.text.split('**').map((part, i) => i % 2 === 1 ? <b key={i} className="text-white font-black">{part}</b> : part)}
                     </div>
-                    <p className="text-[7px] font-black text-gray-600 uppercase tracking-widest px-2">{m.time} • Secure Processing</p>
+                    <p className="text-[7px] font-black text-gray-600 uppercase tracking-widest px-2">{m.time} • OpenAI 903 Secure</p>
                   </div>
                 </div>
               </motion.div>
@@ -143,8 +143,8 @@ export default function NexusAIPage() {
           {isTyping && (
             <div className="flex flex-col gap-2 ml-16">
               <div className="flex gap-2 items-center">
-                <Loader2 size={12} className="animate-spin text-purple-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-purple-500 animate-pulse">{thinkingProcess}</span>
+                <Loader2 size={12} className="animate-spin text-blue-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-500 animate-pulse">{thinkingProcess}</span>
               </div>
             </div>
           )}
@@ -157,10 +157,10 @@ export default function NexusAIPage() {
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
               disabled={!isLoaded || isTyping}
-              placeholder="Ordena al Nexus AI..." 
-              className="flex-1 bg-black border-2 border-white/5 rounded-2xl py-6 px-8 text-sm focus:border-purple-500/50 outline-none font-bold disabled:opacity-50 transition-all placeholder:text-gray-800" 
+              placeholder="Ordena a OpenAI 903..." 
+              className="flex-1 bg-black border-2 border-white/5 rounded-2xl py-6 px-8 text-sm focus:border-blue-500/50 outline-none font-bold disabled:opacity-50 transition-all placeholder:text-gray-800" 
             />
-            <button onClick={handleSend} disabled={!isLoaded || isTyping} className="px-10 bg-white text-black rounded-xl font-black text-[10px] uppercase hover:bg-purple-500 hover:text-white transition-all shadow-xl disabled:opacity-50">Enviar</button>
+            <button onClick={handleSend} disabled={!isLoaded || isTyping} className="px-10 bg-white text-black rounded-xl font-black text-[10px] uppercase hover:bg-blue-500 hover:text-white transition-all shadow-xl disabled:opacity-50">Enviar</button>
           </div>
         </footer>
       </div>
