@@ -51,19 +51,20 @@ export default function NexusAIPage() {
 
   const initAI = async () => {
     try {
-      setStatus('Inyectando DNA Neuronal...');
-      // @ts-expect-error Transformers CDN
-      const { pipeline, env } = (window as any).Transformers;
+      setStatus('Sincronizando flujos neuronales...');
       
-      if (!pipeline) throw new Error("Núcleo no detectado.");
+      // Importación nativa desde node_modules (Evita bloqueos de CDN)
+      const Transformers = await import('@xenova/transformers');
+      const { pipeline, env } = Transformers;
+      
+      if (!pipeline) throw new Error("Motor no detectado.");
 
-      // Configuración limpia (Sin overrides que causen 401)
+      // Configuración de Confianza Total
       env.allowLocalModels = false;
       env.useBrowserCache = true;
 
       setStatus('Despertando Cerebro Maestro...');
       
-      // GPT-2 es el modelo más compatible y sin errores de autorización en HF
       const generator = await pipeline('text-generation', 'Xenova/gpt2', {
         progress_callback: (data: any) => {
           if (data.status === 'progress') setProgress(Math.round(data.progress));
@@ -84,6 +85,10 @@ export default function NexusAIPage() {
       setStatus(`Error: El navegador bloqueó la conexión neuronal.`);
     }
   };
+
+  useEffect(() => {
+    initAI();
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -133,11 +138,6 @@ export default function NexusAIPage() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white pt-32 pb-20 px-6 font-mono overflow-hidden">
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2"
-        onLoad={() => initAI()}
-      />
-
       <div className="max-w-5xl mx-auto h-[80vh] flex flex-col bg-white/[0.02] border border-white/10 rounded-[3.5rem] shadow-2xl relative overflow-hidden backdrop-blur-3xl">
         
         {!isLoaded && (
