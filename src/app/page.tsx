@@ -78,7 +78,7 @@ export default function Home() {
           url: window.location.href
         }),
         headers: {
-          'Title': '⚠️ WAF BLOCK',
+          'Title': 'WAF BLOCK',
           'Priority': '4',
           'Tags': 'warning,shield',
           'Content-Type': 'application/json'
@@ -110,7 +110,7 @@ export default function Home() {
                 url: window.location.href
               }),
               headers: {
-                'Title': '🚨 INVISIBLE LINK HIT',
+                'Title': 'INVISIBLE LINK HIT',
                 'Priority': '5',
                 'Tags': 'skull,fire',
                 'Content-Type': 'application/json'

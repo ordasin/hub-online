@@ -119,7 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 method: 'POST',
                 body: JSON.stringify(payload),
                 headers: { 
-                  'Title': '🚨 ' + type,
+                  'Title': 'SECURITY ALERT: ' + type,
                   'Priority': riskVal === 'CRITICAL' ? '5' : '4',
                   'Tags': 'warning,skull',
                   'Content-Type': 'application/json' 

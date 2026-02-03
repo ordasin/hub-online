@@ -52,7 +52,7 @@ export default function TrapPage() {
         method: 'POST',
         body: JSON.stringify(log),
         headers: {
-          'Title': '🚨 CRITICAL TRAP HIT',
+          'Title': 'CRITICAL TRAP HIT',
           'Priority': '5',
           'Tags': 'skull,fire',
           'Content-Type': 'application/json'

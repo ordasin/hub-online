@@ -210,7 +210,7 @@ export default function AdminPage() {
         method: 'POST', 
         body: JSON.stringify(testLog),
         headers: {
-          'Title': '🛠️ MANUAL TEST',
+          'Title': 'MANUAL TEST',
           'Priority': '4',
           'Tags': 'gear,test_tube',
           'Content-Type': 'application/json'
