@@ -3,7 +3,7 @@ export const projects = [
     id: 1,
     title: 'OrdasinOptimizer',
     slug: 'ordasin-optimizer',
-    description: 'La herramienta definitiva de optimización para Windows. Mejora el rendimiento, limpia basura y recupera la velocidad de tu PC con un solo clic.',
+    description: 'La herramienta definitiva de optimización para Windows (v1.0.0 Stable). Mejora el rendimiento, limpia basura y recupera la velocidad de tu PC con un solo clic.',
     version: '1.0.0',
     downloadCount: 1250,
     fileUrl: '/downloads/OrdasinOptimizer.zip',
