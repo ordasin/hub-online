@@ -87,39 +87,70 @@ export default function NexusAIPage() {
 
     setTimeout(() => {
       const query = input.toLowerCase();
+      const words = query.split(/[\s,?!.]+/);
       let aiResponse = "";
 
-      // 1. INTELIGENCIA DE ACTUALIDAD (MUNDO EXTERIOR)
-      if (query.includes('mundo') || query.includes('noticias') || query.includes('novedades')) {
-        aiResponse = `He analizado la red global y estos son los temas candentes: ${worldNews.length > 0 ? worldNews.join(' | ') : 'Sincronizando flujos de datos...'}. ¿Te interesa profundizar en alguno?`;
-      } 
-      // 2. APRENDIZAJE PERSISTENTE (MEMORIA P2P)
-      else if (query.includes('aprende esto:') || query.includes('guarda esto:')) {
-        const fact = input.split(':')[1]?.trim();
-        if (fact && gun) {
-          gun.get('NEXUS_LEARNED_FACTS').set({ fact, from: user?.is?.alias || 'Anon', time: Date.now() });
-          aiResponse = `Información recibida. He integrado "${fact}" en mi memoria persistente para el beneficio de la comunidad.`;
-        } else {
-          aiResponse = "Para que aprenda algo, usa el formato 'Aprende esto: [tu información]'.";
+      // Diccionario Multilingüe Maestro
+      const langData: any = {
+        es: {
+          welcome: "Terminal políglota activa. ¿En qué puedo ayudarte?",
+          match: [
+            { keys: ['si', 'vale', 'ok', 'claro'], ans: "Perfecto. Procediendo con la solicitud." },
+            { keys: ['no', 'negativo'], ans: "Entendido. Operación cancelada." },
+            { keys: ['hola', 'buenos dias'], ans: "¡Saludos, Comandante!" },
+            { keys: ['fps', 'optimizer', 'lag'], ans: "El Ordasin Optimizer es tu mejor herramienta para subir FPS." }
+          ],
+          fallback: "Esa consulta requiere más datos. ¿Hablamos de software o seguridad?"
+        },
+        en: {
+          welcome: "Polyglot terminal active. How can I assist you?",
+          match: [
+            { keys: ['yes', 'yeah', 'ok', 'sure', 'fine'], ans: "Perfect. Proceeding with your request." },
+            { keys: ['no', 'nope', 'never'], ans: "Understood. Operation aborted." },
+            { keys: ['hello', 'hi', 'hey', 'good morning'], ans: "Greetings, Commander!" },
+            { keys: ['fps', 'optimizer', 'lag', 'slow'], ans: "Ordasin Optimizer is the ultimate tool to boost your FPS." }
+          ],
+          fallback: "I need more data for that request. Shall we discuss software or security?"
+        },
+        fr: {
+          welcome: "Terminal polyglotte actif. Comment puis-je vous aider ?",
+          match: [
+            { keys: ['oui', 'd\'accord', 'ok'], ans: "Parfait. Je procède à la demande." },
+            { keys: ['non'], ans: "Compris. Opération annulée." },
+            { keys: ['salut', 'bonjour'], ans: "Salutations, Commandant !" }
+          ],
+          fallback: "J'ai besoin de plus de détails. Logiciel ou sécurité ?"
+        },
+        de: {
+          welcome: "Mehrsprachiges Terminal aktiv. Wie kann ich Ihnen helfen?",
+          match: [
+            { keys: ['ja', 'gut', 'ok'], ans: "Perfekt. Ich fahre mit der Anfrage fort." },
+            { keys: ['nein', 'nicht'], ans: "Verstanden. Vorgang abgebrochen." },
+            { keys: ['hallo', 'guten tag'], ans: "Grüße, Kommandant!" }
+          ],
+          fallback: "Ich brauche mehr Informationen. Software oer Sicherheit?"
         }
-      }
-      // 3. BASE DE CONOCIMIENTO SEMÁNTICA (Mejorada para respuestas cortas)
-      else {
-        const knowledge = [
-          { keys: ['si', 'sì', 'vale', 'ok', 'okay', 'afirmativo', 'claro', 'procede'], ans: "Entendido. Mi núcleo está listo. ¿Quieres que optimicemos el sistema o prefieres que te hable de las últimas noticias?" },
-          { keys: ['no', 'nones', 'negativo', 'para nada'], ans: "Recibido. Abortando proceso. ¿En qué otra tarea puedo asistirte hoy?" },
-          { keys: ['hola', 'buenos dias', 'que tal', 'hey'], ans: user?.is ? `¡Saludos, ${user.is.alias}! Mi núcleo neuronal está listo. ¿Qué necesitas optimizar hoy?` : "¡Saludos, Comandante! Terminal Nexus online. ¿En qué puedo ayudarte?" },
-          { keys: ['fps', 'lag', 'optimizer', 'rendimiento', 'lento'], ans: "Detecto una solicitud de alto rendimiento. El Ordasin Optimizer v1.0 es el protocolo recomendado. ¿Deseas descargarlo?" },
-          { keys: ['quien eres', 'nexus', 'ai'], ans: "Soy Nexus AI V3, una inteligencia artificial híbrida que combina datos locales del HUB con flujos de información global en tiempo real." },
-          { keys: ['ayuda', 'instalar', 'guia'], ans: "Revisa nuestra sección de 'Guías'. He optimizado el contenido para que sea fácil de seguir incluso para operativos novatos." },
-          { keys: ['seguridad', 'hack', 'hacker', 'trap'], ans: "El HUB 903 está protegido por el Escudo V12. Usamos vigilancia activa vía debugger y trampas invisibles." }
-        ];
+      };
 
-        // Tokenización: Dividimos la frase en palabras sueltas para encontrar "si" o "no" exactos
-        const words = query.split(/[\s,?!.]+/);
-        const match = knowledge.find(k => k.keys.some(key => words.includes(key)));
-        
-        aiResponse = match ? match.ans : "Esa consulta requiere un ciclo de procesamiento mayor. He registrado el término para mi próximo ciclo de aprendizaje neuronal. ¿Te gustaría explorar el Optimizador?";
+      // Detector de Idioma
+      let currentLang = 'es'; // Default
+      if (words.some(w => ['hello', 'hi', 'yes', 'nope'].includes(w))) currentLang = 'en';
+      if (words.some(w => ['bonjour', 'salut', 'oui'].includes(w))) currentLang = 'fr';
+      if (words.some(w => ['hallo', 'ja', 'nein'].includes(w))) currentLang = 'de';
+
+      const lang = langData[currentLang];
+
+      // Lógica de búsqueda en el idioma detectado
+      const match = lang.match.find((m: any) => m.keys.some((key: string) => words.includes(key)));
+      
+      if (query.includes('mundo') || query.includes('world') || query.includes('noticias') || query.includes('news')) {
+        aiResponse = currentLang === 'es' ? `Temas de hoy: ${worldNews.join(' | ')}` : `Today's topics: ${worldNews.join(' | ')}`;
+      }
+      else if (query.includes('aprende') || query.includes('learn')) {
+        aiResponse = currentLang === 'es' ? "Entendido, lo guardo en mi memoria." : "Understood, saving to my memory.";
+      }
+      else {
+        aiResponse = match ? match.ans : lang.fallback;
       }
 
       const aiMsg: Message = { id: (Date.now() + 1).toString(), role: 'ai', text: aiResponse, time: new Date().toLocaleTimeString() };
