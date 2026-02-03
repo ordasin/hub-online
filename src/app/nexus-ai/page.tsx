@@ -29,7 +29,6 @@ export default function NexusAIPage() {
     try {
       setStatus('Inyectando ADN Neuronal...');
       
-      // Truco de evasión de compilador para evitar que Next.js intente parsear la URL externa en el build
       const CDN_URL = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
       const module = await (0, eval)('import("' + CDN_URL + '")');
       
@@ -37,12 +36,16 @@ export default function NexusAIPage() {
       
       if (!pipeline) throw new Error("Motor no detectado.");
 
+      // Configuración Maestra para evitar errores de acceso
       env.allowLocalModels = false;
       env.useBrowserCache = true;
+      env.remoteHost = 'https://huggingface.co';
+      env.remotePathTemplate = '{model}/resolve/{revision}/';
 
-      setStatus('Despertando conciencia (Modelo Ligero)...');
+      setStatus('Descargando Inteligencia (SmolLM-135M)...');
       
-      const generator = await pipeline('text-generation', 'Xenova/tiny-random-Gpt2', {
+      // Usamos un modelo real de chat/instrucciones (muy inteligente para su tamaño)
+      const generator = await pipeline('text-generation', 'Xenova/SmolLM-135M-Instruct', {
         progress_callback: (data: any) => {
           if (data.status === 'progress') setProgress(Math.round(data.progress));
         }
@@ -54,7 +57,7 @@ export default function NexusAIPage() {
       setMessages([{
         id: 'welcome',
         role: 'ai',
-        text: 'Conexión Establecida. He cargado mi núcleo de inteligencia base. ¿Qué deseas consultar?',
+        text: 'Conexión Neuronal V6 Establecida. Soy una inteligencia real procesada íntegramente en tu navegador. ¿Qué conocimiento deseas extraer hoy?',
         time: new Date().toLocaleTimeString()
       }]);
     } catch (err: any) {
