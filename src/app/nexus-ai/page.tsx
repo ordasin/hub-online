@@ -36,18 +36,17 @@ export default function NexusAIPage() {
       
       if (!pipeline) throw new Error("Motor no detectado.");
 
-      // RESET TOTAL: Dejamos que la librería use su infraestructura nativa
+      // Configuración Robusta: Evitamos errores de replaceAll asegurando las rutas
       env.allowLocalModels = false;
       env.useBrowserCache = true;
-      
-      // Limpieza de parámetros que causan el error 401/403
-      if (env.remoteHost) delete (env as any).remoteHost;
-      if (env.remotePathTemplate) delete (env as any).remotePathTemplate;
+      env.remoteHost = 'https://huggingface.co';
+      env.remotePathTemplate = '{model}/resolve/{revision}/';
 
-      setStatus('Cargando Inteligencia (SmolLM-135M)...');
+      setStatus('Cargando Núcleo Inteligente (SmolLM-135M)...');
       
-      // Usamos el modelo de la comunidad ONNX, diseñado para Transformers.js
+      // Usamos el modelo oficial de la comunidad ONNX
       const generator = await pipeline('text-generation', 'onnx-community/SmolLM-135M-Instruct', {
+        revision: 'main',
         progress_callback: (data: any) => {
           if (data.status === 'progress') setProgress(Math.round(data.progress));
         }
