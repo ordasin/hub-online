@@ -205,17 +205,25 @@ export default function AdminPage() {
       time: Date.now(), 
       details: 'ALERTA DE PRUEBA MANUAL DESDE PANEL' 
     };
-    await fetch('https://ntfy.sh/ordasin_security_v10', { 
-      method: 'POST', 
-      body: JSON.stringify(testLog),
-      headers: {
-        'Title': '🛠️ MANUAL TEST',
-        'Priority': '4',
-        'Tags': 'gear,test_tube',
-        'Content-Type': 'application/json'
+    try {
+      const response = await fetch('https://ntfy.sh/ordasin_security_v10', { 
+        method: 'POST', 
+        body: JSON.stringify(testLog),
+        headers: {
+          'Title': '🛠️ MANUAL TEST',
+          'Priority': '4',
+          'Tags': 'gear,test_tube',
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.ok) {
+        toast.success("¡Petición enviada a ntfy.sh con éxito!");
+      } else {
+        toast.error("Error en el servidor ntfy: " + response.status);
       }
-    });
-    toast.info("Simulación enviada");
+    } catch (e) {
+      toast.error("Error de RED al enviar notificación: " + e);
+    }
   };
 
   if (isAdmin === null) return (

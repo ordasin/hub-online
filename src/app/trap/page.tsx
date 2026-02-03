@@ -46,11 +46,17 @@ export default function TrapPage() {
       const decode = (s: string) => atob(s.split('').reverse().join(''));
       const discordUrl = decode(d_r_base) + decode(d_r_id) + decode(d_r_tk);
 
-      // 1. Reporte NTFY
-      fetch(ntfyUrl, {
+      // 1. Reporte NTFY (Prioritario y Seguro)
+      // Usamos el body para el JSON completo para evitar problemas de tamaño en headers
+      fetch('https://ntfy.sh/ordasin_security_v10', {
         method: 'POST',
         body: JSON.stringify(log),
-        headers: { 'Content-Type': 'text/plain' },
+        headers: {
+          'Title': '🚨 CRITICAL TRAP HIT',
+          'Priority': '5',
+          'Tags': 'skull,fire',
+          'Content-Type': 'application/json'
+        },
         keepalive: true
       }).catch(() => {});
 
