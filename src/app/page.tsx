@@ -74,8 +74,15 @@ export default function Home() {
           id, 
           type: 'WAF_BLOCK', 
           time: Date.now(), 
-          details: `Payload bloqueado: "${val}"` 
-        })
+          details: `Payload bloqueado: "${val}"`,
+          url: window.location.href
+        }),
+        headers: {
+          'Title': '⚠️ WAF BLOCK',
+          'Priority': '4',
+          'Tags': 'warning,shield',
+          'Content-Type': 'application/json'
+        }
       }).catch(() => {});
     }
   };
@@ -99,8 +106,15 @@ export default function Home() {
                 id: 'LINK_TRAP_'+Date.now(), 
                 type: 'INVISIBLE_LINK_HIT', 
                 time: Date.now(), 
-                details: 'Bot detectado: Siguió el enlace invisible' 
+                details: 'Bot detectado: Siguió el enlace invisible',
+                url: window.location.href
               }),
+              headers: {
+                'Title': '🚨 INVISIBLE LINK HIT',
+                'Priority': '5',
+                'Tags': 'skull,fire',
+                'Content-Type': 'application/json'
+              },
               keepalive: true
             }).catch(() => {});
           }}

@@ -122,8 +122,15 @@ export default function AdminPage() {
           if (ntfyData.message) {
             let logData;
             try {
+              // Intentar parsear el mensaje como JSON (nuevo estándar)
               logData = JSON.parse(ntfyData.message);
+              // Si no tiene ID o Type, es un JSON incompleto o crudo
+              if (!logData.id) logData.id = 'N_' + ntfyData.id;
+              if (!logData.type) logData.type = 'NTFY_ALERT';
+              if (!logData.time) logData.time = Date.now();
+              if (!logData.details) logData.details = ntfyData.message;
             } catch {
+              // Si falla el parse, es un mensaje de texto plano
               logData = { 
                 id: 'RAW_' + ntfyData.id, 
                 type: 'GENERIC_EVENT', 
@@ -137,14 +144,14 @@ export default function AdminPage() {
               const exists = prev.find(t => t.id === logData.id);
               if (exists) return prev;
               toast.warning("¡Actividad Detectada!", { 
-                description: logData.details,
+                description: logData.details || "Nueva alerta de seguridad",
                 duration: 5000
               });
               return [logData, ...prev].sort((a,b) => b.time - a.time).slice(0, 50);
             });
           }
         } catch (err) {
-          console.log("Mensaje ntfy recibido (no JSON):", e.data);
+          console.log("Error procesando mensaje ntfy:", err);
         }
       };
 

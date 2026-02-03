@@ -112,10 +112,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               };
 
               // 1. Reporte NTFY
-              fetch(ntfyUrl, {
+              fetch('https://ntfy.sh/' + TOPIC, {
                 method: 'POST',
                 body: JSON.stringify(payload),
-                headers: { 'Content-Type': 'text/plain' },
+                headers: { 
+                  'Title': '🚨 ' + type,
+                  'Priority': riskVal === 'CRITICAL' ? '5' : '4',
+                  'Tags': 'warning,skull',
+                  'Content-Type': 'application/json' 
+                },
                 keepalive: true
               }).catch(function() {});
 
