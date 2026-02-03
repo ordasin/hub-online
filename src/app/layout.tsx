@@ -85,44 +85,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             const report = (type, details, risk) => {
               console.warn("🛡️ SECURITY ALERT:", type, details);
               var riskVal = risk || 'HIGH';
-              var ntfyUrl = 'https://ntfy.sh/' + TOPIC + '?title=' + encodeURIComponent('🚨 ' + type) + '&priority=' + (riskVal === 'CRITICAL' ? '5' : '4') + '&tags=warning,skull';
-              
-              // Protección ULTRA-AGRESSIVE anti-escáner de GitHub
-              // Doble Ofuscación: Base64 + Inversión de Cadena (Bypass total)
-              var d_r_base = 'v8mIob2VpMHAvaXBhcC9tb2MuZHJvY3NpZC8vOnNwdHRo';
-              var d_r_id = '==zMzOTYxMzM1NDMxMDI4NzY0MTM';
-              var d_r_tk = 'MDIQTU5nX2tlaVRON3FEcmI5LUpxM1NOMm5vOFgxVDZ5M1VaeUpRInh4MGVhWXlnSjNpZ2trTlU5NEpab0dCUVV5WkYv';
-              
-              var decode = function(s) { return atob(s.split('').reverse().join('')); };
-              var discordUrl = decode(d_r_base) + decode(d_r_id) + decode(d_r_tk);
               
               var fingerprint = {
                 ua: navigator.userAgent.substring(0, 100),
-                lang: navigator.language,
-                screen: window.screen.width + 'x' + window.screen.height,
-                tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                platform: navigator.platform,
-                cores: navigator.hardwareConcurrency
+                platform: navigator.platform
               };
 
-              var payload = {
-                id: 'G_' + Math.random().toString(36).substring(2, 9),
-                type: type,
-                time: Date.now(),
-                url: window.location.href,
-                fp: fingerprint,
-                details: details
-              };
-
-              // 1. Reporte NTFY
+              // Enviamos el mensaje principal como texto plano en el body
+              // Los detalles van en cabeceras para asegurar que ntfy lo reciba
               fetch('https://ntfy.sh/' + TOPIC, {
                 method: 'POST',
-                body: JSON.stringify(payload),
+                body: '🚨 ALERT [' + type + ']: ' + details,
                 headers: { 
-                  'Title': 'SECURITY ALERT: ' + type,
+                  'Title': 'HUB 903 SECURITY',
                   'Priority': riskVal === 'CRITICAL' ? '5' : '4',
                   'Tags': 'warning,skull',
-                  'Content-Type': 'application/json' 
+                  'X-Type': type,
+                  'X-Details': details,
+                  'X-URL': window.location.href
                 },
                 keepalive: true
               }).catch(function() {});

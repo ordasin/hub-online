@@ -133,42 +133,42 @@ export default function AdminPage() {
           if (ntfyData.message) {
             let logData;
             try {
-              // Intentar parsear el mensaje como JSON (nuevo estándar)
+              // Intentar parsear como JSON (formato interno)
               logData = JSON.parse(ntfyData.message);
-              // Si no tiene ID o Type, es un JSON incompleto o crudo
-              if (!logData.id) logData.id = 'N_' + ntfyData.id;
-              if (!logData.type) logData.type = 'NTFY_ALERT';
-              if (!logData.time) logData.time = Date.now();
+              if (!logData.id) logData.id = 'NTFY_' + ntfyData.id;
               if (!logData.details) logData.details = ntfyData.message;
             } catch {
-              // Si falla el parse, es un mensaje de texto plano
+              // Si no es JSON, crear objeto desde el texto plano
               logData = { 
-                id: 'RAW_' + ntfyData.id, 
-                type: 'GENERIC_EVENT', 
-                time: Date.now(), 
+                id: 'TXT_' + ntfyData.id, 
+                type: 'EXTERNAL_ALERT', 
+                time: ntfyData.time * 1000 || Date.now(), 
                 details: ntfyData.message,
-                url: 'External / Manual'
+                url: 'Unknown'
               };
             }
 
             setThreats(prev => {
               const exists = prev.find(t => t.id === logData.id);
               if (exists) return prev;
-              toast.warning("¡Actividad Detectada!", { 
-                description: logData.details || "Nueva alerta de seguridad",
-                duration: 5000
-              });
-              return [logData, ...prev].sort((a,b) => b.time - a.time).slice(0, 50);
+              toast.warning("Actividad Detectada", { description: logData.details });
+              return [logData, ...prev].slice(0, 50);
             });
           }
         } catch (err) {
-          console.log("Error procesando mensaje ntfy:", err);
+          console.error("Error en recepción:", err);
         }
       };
 
       eventSource.onopen = () => {
-        console.log("Stream de seguridad conectado");
+        console.log("Terminal V12 Online");
         setWafStatus("active");
+        setThreats(prev => [{ 
+          id: 'SYS_'+Date.now(), 
+          type: 'SYSTEM', 
+          time: Date.now(), 
+          details: 'VIGILANCIA V12 ACTIVADA - ESCUCHANDO CANAL PRIVADO' 
+        }, ...prev]);
       };
 
       eventSource.onerror = () => {
@@ -199,30 +199,23 @@ export default function AdminPage() {
   };
 
   const simulateAttack = async () => {
-    const testLog = { 
-      id: 'TEST'+Date.now(), 
-      type: 'TEST_ALERT', 
-      time: Date.now(), 
-      details: 'ALERTA DE PRUEBA MANUAL DESDE PANEL' 
-    };
     try {
       const response = await fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', { 
         method: 'POST', 
-        body: JSON.stringify(testLog),
+        body: 'MANUAL_TEST_ALERT: Actividad de prueba disparada desde el panel.',
         headers: {
           'Title': 'MANUAL TEST',
           'Priority': '4',
-          'Tags': 'gear,test_tube',
-          'Content-Type': 'application/json'
+          'Tags': 'gear'
         }
       });
       if (response.ok) {
-        toast.success("¡Petición enviada a ntfy.sh con éxito!");
+        toast.success("Test enviado al servidor");
       } else {
-        toast.error("Error en el servidor ntfy: " + response.status);
+        toast.error("Error servidor: " + response.status);
       }
     } catch (e) {
-      toast.error("Error de RED al enviar notificación: " + e);
+      toast.error("Fallo de red: " + e);
     }
   };
 
