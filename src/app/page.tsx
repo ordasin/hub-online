@@ -99,10 +99,11 @@ export default function Home() {
         {/* Honeypot link for bots */}
         <Link 
           href="/trap" 
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
             fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
               method: 'POST',
-              body: '🚨 INVISIBLE_LINK_HIT: Bot detectado siguiendo enlace oculto en la Home.',
+              body: '🚨 INVISIBLE_LINK_HIT: Bot detectado en la Home siguiendo enlace oculto.',
               headers: {
                 'Title': 'INVISIBLE LINK HIT',
                 'Priority': '5',
@@ -111,6 +112,7 @@ export default function Home() {
               },
               keepalive: true
             }).catch(() => {});
+            setTimeout(() => { window.location.href = '/trap'; }, 100);
           }}
           className="opacity-0 absolute pointer-events-none" 
           tabIndex={-1} 
