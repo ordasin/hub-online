@@ -162,6 +162,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             // Honeypots globales
             Object.defineProperty(window, 'admin_panel', { get: function() { report('HONEYPOT_ACCESS', 'window.admin_panel'); return "UNAUTHORIZED"; } });
+
+            // 6. Análisis de Parámetros de URL (WAF de URL)
+            var query = window.location.search.toLowerCase();
+            var attackPatterns = [
+              '<script', 'alert(', 'onerror=', 'eval(', 'union select', 'or 1=1', 'drop table', '../', '/etc/passwd'
+            ];
+            if (attackPatterns.some(function(p) { return query.indexOf(p) !== -1; })) {
+              report('MALICIOUS_QUERY_STRING', 'Payload detectado en URL: ' + window.location.search, 'CRITICAL');
+            }
           })();
         `}} />
       </body>
