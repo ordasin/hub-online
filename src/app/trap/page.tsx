@@ -9,6 +9,22 @@ export default function TrapPage() {
   const [sent, setSent] = useState(false)
 
   useEffect(() => {
+    // --- ESCUDO ANTI-SPAM ---
+    const checkSpam = () => {
+      const now = Date.now();
+      const logs = JSON.parse(sessionStorage.getItem('sec_logs') || '[]');
+      const recent = logs.filter((t: number) => now - t < 60000);
+      if (recent.length >= 3) return true;
+      recent.push(now);
+      sessionStorage.setItem('sec_logs', JSON.stringify(recent));
+      return false;
+    };
+
+    if (checkSpam()) {
+      console.warn("🛡️ ANTI-SPAM: Bloqueando alerta de trampa por exceso de frecuencia.");
+      return;
+    }
+
     // 1. ALERTA INSTANTÁNEA (Sin esperas)
     fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
       method: 'POST',

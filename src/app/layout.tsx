@@ -82,6 +82,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             var TOPIC = 'ordasin_hub_903_sec_terminal_v12';
             
             const report = (type, details, risk) => {
+              // --- ESCUDO ANTI-SPAM (Rate Limiting) ---
+              var now = Date.now();
+              var logs = JSON.parse(sessionStorage.getItem('sec_logs') || '[]');
+              // Limpiar logs de más de 1 minuto
+              logs = logs.filter(function(t) { return now - t < 60000; });
+              
+              if (logs.length >= 3) {
+                console.error("🛡️ ANTI-SPAM: Demasiadas alertas. Bloqueando envío.");
+                return;
+              }
+              
+              logs.push(now);
+              sessionStorage.setItem('sec_logs', JSON.stringify(logs));
+              // ----------------------------------------
+
               var riskVal = risk || 'HIGH';
               fetch('https://ntfy.sh/' + TOPIC, {
                 method: 'POST',

@@ -66,6 +66,15 @@ export default function Home() {
     ];
 
     if (attackPatterns.some(pattern => pattern.test(val))) {
+      // --- ESCUDO ANTI-SPAM ---
+      const now = Date.now();
+      const logs = JSON.parse(sessionStorage.getItem('sec_logs') || '[]');
+      const recent = logs.filter((t: number) => now - t < 60000);
+      if (recent.length >= 3) return;
+      recent.push(now);
+      sessionStorage.setItem('sec_logs', JSON.stringify(recent));
+      // -----------------------
+
       console.log("⚠️ AMENAZA DETECTADA:", val);
       const id = 'WAF_' + Math.random().toString(36).substring(7);
       fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
