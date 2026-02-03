@@ -36,11 +36,9 @@ export default function NexusAIPage() {
       
       if (!pipeline) throw new Error("Motor no detectado.");
 
-      // Configuración Maestra para evitar errores de acceso
+      // Configuración Optimizada: Dejamos que la librería use sus rutas por defecto
       env.allowLocalModels = false;
       env.useBrowserCache = true;
-      env.remoteHost = 'https://huggingface.co';
-      env.remotePathTemplate = '{model}/resolve/{revision}/';
 
       setStatus('Descargando Inteligencia (SmolLM-135M)...');
       
