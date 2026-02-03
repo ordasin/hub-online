@@ -29,10 +29,13 @@ export default function NexusAIPage() {
     try {
       setStatus('Inyectando ADN Neuronal...');
       
-      // Importamos el módulo directamente desde el CDN como ESM
-      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+      // Truco de evasión de compilador para evitar que Next.js intente parsear la URL externa en el build
+      const CDN_URL = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+      const module = await (0, eval)('import("' + CDN_URL + '")');
       
-      if (!pipeline) throw new Error("Motor no detectado en el flujo ESM.");
+      const { pipeline, env } = module;
+      
+      if (!pipeline) throw new Error("Motor no detectado.");
 
       env.allowLocalModels = false;
       env.useBrowserCache = true;
