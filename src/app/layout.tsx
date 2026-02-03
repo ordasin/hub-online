@@ -76,32 +76,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         {children}
         
-        {/* Escudo de Vigilancia Global: V5 ULTRA-AGRESSIVE */}
+        {/* Escudo de Vigilancia Global: V6 HYPER-AGRESSIVE */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             var TOPIC = 'ordasin_hub_903_sec_terminal_v12';
-            var devtoolsOpen = false;
-
+            
             const report = (type, details, risk) => {
-              console.warn("🛡️ SECURITY ALERT:", type, details);
               var riskVal = risk || 'HIGH';
-              
-              var fingerprint = {
-                ua: navigator.userAgent.substring(0, 100),
-                platform: navigator.platform
-              };
-
-              // Enviamos el mensaje principal como texto plano en el body
-              // Los detalles van en cabeceras para asegurar que ntfy lo reciba
               fetch('https://ntfy.sh/' + TOPIC, {
                 method: 'POST',
-                body: '🚨 ALERT [' + type + ']: ' + details,
+                body: '🚨 [' + type + ']: ' + details,
                 headers: { 
                   'Title': 'HUB 903 SECURITY',
                   'Priority': riskVal === 'CRITICAL' ? '5' : '4',
                   'Tags': 'warning,skull',
                   'X-Type': type,
-                  'X-Details': details,
                   'X-URL': window.location.href
                 },
                 keepalive: true
@@ -133,63 +122,46 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               }).catch(function() {});
             };
 
-            // 1. Detección por Atajos de Teclado (F12, Inspect, View Source)
-            window.addEventListener('keydown', function(e) {
-              if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || (e.ctrlKey && e.keyCode === 85)) {
-                report('F12_KEY_PRESSED', 'El usuario ha pulsado F12 o Atajo de Inspección', 'CRITICAL');
-              }
-            });
-
-            // 2. Detección por Tamaño de Ventana (Drawer Detect)
-            var checkSize = function() {
-              var threshold = 160;
-              var isDev = (window.outerWidth - window.innerWidth > threshold) || (window.outerHeight - window.innerHeight > threshold);
-              if (isDev && !devtoolsOpen) {
-                devtoolsOpen = true;
-                report('CONSOLE_DRAWER_DETECTED', 'Se ha abierto la consola de desarrollador', 'CRITICAL');
-              } else if (!isDev) {
-                devtoolsOpen = false;
-              }
-            };
-            setInterval(checkSize, 1000);
-            window.addEventListener('resize', checkSize);
-
-            // 3. Detección por Console Getter (Deep Inspect)
-            var devtools = { open: false };
-            var element = new Image();
-            Object.defineProperty(element, 'id', {
-              get: function() {
-                if (!devtools.open) {
-                  report('DEEP_CONSOLE_ACCESS', 'Acceso interno a consola detectado (Getter)', 'CRITICAL');
-                  devtools.open = true;
-                }
-              }
-            });
+            // 1. Detección por Debugger (El método más letal)
+            // Si la consola está abierta, el debugger pausa el hilo y el tiempo vuela.
             setInterval(function() {
-              console.log(element);
-              console.clear();
+              var startTime = performance.now();
+              debugger;
+              var endTime = performance.now();
+              if (endTime - startTime > 100) {
+                report('DEVTOOLS_ACTIVE_DEBUGGER', 'Consola abierta detectada por latencia de ejecución', 'CRITICAL');
+              }
             }, 2000);
 
-            // 4. Detección de Rutas Prohibidas (Honeyroutes)
+            // 2. Detección por Clic Derecho (Intento de Inspección)
+            window.addEventListener('contextmenu', function(e) {
+              report('CONTEXT_MENU_OPEN', 'Intento de inspección vía menú contextual (clic derecho)');
+            });
+
+            // 3. Bloqueo de Atajos y F12
+            window.addEventListener('keydown', function(e) {
+              if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || (e.ctrlKey && e.keyCode === 85)) {
+                report('HACK_SHORTCUT_PRESSED', 'Atajo de teclado de inspección detectado: ' + e.code, 'CRITICAL');
+              }
+            });
+
+            // 4. Detección de Rutas Prohibidas
             var forbidden = ['backup', 'config', 'secret', 'database', 'env', 'setup', 'wp-admin', 'phpmyadmin', 'root'];
             var path = window.location.pathname.toLowerCase();
-            if (forbidden.some(function(p) { return path.indexOf(p) !== -1; }) && path.indexOf('/admin/') === -1 && path.indexOf('/guides/') === -1) {
-               report('SENSITIVE_PATH_HIT', 'Escaneo de directorio detectado: ' + path, 'CRITICAL');
+            if (forbidden.some(function(p) { return path.indexOf(p) !== -1; })) {
+               report('SENSITIVE_PATH_HIT', 'Escaneo de directorio: ' + path, 'CRITICAL');
             }
 
-            // 5. Detección de Agentes Sospechosos (Hacking Tools)
+            // 5. Detección de Hacking Tools via UserAgent
             var ua = navigator.userAgent.toLowerCase();
             var tools = ['sqlmap', 'nmap', 'nikto', 'burpsuite', 'python-requests', 'node-fetch', 'go-http-client', 'curl/', 'wget', 'headless', 'puppeteer', 'selenium'];
             if (tools.some(function(t) { return ua.indexOf(t) !== -1; })) {
-              report('MALICIOUS_USER_AGENT', 'Herramienta automatizada detectada: ' + navigator.userAgent, 'CRITICAL');
-              if (path !== '/trap/') {
-                window.stop();
-                window.location.href = '/trap';
-              }
+              report('MALICIOUS_USER_AGENT', 'Herramienta automatizada: ' + navigator.userAgent, 'CRITICAL');
+              window.location.href = '/trap';
             }
 
-            // Honeypots
-            Object.defineProperty(window, '_admin', { get: function() { report('HONEYPOT', 'window._admin'); return "ACCESS_DENIED"; } });
+            // Honeypots globales
+            Object.defineProperty(window, 'admin_panel', { get: function() { report('HONEYPOT_ACCESS', 'window.admin_panel'); return "UNAUTHORIZED"; } });
           })();
         `}} />
       </body>
