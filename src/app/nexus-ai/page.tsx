@@ -89,10 +89,11 @@ export default function NexusAIPage() {
       const query = input.toLowerCase();
       let aiResponse = "";
 
-      // Lógica de "Aprendizaje" y Respuesta Inteligente
-      if (query.includes('que pasa en el mundo') || query.includes('noticias') || query.includes('novedades')) {
-        aiResponse = `He analizado la red global y estos son los temas candentes: ${worldNews.join(' | ')}. ¿Te interesa profundizar en alguno?`;
+      // 1. INTELIGENCIA DE ACTUALIDAD (MUNDO EXTERIOR)
+      if (query.includes('mundo') || query.includes('noticias') || query.includes('novedades')) {
+        aiResponse = `He analizado la red global y estos son los temas candentes: ${worldNews.length > 0 ? worldNews.join(' | ') : 'Sincronizando flujos de datos...'}. ¿Te interesa profundizar en alguno?`;
       } 
+      // 2. APRENDIZAJE PERSISTENTE (MEMORIA P2P)
       else if (query.includes('aprende esto:') || query.includes('guarda esto:')) {
         const fact = input.split(':')[1]?.trim();
         if (fact && gun) {
@@ -102,41 +103,21 @@ export default function NexusAIPage() {
           aiResponse = "Para que aprenda algo, usa el formato 'Aprende esto: [tu información]'.";
         }
       }
+      // 3. BASE DE CONOCIMIENTO SEMÁNTICA
       else {
-        // Base de conocimiento mejorada
         const knowledge = [
-          { keys: ['hola', 'buenos dias', 'que tal'], ans: "¡Saludos! Mi procesador está al 100% para ayudarte." },
+          { keys: ['hola', 'buenos dias', 'que tal'], ans: user?.is ? `¡Saludos, ${user.is.alias}! Mi núcleo neuronal está listo. ¿Qué necesitas optimizar hoy?` : "¡Saludos, Comandante! Terminal Nexus online. ¿En qué puedo ayudarte?" },
           { keys: ['fps', 'lag', 'optimizer', 'rendimiento'], ans: "El Ordasin Optimizer es tu mejor aliado. Mi base de datos confirma que la v1.0 es la más estable para Windows 10/11." },
           { keys: ['quien eres', 'nexus', 'ai'], ans: "Soy Nexus AI V3, una inteligencia artificial híbrida que combina datos locales del HUB con flujos de información global en tiempo real." },
-          { keys: ['ayuda', 'instalar', 'guia'], ans: "Revisa nuestra sección de 'Guías'. He optimizado el contenido para que sea fácil de seguir incluso para operativos novatos." }
+          { keys: ['ayuda', 'instalar', 'guia'], ans: "Revisa nuestra sección de 'Guías'. He optimizado el contenido para que sea fácil de seguir incluso para operativos novatos." },
+          { keys: ['seguridad', 'hack', 'hacker', 'trap'], ans: "El HUB 903 está protegido por el Escudo V12. Usamos vigilancia activa vía debugger y trampas invisibles." }
         ];
 
         const match = knowledge.find(k => k.keys.some(key => query.includes(key)));
-        aiResponse = match ? match.ans : "Esa consulta requiere un ciclo de procesamiento mayor. ¿Podrías darme más detalles o prefieres que busquemos en las secciones de Software?";
+        aiResponse = match ? match.ans : "Esa consulta requiere un ciclo de procesamiento mayor. He registrado el término para mi próximo ciclo de aprendizaje neuronal. ¿Te gustaría explorar el Optimizador?";
       }
 
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'ai', text: aiResponse, time: new Date().toLocaleTimeString() }]);
-      setIsTyping(false);
-    }, 1200);
-  };
-
-      // Búsqueda Semántica por Coincidencia de Peso
-      const match = knowledge.find(k => k.keys.some(key => query.includes(key)));
-      
-      if (match) {
-        aiResponse = match.ans;
-      } else {
-        // Respuesta de "Aprendizaje" cuando no sabe algo
-        aiResponse = "Esa consulta no está en mi base de datos principal todavía. He registrado el término para mi próximo ciclo de aprendizaje neuronal. Mientras tanto, ¿te gustaría explorar el Optimizador o nuestras Guías?";
-      }
-
-      const aiMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        text: aiResponse,
-        time: new Date().toLocaleTimeString()
-      };
-
+      const aiMsg: Message = { id: (Date.now() + 1).toString(), role: 'ai', text: aiResponse, time: new Date().toLocaleTimeString() };
       setMessages(prev => [...prev, aiMsg]);
       setIsTyping(false);
     }, 1200);
@@ -156,13 +137,13 @@ export default function NexusAIPage() {
               <h1 className="text-xl font-black uppercase italic tracking-tighter">Nexus <span className="text-purple-500">AI</span></h1>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Agente Autónomo Online</span>
+                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Agente Autónomo V3 Online</span>
               </div>
             </div>
           </div>
           <div className="hidden md:flex gap-2">
              <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
-               <Cpu size={10} /> Neural Core v2.0
+               <Cpu size={10} /> Neural Core v3.0
              </div>
           </div>
         </header>
@@ -232,7 +213,6 @@ export default function NexusAIPage() {
 
       </div>
 
-      {/* Decoración de fondo */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-600/5 rounded-full blur-[150px] -z-10 animate-pulse"></div>
     </main>
   );
