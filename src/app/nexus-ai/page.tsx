@@ -31,43 +31,40 @@ export default function NexusAIPage() {
     const loadAI = async () => {
       setStatus('Sincronizando con la red neuronal...');
       try {
-        // Importación dinámica ultra-segura
-        const Transformers = await import('@xenova/transformers');
-        if (!Transformers) throw new Error("No se pudo cargar la librería neuronal.");
+        // Importación dinámica
+        const module = await import('@xenova/transformers');
+        if (!module) throw new Error("Librería no detectada.");
 
-        const { pipeline, env } = Transformers;
+        // Acceso seguro a pipeline y env
+        const pipeline = module.pipeline;
+        const env = module.env;
         
-        // Configuración segura
         if (env) {
+          // Configuraciones con protección contra nulos
           env.allowLocalModels = false;
           env.useBrowserCache = true;
-          // Forzar el uso de WASM (más compatible)
-          env.backends.onnx.wasm.numThreads = 1;
+          
+          if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+            env.backends.onnx.wasm.numThreads = 1;
+          }
         }
         
-        setStatus('Cargando sinapsis...');
-        const generator = await pipeline('text-generation', 'Xenova/tiny-random-Gpt2', {
-          progress_callback: (data: any) => {
-            if (data.status === 'progress') {
-              setProgress(Math.round(data.progress));
-              setStatus(`Descargando datos: ${Math.round(data.progress)}%`);
-            }
-          }
-        });
+        setStatus('Despertando conciencia...');
+        const generator = await pipeline('text-generation', 'Xenova/tiny-random-Gpt2');
 
         setPipeline(() => generator);
         setIsLoaded(true);
-        setStatus('Online');
+        setStatus('Sistemas Online');
         
         setMessages([{
           id: 'welcome',
           role: 'ai',
-          text: 'Conexión Establecida. He cargado un núcleo de inteligencia ligera para máxima compatibilidad. ¿Qué dudas tienes hoy?',
+          text: 'Conexión Establecida con el Núcleo Ligero. ¿Qué comandos deseas ejecutar hoy?',
           time: new Date().toLocaleTimeString()
         }]);
       } catch (err: any) {
-        console.error("AI LOAD ERROR:", err);
-        setStatus(`Fallo de Despliegue: ${err.message || 'Error de entorno'}`);
+        console.error("AI FATAL ERROR:", err);
+        setStatus(`Error de Despliegue: ${err.message || 'Fallo de inicialización'}`);
       }
     };
 
