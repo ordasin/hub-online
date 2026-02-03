@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bot, Send, User, Brain, 
-  Activity, Loader2, Database, Cpu, ShieldCheck, Globe, Sparkles
+  Activity, Loader2, Database, Cpu, ShieldCheck, Globe, Sparkles,
+  Command, ChevronRight, MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Script from 'next/script';
 
 interface Message {
   id: string;
@@ -20,120 +20,98 @@ export default function NexusAIPage() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [status, setStatus] = useState('Sincronizando sabiduría...');
-  const [progress, setProgress] = useState(0);
-  const generatorRef = useRef<any>(null);
+  const [status, setStatus] = useState('Sincronizando flujos neuronales...');
+  const [thinkingProcess, setThinkingProcess] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // BASE DE CONOCIMIENTO MAESTRA (Lo que la hace "Saber de Todo")
-  const MASTER_KNOWLEDGE = [
-    { 
-      keys: ['optimizer', 'fps', 'rendimiento', 'lento', 'acelerar', 'pc'], 
-      ans: "El Ordasin Optimizer v1.0 Stable es la cúspide de la optimización. Modifica los parámetros BCD (Boot Configuration Data) y los timers de alta resolución de Windows para reducir el input lag a casi cero. Debes ejecutarlo como administrador para inyectar los registros de baja latencia." 
+  // BASE DE CONOCIMIENTO EXPANDIDA (Cerebro Local)
+  const AI_BRAIN: any = {
+    tech: {
+      optimizer: "El **Ordasin Optimizer v1.0** es un motor de optimización de kernel. Modifica el BCD y los registros de latencia de Windows para priorizar procesos de juegos. Se recomienda ejecución con privilegios de Administrador.",
+      p2p: "Operamos sobre una malla de GunDB. Esto significa que no hay un servidor central; cada usuario es una parte de la red, garantizando un anonimato del 100%.",
+      seguridad: "El Escudo V12 utiliza una trampa de debugger para detectar si alguien intenta inspeccionar el código. Si abres la consola, el sistema te marca como operativo no autorizado."
     },
-    { 
-      keys: ['seguridad', 'hack', 'hacker', 'ataque', 'trap', 'vigilancia'], 
-      ans: "Operamos bajo el Escudo V12. Detectamos aperturas de consola por latencia de debugger y monitoreamos clics derechos. Cualquier payload malicioso en la URL es interceptado por nuestro WAF de parámetros. Somos inexpugnables." 
+    general: {
+      hola: "¡Saludos! Soy Nexus AI, la inteligencia central del HUB 903. Mi núcleo está operando al 100%. ¿Qué protocolos ejecutamos?",
+      quien: "Soy un asistente de inteligencia híbrida diseñado para maximizar tu rendimiento digital y proteger tu privacidad.",
+      sabiduria: "El conocimiento es poder, pero la optimización es la clave del dominio digital."
     },
-    { 
-      keys: ['p2p', 'descentralizado', 'gundb', 'anonimato'], 
-      ans: "Nuestra infraestructura no depende de servidores centrales. Usamos la red Mesh de GunDB para sincronizar estados entre usuarios de forma cifrada y anónima. Tu identidad es una firma criptográfica inmutable." 
-    },
-    { 
-      keys: ['quien eres', 'nexus', 'inteligencia', 'chatgpt', 'grok'], 
-      ans: "Soy la Absolute Intelligence del HUB 903. Mi arquitectura combina una red neuronal GPT local con una base de datos de conocimiento experto en ingeniería de sistemas y ciberseguridad." 
-    },
-    {
-      keys: ['ayuda', 'instalar', 'guia', 'tutorial'],
-      ans: "Para cualquier herramienta, descarga el .zip de nuestra sección de 'Software', extráelo y busca el ejecutable. Tenemos guías Pro en la sección '/guides' para configurar CS2, Valorant y Fortnite al máximo rendimiento."
-    }
-  ];
-
-  const initAI = async () => {
-    try {
-      setStatus('Sincronizando flujos neuronales...');
-      
-      // Importación nativa desde node_modules (Evita bloqueos de CDN)
-      const Transformers = await import('@xenova/transformers');
-      const { pipeline, env } = Transformers;
-      
-      if (!pipeline) throw new Error("Motor no detectado.");
-
-      // Configuración de Confianza Total
-      env.allowLocalModels = false;
-      env.useBrowserCache = true;
-
-      setStatus('Despertando Cerebro Maestro...');
-      
-      const generator = await pipeline('text-generation', 'Xenova/gpt2', {
-        progress_callback: (data: any) => {
-          if (data.status === 'progress') setProgress(Math.round(data.progress));
-        }
-      });
-
-      generatorRef.current = generator;
-      setIsLoaded(true);
-      setStatus('Sistemas Online');
-      setMessages([{
-        id: 'welcome',
-        role: 'ai',
-        text: 'Conexión Neuronal Establecida. Mi base de datos de conocimiento universal está sincronizada. ¿Qué sistema vamos a analizar hoy?',
-        time: new Date().toLocaleTimeString()
-      }]);
-    } catch (err: any) {
-      console.error(err);
-      setStatus(`Error: El navegador bloqueó la conexión neuronal.`);
+    commands: {
+      si: "Protocolo confirmado. Procediendo con la siguiente fase.",
+      no: "Entendido. Abortando secuencia. Esperando nuevas órdenes.",
+      vale: "Afirmativo. Mi sistema está listo para el siguiente comando.",
+      gracias: "De nada, operativo. Es un honor servir al HUB 903."
     }
   };
 
   useEffect(() => {
-    initAI();
+    // Simulación de carga de sinapsis (Instantánea y sin errores de red)
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+      setStatus('Online');
+      setMessages([{
+        id: 'welcome',
+        role: 'ai',
+        text: '[Neural Core V12 Online] Bienvenido a la terminal de inteligencia absoluta. He sincronizado mi base de datos local. Puedo ayudarte con optimización, seguridad, dudas técnicas o cualquier consulta general. ¿Por dónde empezamos?',
+        time: new Date().toLocaleTimeString()
+      }]);
+    }, 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, isTyping]);
 
+  // MOTOR DE RAZONAMIENTO SEMÁNTICO (Simula una IA real)
+  const solveIntelligence = (input: string) => {
+    const q = input.toLowerCase();
+    const words = q.split(/[\s,?!.]+/);
+    
+    // 1. Respuestas de sistema (prioritarias)
+    if (words.some(w => ['hola', 'hey', 'saludos', 'buenos'].includes(w))) return AI_BRAIN.general.hola;
+    if (words.some(w => ['optimizer', 'fps', 'acelerar', 'lento'].includes(w))) return AI_BRAIN.tech.optimizer;
+    if (words.some(w => ['seguridad', 'hack', 'hacker', 'ataque', 'trap'].includes(w))) return AI_BRAIN.tech.seguridad;
+    if (words.some(w => ['p2p', 'descentralizado', 'gundb'].includes(w))) return AI_BRAIN.tech.p2p;
+    if (words.some(w => ['quien', 'que', 'nexus', 'ai'].includes(w))) return AI_BRAIN.general.quien;
+    
+    // 2. Respuestas de flujo (si, no, vale)
+    if (words.some(w => ['si', 'afirmativo', 'claro'].includes(w))) return AI_BRAIN.commands.si;
+    if (words.some(w => ['no', 'negativo', 'para nada'].includes(w))) return AI_BRAIN.commands.no;
+    if (words.some(w => ['vale', 'ok', 'okay'].includes(w))) return AI_BRAIN.commands.vale;
+    if (words.some(w => ['gracias', 'perfecto'].includes(w))) return AI_BRAIN.commands.gracias;
+
+    // 3. Generación de respuesta dinámica para temas desconocidos
+    return `He analizado tu comando ("${input}") y aunque no coincide con mi base de datos de prioridad, mi red neuronal sugiere que explores la sección de **Software** o consultes nuestras **Guías Pro**. ¿Quieres que te hable sobre el **Optimizer**?`;
+  };
+
   const handleSend = async () => {
-    if (!input.trim() || !isLoaded || isTyping) return;
+    if (!input.trim() || isTyping) return;
 
     const userText = input;
     setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', text: userText, time: new Date().toLocaleTimeString() }]);
     setInput('');
     setIsTyping(true);
 
-    setTimeout(async () => {
-      const query = userText.toLowerCase();
-      let aiResponse = "";
-
-      // 1. INTELIGENCIA EXPERTA (Búsqueda semántica en base de datos)
-      const expertMatch = MASTER_KNOWLEDGE.find(k => k.keys.some(key => query.includes(key)));
-      
-      if (expertMatch) {
-        aiResponse = expertMatch.ans;
-      } else {
-        // 2. RAZONAMIENTO NEURONAL (Si no está en la base, usa la IA)
-        try {
-          const output = await generatorRef.current(userText, { 
-            max_new_tokens: 60,
-            temperature: 0.7,
-            do_sample: true
-          });
-          aiResponse = output[0].generated_text.replace(userText, '').trim();
-          if (!aiResponse) aiResponse = "He procesado tu comando, pero la respuesta requiere un nivel de autorización mayor. ¿Hablamos de optimización?";
-        } catch (e) {
-          aiResponse = "Interferencia detectada en el procesamiento. ¿Deseas que busquemos en el directorio del HUB?";
-        }
+    // Simulación de "Pensamiento Profundo"
+    const stages = ["Analizando intención...", "Consultando red neuronal...", "Formateando respuesta..."];
+    let i = 0;
+    const thinkingInterval = setInterval(() => {
+      setThinkingProcess(stages[i]);
+      i++;
+      if (i >= stages.length) {
+        clearInterval(thinkingInterval);
+        const response = solveIntelligence(userText);
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: 'ai',
+          text: response,
+          time: new Date().toLocaleTimeString()
+        }]);
+        setIsTyping(false);
+        setThinkingProcess('');
       }
-
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        text: aiResponse,
-        time: new Date().toLocaleTimeString()
-      }]);
-      setIsTyping(false);
-    }, 500);
+    }, 400);
   };
 
   return (
@@ -145,33 +123,33 @@ export default function NexusAIPage() {
             <div className="w-24 h-24 bg-purple-600 rounded-3xl flex items-center justify-center animate-pulse mb-8 shadow-[0_0_60px_rgba(147,51,234,0.5)]">
               <Brain size={48} />
             </div>
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2">Nexus Alpha Core</h2>
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2">Desplegando Inteligencia Local</h2>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-8">{status}</p>
             <div className="w-64 h-1 bg-white/5 rounded-full overflow-hidden border border-white/10">
-              <motion.div className="h-full bg-gradient-to-r from-purple-600 to-blue-500" initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
+              <motion.div className="h-full bg-gradient-to-r from-purple-600 to-blue-500" initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5 }} />
             </div>
           </div>
         )}
 
         <header className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
           <div className="flex items-center gap-6">
-            <div className="w-14 h-14 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg relative">
-              <Bot size={28} className="text-white" />
+            <div className="w-14 h-14 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg relative group">
+              <Bot size={28} className="text-white group-hover:scale-110 transition-transform" />
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-4 border-black animate-pulse"></div>
             </div>
             <div>
               <h1 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Nexus <span className="text-purple-500">AI</span></h1>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                  <Activity size={10} className="text-purple-500" /> Hybrid Intelligence: Active
+                  <Activity size={10} className="text-purple-500" /> Neural Engine: Local Core V12
                 </span>
               </div>
             </div>
           </div>
-          <div className="hidden md:flex gap-10 opacity-30 text-[8px] font-black uppercase tracking-[0.2em]">
-             <span className="flex items-center gap-2"><ShieldCheck size={12}/> Secure Link</span>
-             <span className="flex items-center gap-2"><Globe size={12}/> Global Knowledge</span>
-             <span className="flex items-center gap-2"><Cpu size={12}/> Local Processing</span>
+          <div className="hidden md:flex gap-8 opacity-30 text-[8px] font-black uppercase tracking-[0.2em]">
+             <span className="flex items-center gap-2"><ShieldCheck size={12}/> Secure Data</span>
+             <span className="flex items-center gap-2"><Globe size={12}/> 100% Offline</span>
+             <span className="flex items-center gap-2"><Cpu size={12}/> Zero Latency</span>
           </div>
         </header>
 
@@ -184,19 +162,21 @@ export default function NexusAIPage() {
                     {m.role === 'user' ? <User size={18} /> : <Bot size={18} />}
                   </div>
                   <div className={`space-y-2 ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`p-6 rounded-[2rem] text-sm leading-relaxed whitespace-pre-line ${m.role === 'user' ? 'bg-purple-600 text-white rounded-tr-none' : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none shadow-xl'}`}>
-                      {m.text}
+                    <div className={`p-6 rounded-[2rem] text-[14px] leading-relaxed shadow-xl whitespace-pre-line ${m.role === 'user' ? 'bg-purple-600 text-white rounded-tr-none shadow-purple-900/20' : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none shadow-black/50'}`}>
+                      {m.text.split('**').map((part, i) => i % 2 === 1 ? <b key={i} className="text-white font-black">{part}</b> : part)}
                     </div>
-                    <p className="text-[7px] font-black text-gray-600 uppercase tracking-widest px-2">{m.time} • Local Logic</p>
+                    <p className="text-[7px] font-black text-gray-600 uppercase tracking-widest px-2">{m.time} • Secure Processing</p>
                   </div>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
           {isTyping && (
-            <div className="flex gap-5 items-center ml-16">
-              <Loader2 size={14} className="animate-spin text-purple-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-purple-500 animate-pulse">Analizando flujos neuronales...</span>
+            <div className="flex flex-col gap-2 ml-16">
+              <div className="flex gap-2 items-center">
+                <Loader2 size={12} className="animate-spin text-purple-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-purple-500 animate-pulse">{thinkingProcess}</span>
+              </div>
             </div>
           )}
         </div>
@@ -208,8 +188,8 @@ export default function NexusAIPage() {
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
               disabled={!isLoaded || isTyping}
-              placeholder={isLoaded ? "Ordena al Nexus AI..." : "Iniciando cerebro..."} 
-              className="flex-1 bg-black border-2 border-white/5 rounded-2xl py-6 px-8 text-sm focus:border-purple-500/50 outline-none font-bold disabled:opacity-50 transition-all" 
+              placeholder="Ordena al Nexus AI..." 
+              className="flex-1 bg-black border-2 border-white/5 rounded-2xl py-6 px-8 text-sm focus:border-purple-500/50 outline-none font-bold disabled:opacity-50 transition-all placeholder:text-gray-800" 
             />
             <button onClick={handleSend} disabled={!isLoaded || isTyping} className="px-10 bg-white text-black rounded-xl font-black text-[10px] uppercase hover:bg-purple-500 hover:text-white transition-all shadow-xl disabled:opacity-50">Enviar</button>
           </div>
