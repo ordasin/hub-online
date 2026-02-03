@@ -36,14 +36,17 @@ export default function NexusAIPage() {
       
       if (!pipeline) throw new Error("Motor no detectado.");
 
-      // Configuración Optimizada: Dejamos que la librería use sus rutas por defecto
+      // Configuración Maestra de Entorno
       env.allowLocalModels = false;
       env.useBrowserCache = true;
+      env.remoteHost = 'https://huggingface.co';
+      env.remotePathTemplate = '{model}/resolve/{revision}/';
 
       setStatus('Descargando Inteligencia (SmolLM-135M)...');
       
-      // Usamos un modelo real de chat/instrucciones (muy inteligente para su tamaño)
+      // Intentamos cargar el pipeline con una configuración de reintento
       const generator = await pipeline('text-generation', 'Xenova/SmolLM-135M-Instruct', {
+        revision: 'main',
         progress_callback: (data: any) => {
           if (data.status === 'progress') setProgress(Math.round(data.progress));
         }
