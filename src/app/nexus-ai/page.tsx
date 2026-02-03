@@ -28,10 +28,11 @@ export default function NexusAIPage() {
   const initAI = async () => {
     try {
       setStatus('Inyectando ADN Neuronal...');
-      // @ts-expect-error Transformers loaded via CDN
-      const { pipeline, env } = window.Transformers;
       
-      if (!pipeline) throw new Error("Motor no detectado en el sistema.");
+      // Importamos el módulo directamente desde el CDN como ESM
+      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+      
+      if (!pipeline) throw new Error("Motor no detectado en el flujo ESM.");
 
       env.allowLocalModels = false;
       env.useBrowserCache = true;
