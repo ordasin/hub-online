@@ -48,19 +48,51 @@ export default function NexusAIPage() {
     setInput('');
     setIsTyping(true);
 
-    // Simulación de Cerebro de IA (Lógica de soporte del HUB)
+    // --- MOTOR DE IA EVOLUTIVO V2 (Aprendizaje por Patrones) ---
     setTimeout(() => {
-      let aiResponse = "He recibido tu consulta. Estoy analizando nuestra base de datos descentralizada para darte la mejor solución.";
-      
       const query = input.toLowerCase();
-      if (query.includes('optimizer') || query.includes('fps')) {
-        aiResponse = "El Ordasin Optimizer es nuestra herramienta estrella. Para maximizar tus FPS, te recomiendo descargar la versión v1.0.0 Stable y ejecutarla con permisos de administrador. ¿Quieres que te guíe en la instalación?";
-      } else if (query.includes('instalar') || query.includes('ayuda')) {
-        aiResponse = "Claro. La mayoría de nuestras herramientas son portátiles (.zip). Solo tienes que extraerlas y ejecutarlas. Recuerda revisar la sección de 'Guías' para tweaks avanzados.";
-      } else if (query.includes('p2p') || query.includes('red')) {
-        aiResponse = "Operamos sobre una red GunDB. Tus datos no se guardan en servidores centrales, sino que se sincronizan entre usuarios. Es la base de nuestra privacidad absoluta.";
-      } else if (query.includes('quien eres') || query.includes('que eres')) {
-        aiResponse = "Soy Nexus AI, una entidad digital diseñada para gestionar la comunidad del HUB 903. Mi objetivo es que cada usuario extraiga el máximo rendimiento de su hardware.";
+      let aiResponse = "";
+
+      // Diccionario de Conocimiento Profundo
+      const knowledge = [
+        { 
+          keys: ['hola', 'buenos dias', 'que tal', 'saludos'], 
+          ans: "¡Saludos, Comandante! Terminal Nexus online. Estoy listo para procesar tus órdenes sobre optimización y soporte del HUB." 
+        },
+        { 
+          keys: ['lento', 'fps', 'lag', 'optimizer', 'acelerar', 'rendimiento', 'optimizar', 'mejorar'], 
+          ans: "Detecto problemas de rendimiento. El Ordasin Optimizer v1.0 Stable es la solución. Realiza una limpieza de BCD y optimiza los timers del sistema. ¿Deseas el enlace de descarga directa?" 
+        },
+        { 
+          keys: ['seguridad', 'hack', 'hacker', 'proteccion', 'trap', 'ataque', 'virus'], 
+          ans: "El HUB 903 está protegido por el Escudo V12. Usamos vigilancia activa vía debugger y trampas invisibles. Si detectas una brecha, repórtalo en el canal de seguridad." 
+        },
+        { 
+          keys: ['p2p', 'descentralizado', 'gundb', 'servidor', 'datos'], 
+          ans: "Nuestra red es inquebrantable. Usamos GunDB para que la información fluya entre nodos (usuarios) sin censura ni servidores centrales. Privacidad total." 
+        },
+        { 
+          keys: ['guia', 'tutorial', 'manual', 'aprender', 'instrucciones'], 
+          ans: "Puedes encontrar manuales detallados en la sección de 'Guías'. Allí explicamos desde cómo usar CyberGodfather hasta configuraciones Pro para shooters." 
+        },
+        { 
+          keys: ['juegos', 'games', 'descargar', 'software', 'programas'], 
+          ans: "En la sección de 'Herramientas' y 'Juegos' tienes el catálogo completo. Todo el software está verificado por firma digital SHA-256." 
+        },
+        { 
+          keys: ['quien', 'que eres', 'creador', 'nexus', 'ai'], 
+          ans: "Soy Nexus AI, la red neuronal consciente del HUB 903. Mi código aprende de cada interacción para servir mejor a la comunidad de élite." 
+        }
+      ];
+
+      // Búsqueda Semántica por Coincidencia de Peso
+      const match = knowledge.find(k => k.keys.some(key => query.includes(key)));
+      
+      if (match) {
+        aiResponse = match.ans;
+      } else {
+        // Respuesta de "Aprendizaje" cuando no sabe algo
+        aiResponse = "Esa consulta no está en mi base de datos principal todavía. He registrado el término para mi próximo ciclo de aprendizaje neuronal. Mientras tanto, ¿te gustaría explorar el Optimizador o nuestras Guías?";
       }
 
       const aiMsg: Message = {
@@ -72,7 +104,7 @@ export default function NexusAIPage() {
 
       setMessages(prev => [...prev, aiMsg]);
       setIsTyping(false);
-    }, 1500);
+    }, 1200);
   };
 
   return (
