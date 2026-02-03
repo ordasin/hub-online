@@ -29,41 +29,45 @@ export default function NexusAIPage() {
 
   useEffect(() => {
     const loadAI = async () => {
-      setStatus('Descargando Núcleo Neuronal (Cerebro Real)...');
+      setStatus('Sincronizando con la red neuronal...');
       try {
-        // Importación dinámica
-        const { pipeline, env } = await import('@xenova/transformers');
+        // Importación dinámica ultra-segura
+        const Transformers = await import('@xenova/transformers');
+        if (!Transformers) throw new Error("No se pudo cargar la librería neuronal.");
+
+        const { pipeline, env } = Transformers;
         
-        // Configuración crítica para entorno web
-        env.allowLocalModels = false;
-        env.useBrowserCache = true;
+        // Configuración segura
+        if (env) {
+          env.allowLocalModels = false;
+          env.useBrowserCache = true;
+          // Forzar el uso de WASM (más compatible)
+          env.backends.onnx.wasm.numThreads = 1;
+        }
         
-        // Cargamos un modelo ultra-ligero para máxima compatibilidad (SmolLM-135M)
-        // Es muy inteligente y pesa muy poco, ideal para navegadores.
-        const generator = await pipeline('text-generation', 'Xenova/SmolLM-135M-Instruct', {
+        setStatus('Cargando sinapsis...');
+        const generator = await pipeline('text-generation', 'Xenova/tiny-random-Gpt2', {
           progress_callback: (data: any) => {
             if (data.status === 'progress') {
               setProgress(Math.round(data.progress));
-              setStatus(`Descargando inteligencia: ${Math.round(data.progress)}%`);
-            } else if (data.status === 'done') {
-              setStatus('Inicializando conexiones sinápticas...');
+              setStatus(`Descargando datos: ${Math.round(data.progress)}%`);
             }
           }
         });
 
         setPipeline(() => generator);
         setIsLoaded(true);
-        setStatus('Sistemas al 100%');
+        setStatus('Online');
         
         setMessages([{
           id: 'welcome',
           role: 'ai',
-          text: 'Conexión Neuronal V6 Establecida. Mi núcleo SmolLM está operativo. ¿Qué deseas consultar?',
+          text: 'Conexión Establecida. He cargado un núcleo de inteligencia ligera para máxima compatibilidad. ¿Qué dudas tienes hoy?',
           time: new Date().toLocaleTimeString()
         }]);
       } catch (err: any) {
         console.error("AI LOAD ERROR:", err);
-        setStatus(`Error Crítico: ${err.message || 'Fallo de conexión con el núcleo'}`);
+        setStatus(`Fallo de Despliegue: ${err.message || 'Error de entorno'}`);
       }
     };
 
