@@ -123,31 +123,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 },
                 keepalive: true
               }).catch(function() {});
-
-              // 2. Reporte DISCORD (Uso de FormData para evitar Preflight CORS)
-              const discordData = {
-                embeds: [{
-                  title: "🛡️ WAF ALERT - " + type,
-                  color: riskVal === 'CRITICAL' ? 15548997 : 3447003,
-                  fields: [
-                    { name: "Detalles", value: details, inline: false },
-                    { name: "URL", value: window.location.href, inline: false },
-                    { name: "Plataforma", value: fingerprint.platform, inline: true },
-                    { name: "Pantalla", value: fingerprint.screen, inline: true }
-                  ],
-                  footer: { text: "HUB 903 | Vigilancia Global" },
-                  timestamp: new Date().toISOString()
-                }]
-              };
-
-              const formData = new FormData();
-              formData.append('payload_json', JSON.stringify(discordData));
-
-              fetch(discordUrl, {
-                method: 'POST',
-                body: formData,
-                keepalive: true
-              }).catch(function() {});
             };
 
             // 1. Detección por Debugger (El método más letal)
