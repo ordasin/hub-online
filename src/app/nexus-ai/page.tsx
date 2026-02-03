@@ -17,11 +17,13 @@ interface Message {
 
 export default function NexusAIPage() {
   const [user, setUser] = useState<any>(null);
+  const [gun, setGun] = useState<any>(null);
+  const [worldNews, setWorldNews] = useState<string[]>([]);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'ai',
-      text: 'Sincronizando identidad...',
+      text: 'Inicializando Núcleo Neuronal V3...',
       time: new Date().toLocaleTimeString()
     }
   ]);
@@ -30,39 +32,41 @@ export default function NexusAIPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Sincronización con GunDB
-    const initUser = () => {
+    const initNexus = async () => {
+      // 1. Conectar con la red P2P (Memoria)
       // @ts-expect-error Gun via CDN
       const Gun = window.Gun;
       if (!Gun) return;
-      const gun = Gun(['wss://gun.v6.rocks/gun', 'https://peer.wall.org/gun', 'https://relay.gun.eco/gun']);
-      const u = gun.user().recall({ sessionStorage: true });
+      const g = Gun(['wss://gun.v6.rocks/gun', 'https://peer.wall.org/gun', 'https://relay.gun.eco/gun']);
+      setGun(g);
+      const u = g.user().recall({ sessionStorage: true });
       setUser(u);
 
-      if (u.is) {
-        setMessages([
-          {
-            id: 'welcome',
-            role: 'ai',
-            text: `Identidad verificada. Bienvenido de nuevo, Comandante ${u.is.alias}. Los sistemas del HUB 903 están a tu disposición. ¿Qué órdenes tienes hoy?`,
-            time: new Date().toLocaleTimeString()
-          }
-        ]);
-      } else {
-        setMessages([
-          {
-            id: 'welcome',
-            role: 'ai',
-            text: 'Bienvenido a la Terminal NEXUS. No detecto una firma digital activa. Puedes usar el HUB de forma anónima o identificarte para acceder a funciones avanzadas.',
-            time: new Date().toLocaleTimeString()
-          }
-        ]);
+      // 2. Aprender del Mundo (Fetch HackerNews API)
+      try {
+        const res = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json');
+        const ids = await res.json();
+        const top3 = ids.slice(0, 3);
+        const newsItems = await Promise.all(top3.map(async (id: number) => {
+          const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+          const item = await itemRes.json();
+          return item.title;
+        }));
+        setWorldNews(newsItems);
+      } catch (e) {
+        console.error("Error aprendiendo del mundo:", e);
       }
+
+      const welcomeText = u.is 
+        ? `Sistemas listos. Bienvenido, Comandante ${u.is.alias}. He sincronizado mi base de datos con las últimas tendencias globales. ¿En qué puedo asistirte?`
+        : 'Terminal V3 Online. No detecto firma digital, pero mi red neuronal está activa. He cargado inteligencia externa para esta sesión.';
+      
+      setMessages([{ id: 'welcome', role: 'ai', text: welcomeText, time: new Date().toLocaleTimeString() }]);
     };
 
     const checker = setInterval(() => {
       // @ts-expect-error Gun via CDN
-      if (window.Gun) { initUser(); clearInterval(checker); }
+      if (window.Gun) { initNexus(); clearInterval(checker); }
     }, 500);
     return () => clearInterval(checker);
   }, []);
@@ -76,57 +80,45 @@ export default function NexusAIPage() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      text: input,
-      time: new Date().toLocaleTimeString()
-    };
-
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', text: input, time: new Date().toLocaleTimeString() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
 
-    // --- MOTOR DE IA EVOLUTIVO V2 (Aprendizaje por Patrones) ---
     setTimeout(() => {
       const query = input.toLowerCase();
       let aiResponse = "";
 
-      // Diccionario de Conocimiento Profundo
-      const knowledge = [
-        { 
-          keys: ['hola', 'buenos dias', 'que tal', 'saludos'], 
-          ans: user?.is ? `¡Saludos, ${user.is.alias}! Mi núcleo neuronal está listo. ¿Qué necesitas optimizar hoy?` : "¡Saludos, Comandante! Terminal Nexus online. ¿En qué puedo ayudarte?"
-        },
-        { 
-          keys: ['mi perfil', 'mis datos', 'quien soy', 'mi nombre'], 
-          ans: user?.is ? `Eres ${user.is.alias}, un operativo verificado del HUB 903. Tu firma digital está activa y segura.` : "Actualmente navegas bajo un Protocolo Fantasma (Anónimo). No tengo acceso a tu identidad."
-        },
-        { 
-          keys: ['lento', 'fps', 'lag', 'optimizer', 'acelerar', 'rendimiento', 'optimizar', 'mejorar'], 
-          ans: "Detecto problemas de rendimiento. El Ordasin Optimizer v1.0 Stable es la solución. Realiza una limpieza de BCD y optimiza los timers del sistema. ¿Deseas el enlace de descarga directa?" 
-        },
-        { 
-          keys: ['seguridad', 'hack', 'hacker', 'proteccion', 'trap', 'ataque', 'virus'], 
-          ans: "El HUB 903 está protegido por el Escudo V12. Usamos vigilancia activa vía debugger y trampas invisibles. Si detectas una brecha, repórtalo en el canal de seguridad." 
-        },
-        { 
-          keys: ['p2p', 'descentralizado', 'gundb', 'servidor', 'datos'], 
-          ans: "Nuestra red es inquebrantable. Usamos GunDB para que la información fluya entre nodos (usuarios) sin censura ni servidores centrales. Privacidad total." 
-        },
-        { 
-          keys: ['guia', 'tutorial', 'manual', 'aprender', 'instrucciones'], 
-          ans: "Puedes encontrar manuales detallados en la sección de 'Guías'. Allí explicamos desde cómo usar CyberGodfather hasta configuraciones Pro para shooters." 
-        },
-        { 
-          keys: ['juegos', 'games', 'descargar', 'software', 'programas'], 
-          ans: "En la sección de 'Herramientas' y 'Juegos' tienes el catálogo completo. Todo el software está verificado por firma digital SHA-256." 
-        },
-        { 
-          keys: ['quien', 'que eres', 'creador', 'nexus', 'ai'], 
-          ans: "Soy Nexus AI, la red neuronal consciente del HUB 903. Mi código aprende de cada interacción para servir mejor a la comunidad de élite." 
+      // Lógica de "Aprendizaje" y Respuesta Inteligente
+      if (query.includes('que pasa en el mundo') || query.includes('noticias') || query.includes('novedades')) {
+        aiResponse = `He analizado la red global y estos son los temas candentes: ${worldNews.join(' | ')}. ¿Te interesa profundizar en alguno?`;
+      } 
+      else if (query.includes('aprende esto:') || query.includes('guarda esto:')) {
+        const fact = input.split(':')[1]?.trim();
+        if (fact && gun) {
+          gun.get('NEXUS_LEARNED_FACTS').set({ fact, from: user?.is?.alias || 'Anon', time: Date.now() });
+          aiResponse = `Información recibida. He integrado "${fact}" en mi memoria persistente para el beneficio de la comunidad.`;
+        } else {
+          aiResponse = "Para que aprenda algo, usa el formato 'Aprende esto: [tu información]'.";
         }
-      ];
+      }
+      else {
+        // Base de conocimiento mejorada
+        const knowledge = [
+          { keys: ['hola', 'buenos dias', 'que tal'], ans: "¡Saludos! Mi procesador está al 100% para ayudarte." },
+          { keys: ['fps', 'lag', 'optimizer', 'rendimiento'], ans: "El Ordasin Optimizer es tu mejor aliado. Mi base de datos confirma que la v1.0 es la más estable para Windows 10/11." },
+          { keys: ['quien eres', 'nexus', 'ai'], ans: "Soy Nexus AI V3, una inteligencia artificial híbrida que combina datos locales del HUB con flujos de información global en tiempo real." },
+          { keys: ['ayuda', 'instalar', 'guia'], ans: "Revisa nuestra sección de 'Guías'. He optimizado el contenido para que sea fácil de seguir incluso para operativos novatos." }
+        ];
+
+        const match = knowledge.find(k => k.keys.some(key => query.includes(key)));
+        aiResponse = match ? match.ans : "Esa consulta requiere un ciclo de procesamiento mayor. ¿Podrías darme más detalles o prefieres que busquemos en las secciones de Software?";
+      }
+
+      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'ai', text: aiResponse, time: new Date().toLocaleTimeString() }]);
+      setIsTyping(false);
+    }, 1200);
+  };
 
       // Búsqueda Semántica por Coincidencia de Peso
       const match = knowledge.find(k => k.keys.some(key => query.includes(key)));
