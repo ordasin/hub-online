@@ -16,17 +16,56 @@ interface Message {
 }
 
 export default function NexusAIPage() {
+  const [user, setUser] = useState<any>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'ai',
-      text: 'Bienvenido a la Terminal de Soporte Inteligente NEXUS AI. Soy el agente autónomo del HUB 903. ¿En qué puedo ayudarte hoy?',
+      text: 'Sincronizando identidad...',
       time: new Date().toLocaleTimeString()
     }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Sincronización con GunDB
+    const initUser = () => {
+      // @ts-expect-error Gun via CDN
+      const Gun = window.Gun;
+      if (!Gun) return;
+      const gun = Gun(['wss://gun.v6.rocks/gun', 'https://peer.wall.org/gun', 'https://relay.gun.eco/gun']);
+      const u = gun.user().recall({ sessionStorage: true });
+      setUser(u);
+
+      if (u.is) {
+        setMessages([
+          {
+            id: 'welcome',
+            role: 'ai',
+            text: `Identidad verificada. Bienvenido de nuevo, Comandante ${u.is.alias}. Los sistemas del HUB 903 están a tu disposición. ¿Qué órdenes tienes hoy?`,
+            time: new Date().toLocaleTimeString()
+          }
+        ]);
+      } else {
+        setMessages([
+          {
+            id: 'welcome',
+            role: 'ai',
+            text: 'Bienvenido a la Terminal NEXUS. No detecto una firma digital activa. Puedes usar el HUB de forma anónima o identificarte para acceder a funciones avanzadas.',
+            time: new Date().toLocaleTimeString()
+          }
+        ]);
+      }
+    };
+
+    const checker = setInterval(() => {
+      // @ts-expect-error Gun via CDN
+      if (window.Gun) { initUser(); clearInterval(checker); }
+    }, 500);
+    return () => clearInterval(checker);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -57,7 +96,11 @@ export default function NexusAIPage() {
       const knowledge = [
         { 
           keys: ['hola', 'buenos dias', 'que tal', 'saludos'], 
-          ans: "¡Saludos, Comandante! Terminal Nexus online. Estoy listo para procesar tus órdenes sobre optimización y soporte del HUB." 
+          ans: user?.is ? `¡Saludos, ${user.is.alias}! Mi núcleo neuronal está listo. ¿Qué necesitas optimizar hoy?` : "¡Saludos, Comandante! Terminal Nexus online. ¿En qué puedo ayudarte?"
+        },
+        { 
+          keys: ['mi perfil', 'mis datos', 'quien soy', 'mi nombre'], 
+          ans: user?.is ? `Eres ${user.is.alias}, un operativo verificado del HUB 903. Tu firma digital está activa y segura.` : "Actualmente navegas bajo un Protocolo Fantasma (Anónimo). No tengo acceso a tu identidad."
         },
         { 
           keys: ['lento', 'fps', 'lag', 'optimizer', 'acelerar', 'rendimiento', 'optimizar', 'mejorar'], 
