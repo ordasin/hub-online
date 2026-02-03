@@ -24,35 +24,14 @@ export default function NexusAIPage() {
   const [thinkingProcess, setThinkingProcess] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // BASE DE CONOCIMIENTO EXPANDIDA (Cerebro Local)
-  const AI_BRAIN: any = {
-    tech: {
-      optimizer: "El **Ordasin Optimizer v1.0** es un motor de optimización de kernel. Modifica el BCD y los registros de latencia de Windows para priorizar procesos de juegos. Se recomienda ejecución con privilegios de Administrador.",
-      p2p: "Operamos sobre una malla de GunDB. Esto significa que no hay un servidor central; cada usuario es una parte de la red, garantizando un anonimato del 100%.",
-      seguridad: "El Escudo V12 utiliza una trampa de debugger para detectar si alguien intenta inspeccionar el código. Si abres la consola, el sistema te marca como operativo no autorizado."
-    },
-    general: {
-      hola: "¡Saludos! Soy Nexus AI, la inteligencia central del HUB 903. Mi núcleo está operando al 100%. ¿Qué protocolos ejecutamos?",
-      quien: "Soy un asistente de inteligencia híbrida diseñado para maximizar tu rendimiento digital y proteger tu privacidad.",
-      sabiduria: "El conocimiento es poder, pero la optimización es la clave del dominio digital."
-    },
-    commands: {
-      si: "Protocolo confirmado. Procediendo con la siguiente fase.",
-      no: "Entendido. Abortando secuencia. Esperando nuevas órdenes.",
-      vale: "Afirmativo. Mi sistema está listo para el siguiente comando.",
-      gracias: "De nada, operativo. Es un honor servir al HUB 903."
-    }
-  };
-
   useEffect(() => {
-    // Simulación de carga de sinapsis (Instantánea y sin errores de red)
     const timer = setTimeout(() => {
       setIsLoaded(true);
       setStatus('Online');
       setMessages([{
         id: 'welcome',
         role: 'ai',
-        text: '[Neural Core V12 Online] Bienvenido a la terminal de inteligencia absoluta. He sincronizado mi base de datos local. Puedo ayudarte con optimización, seguridad, dudas técnicas o cualquier consulta general. ¿Por dónde empezamos?',
+        text: '[Neural Core V12 Online] Bienvenido a la terminal de inteligencia absoluta. He sincronizado mi base de datos global. Puedo ayudarte con optimización, seguridad, dudas técnicas o cualquier consulta general. ¿Por dónde empezamos?',
         time: new Date().toLocaleTimeString()
       }]);
     }, 1500);
@@ -63,55 +42,45 @@ export default function NexusAIPage() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, isTyping]);
 
-  // MOTOR DE RAZONAMIENTO SEMÁNTICO (Simula una IA real)
-  const solveIntelligence = (input: string) => {
-    const q = input.toLowerCase();
-    const words = q.split(/[\s,?!.]+/);
-    
-    // 1. Respuestas de sistema (prioritarias)
-    if (words.some(w => ['hola', 'hey', 'saludos', 'buenos'].includes(w))) return AI_BRAIN.general.hola;
-    if (words.some(w => ['optimizer', 'fps', 'acelerar', 'lento'].includes(w))) return AI_BRAIN.tech.optimizer;
-    if (words.some(w => ['seguridad', 'hack', 'hacker', 'ataque', 'trap'].includes(w))) return AI_BRAIN.tech.seguridad;
-    if (words.some(w => ['p2p', 'descentralizado', 'gundb'].includes(w))) return AI_BRAIN.tech.p2p;
-    if (words.some(w => ['quien', 'que', 'nexus', 'ai'].includes(w))) return AI_BRAIN.general.quien;
-    
-    // 2. Respuestas de flujo (si, no, vale)
-    if (words.some(w => ['si', 'afirmativo', 'claro'].includes(w))) return AI_BRAIN.commands.si;
-    if (words.some(w => ['no', 'negativo', 'para nada'].includes(w))) return AI_BRAIN.commands.no;
-    if (words.some(w => ['vale', 'ok', 'okay'].includes(w))) return AI_BRAIN.commands.vale;
-    if (words.some(w => ['gracias', 'perfecto'].includes(w))) return AI_BRAIN.commands.gracias;
-
-    // 3. Generación de respuesta dinámica para temas desconocidos
-    return `He analizado tu comando ("${input}") y aunque no coincide con mi base de datos de prioridad, mi red neuronal sugiere que explores la sección de **Software** o consultes nuestras **Guías Pro**. ¿Quieres que te hable sobre el **Optimizer**?`;
-  };
-
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
 
     const userText = input;
-    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', text: userText, time: new Date().toLocaleTimeString() }]);
+    const newMessage: Message = { id: Date.now().toString(), role: 'user', text: userText, time: new Date().toLocaleTimeString() };
+    
+    setMessages(prev => [...prev, newMessage]);
     setInput('');
     setIsTyping(true);
+    setThinkingProcess('Analizando intención...');
 
-    // Simulación de "Pensamiento Profundo"
-    const stages = ["Analizando intención...", "Consultando red neuronal...", "Formateando respuesta..."];
-    let i = 0;
-    const thinkingInterval = setInterval(() => {
-      setThinkingProcess(stages[i]);
-      i++;
-      if (i >= stages.length) {
-        clearInterval(thinkingInterval);
-        const response = solveIntelligence(userText);
-        setMessages(prev => [...prev, {
-          id: (Date.now() + 1).toString(),
-          role: 'ai',
-          text: response,
-          time: new Date().toLocaleTimeString()
-        }]);
-        setIsTyping(false);
-        setThinkingProcess('');
-      }
-    }, 400);
+    try {
+      const response = await fetch('/api/nexus-ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...messages, newMessage] }),
+      });
+
+      if (!response.ok) throw new Error('Falló la conexión neuronal.');
+
+      const data = await response.json();
+      
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        text: data.text,
+        time: new Date().toLocaleTimeString()
+      }]);
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        text: 'Error en la conexión con el núcleo. Por favor, reintenta la secuencia.',
+        time: new Date().toLocaleTimeString()
+      }]);
+    } finally {
+      setIsTyping(false);
+      setThinkingProcess('');
+    }
   };
 
   return (
@@ -123,7 +92,7 @@ export default function NexusAIPage() {
             <div className="w-24 h-24 bg-purple-600 rounded-3xl flex items-center justify-center animate-pulse mb-8 shadow-[0_0_60px_rgba(147,51,234,0.5)]">
               <Brain size={48} />
             </div>
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2">Desplegando Inteligencia Local</h2>
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2">Desplegando Inteligencia Real</h2>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-8">{status}</p>
             <div className="w-64 h-1 bg-white/5 rounded-full overflow-hidden border border-white/10">
               <motion.div className="h-full bg-gradient-to-r from-purple-600 to-blue-500" initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5 }} />
@@ -141,15 +110,15 @@ export default function NexusAIPage() {
               <h1 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Nexus <span className="text-purple-500">AI</span></h1>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                  <Activity size={10} className="text-purple-500" /> Neural Engine: Local Core V12
+                  <Activity size={10} className="text-purple-500" /> Neural Engine: Global Cloud V15
                 </span>
               </div>
             </div>
           </div>
           <div className="hidden md:flex gap-8 opacity-30 text-[8px] font-black uppercase tracking-[0.2em]">
-             <span className="flex items-center gap-2"><ShieldCheck size={12}/> Secure Data</span>
-             <span className="flex items-center gap-2"><Globe size={12}/> 100% Offline</span>
-             <span className="flex items-center gap-2"><Cpu size={12}/> Zero Latency</span>
+             <span className="flex items-center gap-2"><ShieldCheck size={12}/> AI Cloud</span>
+             <span className="flex items-center gap-2"><Globe size={12}/> Global Sync</span>
+             <span className="flex items-center gap-2"><Cpu size={12}/> Real-time Brain</span>
           </div>
         </header>
 
