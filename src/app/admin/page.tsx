@@ -43,7 +43,18 @@ export default function AdminPage() {
           try {
             const ntfyData = JSON.parse(line);
             if (ntfyData.message) {
-              const logData = JSON.parse(ntfyData.message);
+              let logData;
+              try {
+                logData = JSON.parse(ntfyData.message);
+                if (!logData.id) logData.id = 'H_' + ntfyData.id;
+              } catch {
+                logData = { 
+                  id: 'H_' + ntfyData.id, 
+                  type: 'LEGACY_ALERT', 
+                  time: ntfyData.time * 1000 || Date.now(), 
+                  details: ntfyData.message 
+                };
+              }
               history.push(logData);
             }
           } catch {}
@@ -188,10 +199,21 @@ export default function AdminPage() {
   };
 
   const simulateAttack = async () => {
-    const testLog = { id: 'TEST'+Date.now(), type: 'TEST', time: Date.now(), details: 'ALERTA DE PRUEBA MANUAL' };
+    const testLog = { 
+      id: 'TEST'+Date.now(), 
+      type: 'TEST_ALERT', 
+      time: Date.now(), 
+      details: 'ALERTA DE PRUEBA MANUAL DESDE PANEL' 
+    };
     await fetch('https://ntfy.sh/ordasin_security_v10', { 
       method: 'POST', 
-      body: JSON.stringify(testLog)
+      body: JSON.stringify(testLog),
+      headers: {
+        'Title': '🛠️ MANUAL TEST',
+        'Priority': '4',
+        'Tags': 'gear,test_tube',
+        'Content-Type': 'application/json'
+      }
     });
     toast.info("Simulación enviada");
   };
