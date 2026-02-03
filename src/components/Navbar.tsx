@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Shield, User, LogOut, Menu, X, LayoutDashboard } from 'lucide-react'
+import { Shield, User, LogOut, Menu, X, LayoutDashboard, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 
