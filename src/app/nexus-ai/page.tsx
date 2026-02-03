@@ -31,19 +31,22 @@ export default function NexusAIPage() {
     const loadAI = async () => {
       setStatus('Descargando Núcleo Neuronal (Cerebro Real)...');
       try {
-        // Importación dinámica para evitar problemas de SSR en Next.js
+        // Importación dinámica
         const { pipeline, env } = await import('@xenova/transformers');
         
-        // Configuración para ejecución en navegador
+        // Configuración crítica para entorno web
         env.allowLocalModels = false;
+        env.useBrowserCache = true;
         
-        // Cargamos un modelo ligero pero inteligente (LaMini-GPT-124M)
-        // Este modelo es real y puede razonar sobre casi cualquier tema.
-        const generator = await pipeline('text-generation', 'Xenova/LaMini-GPT-124M', {
+        // Cargamos un modelo ultra-ligero para máxima compatibilidad (SmolLM-135M)
+        // Es muy inteligente y pesa muy poco, ideal para navegadores.
+        const generator = await pipeline('text-generation', 'Xenova/SmolLM-135M-Instruct', {
           progress_callback: (data: any) => {
             if (data.status === 'progress') {
               setProgress(Math.round(data.progress));
-              setStatus(`Sincronizando Sinapsis: ${Math.round(data.progress)}%`);
+              setStatus(`Descargando inteligencia: ${Math.round(data.progress)}%`);
+            } else if (data.status === 'done') {
+              setStatus('Inicializando conexiones sinápticas...');
             }
           }
         });
@@ -55,12 +58,12 @@ export default function NexusAIPage() {
         setMessages([{
           id: 'welcome',
           role: 'ai',
-          text: 'Conexión Neuronal Establecida. He cargado mi base de datos de conocimiento universal. Puedes preguntarme sobre programación, ciencia, el HUB o cualquier duda que tengas. ¿Por dónde empezamos?',
+          text: 'Conexión Neuronal V6 Establecida. Mi núcleo SmolLM está operativo. ¿Qué deseas consultar?',
           time: new Date().toLocaleTimeString()
         }]);
-      } catch (err) {
-        console.error(err);
-        setStatus('Error crítico en el despliegue del núcleo.');
+      } catch (err: any) {
+        console.error("AI LOAD ERROR:", err);
+        setStatus(`Error Crítico: ${err.message || 'Fallo de conexión con el núcleo'}`);
       }
     };
 
