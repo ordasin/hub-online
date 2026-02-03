@@ -78,7 +78,7 @@ export default function LoginPage() {
         details: `Bot detectado en Login. Payload: "${honeypot}"` 
       };
 
-      fetch('https://ntfy.sh/ordasin_security_v10', {
+      fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
         method: 'POST',
         body: JSON.stringify(payload),
         keepalive: true

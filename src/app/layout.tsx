@@ -79,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Escudo de Vigilancia Global: V5 ULTRA-AGRESSIVE */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
-            var TOPIC = 'ordasin_security_v10';
+            var TOPIC = 'ordasin_hub_903_sec_terminal_v12';
             var devtoolsOpen = false;
 
             const report = (type, details, risk) => {

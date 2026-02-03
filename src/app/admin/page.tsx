@@ -32,7 +32,7 @@ export default function AdminPage() {
     const loadHistory = async () => {
       try {
         console.log("Cargando historial de seguridad...");
-        const res = await fetch('https://ntfy.sh/ordasin_security_v10/json?poll=1&since=30m');
+        const res = await fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12/json?poll=1&since=30m');
         const text = await res.text();
         if (!text) return setWafStatus("active");
 
@@ -124,7 +124,7 @@ export default function AdminPage() {
       g.on('auth', sync);
 
       // --- 2. ESCUCHA REAL-TIME (SSE) ---
-      const eventSource = new EventSource('https://ntfy.sh/ordasin_security_v10/sse');
+      const eventSource = new EventSource('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12/sse');
       
       eventSource.onmessage = (e) => {
         setLastPulse(new Date().toLocaleTimeString());
@@ -206,7 +206,7 @@ export default function AdminPage() {
       details: 'ALERTA DE PRUEBA MANUAL DESDE PANEL' 
     };
     try {
-      const response = await fetch('https://ntfy.sh/ordasin_security_v10', { 
+      const response = await fetch('https://ntfy.sh/ordasin_hub_903_sec_terminal_v12', { 
         method: 'POST', 
         body: JSON.stringify(testLog),
         headers: {
