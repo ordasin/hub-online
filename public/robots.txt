@@ -1,3 +1,10 @@
 User-agent: *
 Allow: /
+
+# Prohibir rastreo de zonas administrativas y trampas
+Disallow: /admin/
+Disallow: /trap/
+Disallow: /root-access/
+Disallow: /api/
+
 Sitemap: https://developer903.com/sitemap.xml
