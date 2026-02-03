@@ -36,17 +36,14 @@ export default function NexusAIPage() {
       
       if (!pipeline) throw new Error("Motor no detectado.");
 
-      // Configuración Robusta: Evitamos errores de replaceAll asegurando las rutas
+      // Configuración de Máxima Estabilidad
       env.allowLocalModels = false;
       env.useBrowserCache = true;
-      env.remoteHost = 'https://huggingface.co';
-      env.remotePathTemplate = '{model}/resolve/{revision}/';
 
-      setStatus('Cargando Núcleo Inteligente (SmolLM-135M)...');
+      setStatus('Desplegando Inteligencia Base (GPT-2)...');
       
-      // Usamos el modelo oficial de la comunidad ONNX
-      const generator = await pipeline('text-generation', 'onnx-community/SmolLM-135M-Instruct', {
-        revision: 'main',
+      // Usamos el modelo más probado y abierto para evitar errores de acceso
+      const generator = await pipeline('text-generation', 'Xenova/gpt2', {
         progress_callback: (data: any) => {
           if (data.status === 'progress') setProgress(Math.round(data.progress));
         }
