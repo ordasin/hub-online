@@ -103,17 +103,22 @@ export default function NexusAIPage() {
           aiResponse = "Para que aprenda algo, usa el formato 'Aprende esto: [tu información]'.";
         }
       }
-      // 3. BASE DE CONOCIMIENTO SEMÁNTICA
+      // 3. BASE DE CONOCIMIENTO SEMÁNTICA (Mejorada para respuestas cortas)
       else {
         const knowledge = [
-          { keys: ['hola', 'buenos dias', 'que tal'], ans: user?.is ? `¡Saludos, ${user.is.alias}! Mi núcleo neuronal está listo. ¿Qué necesitas optimizar hoy?` : "¡Saludos, Comandante! Terminal Nexus online. ¿En qué puedo ayudarte?" },
-          { keys: ['fps', 'lag', 'optimizer', 'rendimiento'], ans: "El Ordasin Optimizer es tu mejor aliado. Mi base de datos confirma que la v1.0 es la más estable para Windows 10/11." },
+          { keys: ['si', 'sì', 'vale', 'ok', 'okay', 'afirmativo', 'claro', 'procede'], ans: "Entendido. Mi núcleo está listo. ¿Quieres que optimicemos el sistema o prefieres que te hable de las últimas noticias?" },
+          { keys: ['no', 'nones', 'negativo', 'para nada'], ans: "Recibido. Abortando proceso. ¿En qué otra tarea puedo asistirte hoy?" },
+          { keys: ['hola', 'buenos dias', 'que tal', 'hey'], ans: user?.is ? `¡Saludos, ${user.is.alias}! Mi núcleo neuronal está listo. ¿Qué necesitas optimizar hoy?` : "¡Saludos, Comandante! Terminal Nexus online. ¿En qué puedo ayudarte?" },
+          { keys: ['fps', 'lag', 'optimizer', 'rendimiento', 'lento'], ans: "Detecto una solicitud de alto rendimiento. El Ordasin Optimizer v1.0 es el protocolo recomendado. ¿Deseas descargarlo?" },
           { keys: ['quien eres', 'nexus', 'ai'], ans: "Soy Nexus AI V3, una inteligencia artificial híbrida que combina datos locales del HUB con flujos de información global en tiempo real." },
           { keys: ['ayuda', 'instalar', 'guia'], ans: "Revisa nuestra sección de 'Guías'. He optimizado el contenido para que sea fácil de seguir incluso para operativos novatos." },
           { keys: ['seguridad', 'hack', 'hacker', 'trap'], ans: "El HUB 903 está protegido por el Escudo V12. Usamos vigilancia activa vía debugger y trampas invisibles." }
         ];
 
-        const match = knowledge.find(k => k.keys.some(key => query.includes(key)));
+        // Tokenización: Dividimos la frase en palabras sueltas para encontrar "si" o "no" exactos
+        const words = query.split(/[\s,?!.]+/);
+        const match = knowledge.find(k => k.keys.some(key => words.includes(key)));
+        
         aiResponse = match ? match.ans : "Esa consulta requiere un ciclo de procesamiento mayor. He registrado el término para mi próximo ciclo de aprendizaje neuronal. ¿Te gustaría explorar el Optimizador?";
       }
 
