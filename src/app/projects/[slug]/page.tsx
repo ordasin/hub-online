@@ -4,9 +4,30 @@ import { Download, Calendar, ShieldCheck, Zap, ArrowLeft, Globe, Cpu } from "luc
 import Link from "next/link"
 import Image from "next/image"
 import { Feedback } from "@/components/Feedback"
+import { Metadata } from "next"
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const project = projects.find((p) => p.slug === slug)
+  
+  if (!project) return {}
+
+  return {
+    title: `${project.title} | HUB 903 Software Hub`,
+    description: project.description,
+    alternates: {
+      canonical: `/projects/${project.slug}/`,
+    },
+    openGraph: {
+      title: `${project.title} - Descarga Segura`,
+      description: project.description,
+      images: project.images?.[0] ? [{ url: project.images[0] }] : [],
+    }
+  }
 }
 
 export async function generateStaticParams() {
