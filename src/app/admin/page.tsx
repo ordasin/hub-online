@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Shield, Activity, Package, Wifi, AlertTriangle, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
-const MASTER_PUB = "6mwMzGdVuCtE-sd_7_5RJ5AUeEbA-i3JwZ0UjiaxAtE.KH6lWH55LxsAE2D7ZBQQKlJgod5hqIHzwcoJ25gjqHo";
+const MASTER_PUB = "dBKNRXE1yo8Y_aOIHzYCPlPy0XGNRwaYqzayh84rPHI.qMx47jyMt48MOZU_gGCju5r2jEktcWT4tIydRRKPAc8";
 const PEERS = [
   'https://gun-manhattan.herokuapp.com/gun',
   'wss://gun-us.herokuapp.com/gun',
