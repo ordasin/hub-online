@@ -55,10 +55,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src="https://unpkg.com/gun/sea.js" 
           strategy="beforeInteractive"
         />
-        <script 
-          async 
+        <Script
+          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2972878094518801"
           crossOrigin="anonymous"
+          strategy="afterInteractive"
         />
         <Script 
           src="https://cdn.jsdelivr.net/npm/nostr-tools@1.17.0/lib/nostr.bundle.min.js" 
@@ -130,16 +131,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               }).catch(function() {});
             };
 
-            // 1. Detección por Debugger (El método más letal)
+            // 1. Detección por Debugger (El método más letal) - DESACTIVADO PARA GOOGLE
             // Si la consola está abierta, el debugger pausa el hilo y el tiempo vuela.
-            setInterval(function() {
-              var startTime = performance.now();
-              debugger;
-              var endTime = performance.now();
-              if (endTime - startTime > 100) {
-                report('DEVTOOLS_ACTIVE_DEBUGGER', 'Consola abierta detectada por latencia de ejecución', 'CRITICAL');
-              }
-            }, 2000);
+            if (!isGoogle) {
+              setInterval(function() {
+                var startTime = performance.now();
+                debugger;
+                var endTime = performance.now();
+                if (endTime - startTime > 100) {
+                  report('DEVTOOLS_ACTIVE_DEBUGGER', 'Consola abierta detectada por latencia de ejecución', 'CRITICAL');
+                }
+              }, 2000);
+            }
 
             // 2. Detección por Clic Derecho (Intento de Inspección)
             window.addEventListener('contextmenu', function(e) {
