@@ -56,6 +56,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="beforeInteractive"
         />
         <Script 
+          async 
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2972878094518801"
+          crossorigin="anonymous"
+          strategy="afterInteractive"
+        />
+        <Script 
           src="https://cdn.jsdelivr.net/npm/nostr-tools@1.17.0/lib/nostr.bundle.min.js" 
           strategy="lazyOnload"
         />
