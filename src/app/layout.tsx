@@ -55,11 +55,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src="https://unpkg.com/gun/sea.js" 
           strategy="beforeInteractive"
         />
-        <Script 
+        <script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2972878094518801"
-          crossorigin="anonymous"
-          strategy="afterInteractive"
+          crossOrigin="anonymous"
         />
         <Script 
           src="https://cdn.jsdelivr.net/npm/nostr-tools@1.17.0/lib/nostr.bundle.min.js" 
@@ -161,10 +160,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                report('SENSITIVE_PATH_HIT', 'Escaneo de directorio: ' + path, 'CRITICAL');
             }
 
-            // 5. Detección de Hacking Tools via UserAgent
+            // 5. Detección de Hacking Tools via UserAgent (Excluyendo Google Crawlers)
             var ua = navigator.userAgent.toLowerCase();
+            var isGoogle = /googlebot|mediapartners-google|adsbot-google/i.test(ua);
             var tools = ['sqlmap', 'nmap', 'nikto', 'burpsuite', 'python-requests', 'node-fetch', 'go-http-client', 'curl/', 'wget', 'headless', 'puppeteer', 'selenium'];
-            if (tools.some(function(t) { return ua.indexOf(t) !== -1; })) {
+            if (!isGoogle && tools.some(function(t) { return ua.indexOf(t) !== -1; })) {
               report('MALICIOUS_USER_AGENT', 'Herramienta automatizada: ' + navigator.userAgent, 'CRITICAL');
               window.location.href = '/trap';
             }
